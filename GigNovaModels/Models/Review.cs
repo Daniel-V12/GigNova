@@ -1,0 +1,58 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace GigNovaModels.Models
+{
+    public class Review
+    {
+        string review_id;
+        int review_rating;
+        string review_comment;
+        string review_creation_date;
+        int buyer_id;
+        int seller_id;
+        int gig_id;
+
+        public string Review_id
+        {
+            get { return review_id; }
+            set { review_id = value; }
+        }
+        [Required(ErrorMessage = "Review rating is required")]
+        [IsDigit(ErrorMessage = "Must be a number only")]
+        public int review_rating
+        {
+            get { return review_rating; }
+            set { review_rating = value; }
+        }
+        [Required(ErrorMessage = "Review comment is required")]
+        public string review_comment
+        {
+            get { return review_comment; }
+            set { review_comment = value; }
+        }
+        public string review_creation_date
+        {
+            get { return review_creation_date; }
+            set { review_creation_date = value; }
+        }
+        public int buyer_id
+        {
+            get { return buyer_id; }
+            set { buyer_id = value; }
+        }
+        public int seller_id
+        {
+            get { return seller_id; }
+            set { seller_id = value; }
+        }
+        public int gig_id
+        {
+            get { return gig_id; }
+            set { gig_id = value; }
+        }
+    }
+}

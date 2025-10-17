@@ -1,14 +1,14 @@
-﻿using System;
+﻿using GigNovaModels.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GigNovaModels
+namespace GigNovaModels.ViewModels
 {
-    public class GigCatalogViewModel
+    public class HomeViewModel
     {
-        public List<Gig> Gigs { get; set; }
         public List<Category> Categories { get; set; }
     }
 }

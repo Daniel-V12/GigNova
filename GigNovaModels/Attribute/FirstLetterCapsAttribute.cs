@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GigNovaModels
+namespace GigNovaModels.Attribute
 {
-    internal class FirstLetterCapsAttribute : ValidationAttribute
+    public class FirstLetterCapsAttribute : ValidationAttribute
     {
-        public override bool IsValid(object? value)
+        public override bool IsValid(object value)
         {
             string word = value.ToString();
             char firstLetter = word[0];
