@@ -34,6 +34,7 @@ namespace GigNovaTesting
 
         static async Task CurrencyList(string from = "USD", string to = "ILS", string amount = "100")
         {
+            //cw
             //Console.Write(">>> Insert Currency from: ");
             //string from = Console.ReadLine();
             //Console.Write(">>> Insert Currency to: ");
