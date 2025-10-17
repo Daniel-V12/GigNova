@@ -10,6 +10,7 @@ namespace GigNovaModels.Models
 {
     public class Category
     {
+
         string category_id;
         string category_name;
         string category_photo;

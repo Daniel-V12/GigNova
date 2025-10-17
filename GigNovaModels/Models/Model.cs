@@ -12,6 +12,7 @@ namespace GigNovaModels
 {
     public abstract class Model : INotifyDataErrorInfo
     {
+
         private Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
         public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
         private object threadLock = new object();

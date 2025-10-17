@@ -8,6 +8,7 @@ namespace GigNovaModels.Models
 {
     public class Order:Model
     {
+
         string order_id;
         int order_status_id;
         string order_requirements;

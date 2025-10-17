@@ -10,6 +10,7 @@ namespace GigNovaModels.Models
 {
     public class Gig:Model 
     {
+
         string gig_id;
         string gig_name;
         string gig_description;

@@ -10,6 +10,7 @@ namespace GigNovaModels.Models
 {
     public class Seller
     {
+
         string seller_id;
         string seller_description;
         string seller_display_name;

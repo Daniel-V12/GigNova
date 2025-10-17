@@ -9,6 +9,7 @@ namespace GigNovaModels.Models
 {
     public class Message
     {
+
         string message_id;
         int sender_id;
         int reciever_id;
