@@ -32,14 +32,14 @@ namespace GigNovaTesting
             else { Console.WriteLine("There was no errors found"); }
         }
 
-        static async Task CurrencyList()
+        static async Task CurrencyList(string from = "USD", string to = "ILS", string amount = "100")
         {
-            Console.Write(">>> Insert Currency from: ");
-            string from = Console.ReadLine();
-            Console.Write(">>> Insert Currency to: ");
-            string to = Console.ReadLine();
-            Console.Write(">>> Insert Amount: ");
-            string amount = Console.ReadLine();
+            //Console.Write(">>> Insert Currency from: ");
+            //string from = Console.ReadLine();
+            //Console.Write(">>> Insert Currency to: ");
+            //string to = Console.ReadLine();
+            //Console.Write(">>> Insert Amount: ");
+            //string amount = Console.ReadLine();
 
             var client = new HttpClient();
             var request = new HttpRequestMessage
