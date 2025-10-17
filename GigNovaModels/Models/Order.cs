@@ -28,7 +28,7 @@ namespace GigNovaModels.Models
             get { return order_status_id; }
             set { order_status_id = value; }
         }
-        public int Order_requirements
+        public string Order_requirements
         {
             get { return order_requirements; }
             set { order_requirements = value; }
@@ -40,7 +40,7 @@ namespace GigNovaModels.Models
             set { order_creation_date = value; }
         }
 
-        public string Gig_id
+        public int Gig_id
         {
             get { return gig_id; }
             set { gig_id = value; }
@@ -58,7 +58,7 @@ namespace GigNovaModels.Models
             set { seller_id = value; }
         }
 
-        public int Is_payment
+        public bool Is_payment
         {
             get { return is_payment; }
             set { is_payment = value; }

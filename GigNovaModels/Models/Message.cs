@@ -21,12 +21,12 @@ namespace GigNovaModels.Models
             get { return message_id; }
             set { message_id = value; }
         }
-        public int sender_id
+        public int Sender_id
         {
             get { return sender_id; }
             set { sender_id = value; }
         }
-        public int reciever_id
+        public int Reciever_id
         {
             get { return reciever_id; }
             set { reciever_id = value; }

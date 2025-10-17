@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GigNovaModels.Attribute;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -67,7 +68,7 @@ namespace GigNovaModels.Models
         }
 
         [Required(ErrorMessage = "Gig price is required")]
-        [IsDigit(ErrorMessage = "Must be a number only")]
+        [IsDigits(ErrorMessage = "Must be a number only")]
         public double Gig_price
         {
             get { return gig_price; }

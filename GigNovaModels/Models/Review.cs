@@ -1,5 +1,7 @@
-﻿using System;
+﻿using GigNovaModels.Attribute;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,34 +24,34 @@ namespace GigNovaModels.Models
             set { review_id = value; }
         }
         [Required(ErrorMessage = "Review rating is required")]
-        [IsDigit(ErrorMessage = "Must be a number only")]
-        public int review_rating
+        [IsDigits(ErrorMessage = "Must be a number only")]
+        public int Review_rating
         {
             get { return review_rating; }
             set { review_rating = value; }
         }
         [Required(ErrorMessage = "Review comment is required")]
-        public string review_comment
+        public string Review_comment
         {
             get { return review_comment; }
             set { review_comment = value; }
         }
-        public string review_creation_date
+        public string Review_creation_date
         {
             get { return review_creation_date; }
             set { review_creation_date = value; }
         }
-        public int buyer_id
+        public int Buyer_id
         {
             get { return buyer_id; }
             set { buyer_id = value; }
         }
-        public int seller_id
+        public int Seller_id
         {
             get { return seller_id; }
             set { seller_id = value; }
         }
-        public int gig_id
+        public int Gig_id
         {
             get { return gig_id; }
             set { gig_id = value; }

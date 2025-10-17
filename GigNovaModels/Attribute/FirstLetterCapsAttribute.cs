@@ -9,7 +9,7 @@ namespace GigNovaModels.Attribute
 {
     public class FirstLetterCapsAttribute : ValidationAttribute
     {
-        public override bool IsValid(object value)
+        public override bool IsValid(object? value)
         {
             string word = value.ToString();
             char firstLetter = word[0];

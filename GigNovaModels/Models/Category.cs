@@ -1,5 +1,7 @@
-﻿using System;
+﻿using GigNovaModels.Attribute;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,7 +30,7 @@ namespace GigNovaModels.Models
         public string Category_photo
         {
             get { return category_photo; }
-            set { gig_id = value; }
+            set { category_photo = value; }
         }
     }
 }
