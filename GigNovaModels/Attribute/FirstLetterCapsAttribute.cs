@@ -19,12 +19,15 @@ namespace GigNovaModels.Attribute
             }
             for (int i = 1; i < word.Length; i++)
             {
-                if (word[i] < 'a' || word[i] > 'z')
+                if (word[i] != ' ')
                 {
-                    return false;
+                    if (word[i] < 'a' || word[i] > 'z')
+                    {
+                        return false;
+                    }
                 }
-                return true;
             }
+            return true;
         }
     }
 }

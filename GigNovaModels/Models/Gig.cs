@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Gig
+    public class Gig:Model 
     {
         string gig_id;
         string gig_name;
@@ -35,25 +35,27 @@ namespace GigNovaModels.Models
         public string Gig_name
         {
             get { return gig_name; }
-            set { gig_name = value; }
+            set { gig_name = value;
+                ValidateProperty(value, "Gig_name");
+            }
         }
         [Required(ErrorMessage = "Gig description is required")]
         [StringLength(20, MinimumLength = 2, ErrorMessage = "Gig description must be no longer than 250 characters and no less than 2")]
         public string Gig_description
         {
             get { return gig_description; }
-            set { gig_description = value; }
+            set { gig_description = value; ValidateProperty(value, "Gig_description"); }
         }
         [Required(ErrorMessage = "Gig delivery time is required")]
         public int Gig_delivery_time
         {
             get { return gig_delivery_time; }
-            set { gig_delivery_time = value; }
+            set { gig_delivery_time = value; ValidateProperty(value, "Gig_delivery_time"); }
         }
         public string Gig_date
         {
             get { return gig_date; }
-            set { gig_date = value; }
+            set { gig_date = value; ValidateProperty(value, "Gig_date"); }
         }
         [Required(ErrorMessage = "Language is required")]
         public int Language_id
@@ -64,7 +66,7 @@ namespace GigNovaModels.Models
         public string Gig_photo
         {
             get { return gig_photo; }
-            set { gig_photo = value; }
+            set { gig_photo = value; ValidateProperty(value, "Gig_photo"); }
         }
 
         [Required(ErrorMessage = "Gig price is required")]
@@ -72,7 +74,7 @@ namespace GigNovaModels.Models
         public double Gig_price
         {
             get { return gig_price; }
-            set { gig_price = value; }
+            set { gig_price = value; ValidateProperty(value, "Gig_price"); }
         }
 
         public int Seller_id
