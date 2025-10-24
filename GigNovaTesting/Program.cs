@@ -1,36 +1,79 @@
 ﻿using GigNovaModels.Models;
 using System.Net.Http.Headers;
-using System.Text.Json; 
+using System.Text.Json;
+using GigNovaWS;
 namespace GigNovaTesting
 {
     internal class Program
     {
+        static void CheckInsert()
+        {
+            Console.WriteLine("Insert Language: ");
+            string language = Console.ReadLine();
+            DbHelperOledb dbHelperOledb = new DbHelperOledb();
+            string sql = $"Insert into Languages (language_name) values ('{language}')";
+            dbHelperOledb.OpenConnection();
+            int c =dbHelperOledb.Insert(sql);
+            dbHelperOledb.CloseConnection();
+            if (c > 0)
+            {
+                Console.WriteLine("Action Successfully Worked!");
+            }
+            else
+            {
+                Console.WriteLine("Action Failed...");
+            }
+        }
+        static void CheckUpdate()
+        {
+            Console.WriteLine("Which Language You Want To Update?: ");
+            string language_id = Console.ReadLine();
+            Console.WriteLine("Write the change: ");
+            string language = Console.ReadLine();
+            DbHelperOledb dbHelperOledb = new DbHelperOledb();
+            string sql = $"UPDATE Languages SET language_name = ('{language}') WHERE language_id = ({language_id});";
+            dbHelperOledb.OpenConnection();
+            int c = dbHelperOledb.Update(sql);
+            dbHelperOledb.CloseConnection();
+            if (c > 0)
+            {
+                Console.WriteLine("Action Successfully Worked!");
+            }
+            else
+            {
+                Console.WriteLine("Action Failed...");
+            }
+        }
         static void Main(string[] args)
         {
-            CurrencyList();
+            //CurrencyList();
+            //Console.ReadLine();
+            //CheckInsert();
+            //Console.ReadLine();
+            CheckUpdate();
             Console.ReadLine();
         }
-        static void TestGig()
-        {
-            Gig gig = new Gig();
-            gig.Gig_id = "1";
-            gig.Gig_description = "faaaaaaaaaaah";
-            gig.Gig_price = 10000000;
-            gig.Gig_name = "Three netherite ingots";
-            if (gig.HasErrors == true)
-            {
-                foreach (KeyValuePair<string, List<string>> keyValuePair in gig.AllErrors())
-                {
-                    Console.WriteLine(keyValuePair.Key);
-                    foreach (string str in keyValuePair.Value)
-                    {
-                        Console.WriteLine($"      {str}");
-                    }
-                    Console.WriteLine("------------------------------------------------------------------------------------------------------------------------");
-                }
-            }
-            else { Console.WriteLine("There was no errors found"); }
-        }
+        //static void TestGig()
+        //{
+        //    Gig gig = new Gig();
+        //    gig.Gig_id = "1";
+        //    gig.Gig_description = "faaaaaaaaaaah";
+        //    gig.Gig_price = 10000000;
+        //    gig.Gig_name = "Three netherite ingots";
+        //    if (gig.HasErrors == true)
+        //    {
+        //        foreach (KeyValuePair<string, List<string>> keyValuePair in gig.AllErrors())
+        //        {
+        //            Console.WriteLine(keyValuePair.Key);
+        //            foreach (string str in keyValuePair.Value)
+        //            {
+        //                Console.WriteLine($"      {str}");
+        //            }
+        //            Console.WriteLine("------------------------------------------------------------------------------------------------------------------------");
+        //        }
+        //    }
+        //    else { Console.WriteLine("There was no errors found"); }
+        //}
 
         static async Task CurrencyList(string from = "USD", string to = "ILS", string amount = "100")
         {
