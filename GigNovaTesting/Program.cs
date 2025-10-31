@@ -2,56 +2,88 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 using GigNovaWS;
+using System.Data;
 namespace GigNovaTesting
 {
     internal class Program
     {
-        static void CheckInsert()
+        //static void CheckInsert()
+        //{
+        //    Console.WriteLine("Insert Language: ");
+        //    string language = Console.ReadLine();
+        //    DbHelperOledb dbHelperOledb = new DbHelperOledb();
+        //    string sql = $"Insert into Languages (language_name) values ('{language}')";
+        //    dbHelperOledb.OpenConnection();
+        //    int c =dbHelperOledb.Insert(sql);
+        //    dbHelperOledb.CloseConnection();
+        //    if (c > 0)
+        //    {
+        //        Console.WriteLine("Action Successfully Worked!");
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Action Failed...");
+        //    }
+        //}
+        //static void CheckUpdate()
+        //{
+        //    Console.WriteLine("Which Language You Want To Update?: ");
+        //    string language_id = Console.ReadLine();
+        //    Console.WriteLine("Write the change: ");
+        //    string language = Console.ReadLine();
+        //    DbHelperOledb dbHelperOledb = new DbHelperOledb();
+        //    string sql = $"UPDATE Languages SET language_name = ('{language}') WHERE language_id = ({language_id});";
+        //    dbHelperOledb.OpenConnection();
+        //    int c = dbHelperOledb.Update(sql);
+        //    dbHelperOledb.CloseConnection();
+        //    if (c > 0)
+        //    {
+        //        Console.WriteLine("Action Successfully Worked!");
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Action Failed...");
+        //    }
+        //}
+
+        static void CheckGigCreator()
         {
-            Console.WriteLine("Insert Language: ");
-            string language = Console.ReadLine();
+            string sql = "Select * from Gigs where gig_id = 5";
             DbHelperOledb dbHelperOledb = new DbHelperOledb();
-            string sql = $"Insert into Languages (language_name) values ('{language}')";
             dbHelperOledb.OpenConnection();
-            int c =dbHelperOledb.Insert(sql);
+            IDataReader datareader = dbHelperOledb.Select(sql);
+            datareader.Read();
+            ModelCreators modelCreators = new ModelCreators();
+            Gig gig = modelCreators.GigCreator.CreateModel(datareader);
             dbHelperOledb.CloseConnection();
-            if (c > 0)
-            {
-                Console.WriteLine("Action Successfully Worked!");
-            }
-            else
-            {
-                Console.WriteLine("Action Failed...");
-            }
+            Console.WriteLine($"{gig.Gig_name} - {gig.Gig_description}");
         }
-        static void CheckUpdate()
+
+        static void CheckOrderCreator()
         {
-            Console.WriteLine("Which Language You Want To Update?: ");
-            string language_id = Console.ReadLine();
-            Console.WriteLine("Write the change: ");
-            string language = Console.ReadLine();
+            string sql = "Select * from Orders where order_id = 1";
             DbHelperOledb dbHelperOledb = new DbHelperOledb();
-            string sql = $"UPDATE Languages SET language_name = ('{language}') WHERE language_id = ({language_id});";
             dbHelperOledb.OpenConnection();
-            int c = dbHelperOledb.Update(sql);
+            IDataReader datareader = dbHelperOledb.Select(sql);
+            datareader.Read();
+            ModelCreators modelCreators = new ModelCreators();
+            Order order = modelCreators.OrderCreator.CreateModel(datareader);
             dbHelperOledb.CloseConnection();
-            if (c > 0)
-            {
-                Console.WriteLine("Action Successfully Worked!");
-            }
-            else
-            {
-                Console.WriteLine("Action Failed...");
-            }
+            Console.WriteLine($"{order.Order_status_id} - {order.Order_requirements}");
         }
+
+
+
         static void Main(string[] args)
         {
             //CurrencyList();
             //Console.ReadLine();
             //CheckInsert();
             //Console.ReadLine();
-            CheckUpdate();
-            Console.ReadLine();
+            //CheckUpdate();
+            //Console.ReadLine();
+            CheckGigCreator();
+            CheckOrderCreator();
         }
         //static void TestGig()
         //{

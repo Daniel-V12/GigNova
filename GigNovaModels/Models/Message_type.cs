@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Message_type
+    public class Message_type:Model
     {
         string message_type_id;
         string message_type_name;

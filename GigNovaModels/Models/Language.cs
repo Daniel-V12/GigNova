@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Language
+    public class Language:Model
     {
         string language_id;
         string language_name;

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Category
+    public class Category:Model
     {
 
         string category_id;

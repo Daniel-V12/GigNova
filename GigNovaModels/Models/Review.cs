@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Review
+    public class Review:Model
     {
         string review_id;
         int review_rating;

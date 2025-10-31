@@ -10,5 +10,6 @@ namespace GigNovaModels.ViewModels
     public class CustomizeOrderViewModel
     {
         public Order order { get; set; }
+        public Order_file order_file { get; set; }
     }
 }
