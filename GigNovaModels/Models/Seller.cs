@@ -8,12 +8,13 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Seller
+    public class Seller:Model
     {
 
         string seller_id;
         string seller_description;
         string seller_display_name;
+        string seller_avatar;
         public string Seller_id
         {
             get { return seller_id; }
@@ -32,6 +33,11 @@ namespace GigNovaModels.Models
         {
             get { return seller_display_name; }
             set { seller_display_name = value; }
+        }
+        public string Seller_avatar
+        {
+            get { return seller_avatar; }
+            set { seller_avatar = value; ValidateProperty(value, "seller_avatar"); }
         }
     }
 }

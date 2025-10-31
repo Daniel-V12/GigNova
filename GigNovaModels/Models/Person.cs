@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Person
+    public class Person:Model
     {
         string person_id;
         string person_username;

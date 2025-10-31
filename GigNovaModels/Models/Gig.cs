@@ -64,6 +64,8 @@ namespace GigNovaModels.Models
             get { return language_id; }
             set { language_id = value; }
         }
+
+
         public string Gig_photo
         {
             get { return gig_photo; }

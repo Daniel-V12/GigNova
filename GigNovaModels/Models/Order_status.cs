@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Order_status
+    public class Order_status:Model
     {
         string order_status_id;
         string status_name;

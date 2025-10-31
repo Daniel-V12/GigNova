@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="GigNovaModels.Models.Buyer" Collapsed="true">
+    <Position X="5.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAIAAAAAgAAgAIAAIAAAAAAAAAA=</HashCode>
+      <FileName>Models\Buyer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.Models.Category" Collapsed="true">
+    <Position X="7.75" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAEAAAAAAAAAAAAAAAAIAAIAAAAQAAAAEAAAAAAA=</HashCode>
+      <FileName>Models\Category.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.Models.Gig" Collapsed="true">
+    <Position X="5.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAECIAARAmAAkACAEBAAgBAQAAAAAQBAAAEQQA=</HashCode>
+      <FileName>Models\Gig.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.Models.Language" Collapsed="true">
+    <Position X="9.5" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAgAAAAIAAAAAAAAAAABAAAAAQA=</HashCode>
+      <FileName>Models\Language.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.Models.Message" Collapsed="true">
+    <Position X="7" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAgAAAAKAAAIAgAACAAQiAAAEIgAACAAAAAgA=</HashCode>
+      <FileName>Models\Message.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.Models.Message_type" Collapsed="true">
+    <Position X="11.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAEAEAAAAAAgAAAAIAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Message_type.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.Models.Order" Collapsed="true">
+    <Position X="7.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAAAIECACCAAgAgAAIAgIAAIIAAACAAAQAAQAA=</HashCode>
+      <FileName>Models\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.Models.Order_status" Collapsed="true">
+    <Position X="13.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAACAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAA=</HashCode>
+      <FileName>Models\Order_status.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.Models.Person" Collapsed="true">
+    <Position X="12" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAgAAQAAEAgBAAAAAKAAAAAAAAgACAABACAgAAAA=</HashCode>
+      <FileName>Models\Person.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.Models.Review" Collapsed="true">
+    <Position X="11.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAFIIAAAAIAAAACAAAEAIAgAgAAAAIAAAAAAAAgASAA=</HashCode>
+      <FileName>Models\Review.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.Models.Seller" Collapsed="true">
+    <Position X="13.75" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAgIAAAACAgAAAAgAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Seller.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.Model" Collapsed="true">
+    <Position X="9.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAEiACAABIAkAAAAAAAEAAAAIAAAAAAABIAA=</HashCode>
+      <FileName>Models\Model.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

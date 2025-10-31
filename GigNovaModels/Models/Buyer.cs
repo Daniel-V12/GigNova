@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Buyer
+    public class Buyer :Model
     {
         string buyer_id;
         string buyer_description;
