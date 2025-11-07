@@ -4,7 +4,7 @@ using System.Data.OleDb;
 namespace GigNovaWS
 {
 
-    
+
     public class DbHelperOledb : IDbHelper
     {
         OleDbConnection oLeDbConnection;
@@ -30,6 +30,7 @@ namespace GigNovaWS
         }
         public void CloseConnection()
         {
+            this.dbCommand.Parameters.Clear();
             this.oLeDbConnection.Close();
         }
 
@@ -41,16 +42,18 @@ namespace GigNovaWS
         public int Delete(string sql)
         {
             this.dbCommand.CommandText = sql;
-            return this.dbCommand.ExecuteNonQuery();
+            int records = this.dbCommand.ExecuteNonQuery();
+            this.dbCommand.Parameters.Clear();
+            return records;
         }
 
         public int Insert(string sql)
         {
             this.dbCommand.CommandText = sql;
-            return this.dbCommand.ExecuteNonQuery();
+            int records = this.dbCommand.ExecuteNonQuery();
+            this.dbCommand.Parameters.Clear();
+            return records;
         }
-
-        
 
         public void OpenTransaction()
         {
@@ -65,13 +68,24 @@ namespace GigNovaWS
         public IDataReader Select(string sql)
         {
             this.dbCommand.CommandText = sql;
-            return this.dbCommand.ExecuteReader();
+            IDataReader reader = this.dbCommand.ExecuteReader();
+            this.dbCommand.Parameters.Clear();
+            return reader;
         }
 
         public int Update(string sql)
         {
             this.dbCommand.CommandText = sql;
-            return this.dbCommand.ExecuteNonQuery();
+            int records = this.dbCommand.ExecuteNonQuery();
+            this.dbCommand.Parameters.Clear();
+            return records;
+        }
+
+
+        // פעולה מונעת מפגיעות SQL INJECTION
+        public void AddParameter(string name, string value)
+        {
+            this.dbCommand.Parameters.Add(new OleDbParameter(name, value));
         }
     }
 }

@@ -2,29 +2,29 @@
 
 namespace GigNovaWS
 {
-    public class GigRepository : Repository, IRepository<Gig>
+    public class Order_statusRepository : Repository, IRepository<Order_status>
     {
-        public bool Create()
+        public bool Create(Order_status model)
         {
             throw new NotImplementedException();
         }
 
-        public bool Delete()
+        public bool Delete(string id)
         {
             throw new NotImplementedException();
         }
 
-        public List<Gig> GetAll()
+        public List<Order_status> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public Gig GetById(string id)
+        public Order_status GetById(string id)
         {
             throw new NotImplementedException();
         }
 
-        public bool Update()
+        public bool Update(Order_status model)
         {
             throw new NotImplementedException();
         }
