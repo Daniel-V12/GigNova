@@ -14,13 +14,26 @@
         Order_statusRepository order_statusRepository;
         Order_filesRepository order_filesRepository;
         Message_typeRepository message_typeRepository;
+        DbHelperOledb dbHelperOledb;
+        ModelCreators modelCreators;
 
+        public RepositoryUOW()
+        {
+            this.dbHelperOledb = new DbHelperOledb();
+            this.modelCreators = new ModelCreators();
+        }
+
+        public DbHelperOledb DbHelperOledb
+        { 
+            get { return this.dbHelperOledb; }
+
+        }
         public GigRepository GigRepository
         {
             get
             {
                 if (this.gigRepository == null)
-                    this.gigRepository = new GigRepository();
+                    this.gigRepository = new GigRepository(this.dbHelperOledb,this.modelCreators);
                 return this.gigRepository;  
             }
         }
@@ -30,7 +43,7 @@
             get
             {
                 if (this.categoryRepository == null)
-                    this.categoryRepository = new CategoryRepository();
+                    this.categoryRepository = new CategoryRepository(this.dbHelperOledb, this.modelCreators);
                 return this.categoryRepository;
             }
         }
@@ -39,7 +52,7 @@
             get
             {
                 if (this.orderRepository == null)
-                    this.orderRepository = new OrderRepository();
+                    this.orderRepository = new OrderRepository(this.dbHelperOledb, this.modelCreators);
                 return this.orderRepository;
             }
         }
@@ -49,7 +62,7 @@
             get
             {
                 if (this.messageRepository == null)
-                    this.messageRepository = new MessageRepository();
+                    this.messageRepository = new MessageRepository(this.dbHelperOledb, this.modelCreators);
                 return this.messageRepository;
             }
         }
@@ -58,7 +71,7 @@
             get
             {
                 if (this.buyerRepository == null)
-                    this.buyerRepository = new BuyerRepository();
+                    this.buyerRepository = new BuyerRepository(this.dbHelperOledb, this.modelCreators);
                 return this.buyerRepository;
             }
         }
@@ -68,7 +81,7 @@
             get
             {
                 if (this.sellerRepository == null)
-                    this.sellerRepository = new SellerRepository();
+                    this.sellerRepository = new SellerRepository(this.dbHelperOledb, this.modelCreators);
                 return this.sellerRepository;
             }
         }
@@ -78,7 +91,7 @@
             get
             {
                 if (this.personRepository == null)
-                    this.personRepository = new PersonRepository();
+                    this.personRepository = new PersonRepository(this.dbHelperOledb, this.modelCreators);
                 return this.personRepository;
             }
         }
@@ -87,7 +100,7 @@
             get
             {
                 if (this.reviewRepository == null)
-                    this.reviewRepository = new ReviewRepository();
+                    this.reviewRepository = new ReviewRepository(this.dbHelperOledb, this.modelCreators);
                 return this.reviewRepository;
             }
         }
@@ -96,7 +109,7 @@
             get
             {
                 if (this.languageRepository == null)
-                    this.languageRepository = new LanguageRepository();
+                    this.languageRepository = new LanguageRepository(this.dbHelperOledb, this.modelCreators);
                 return this.languageRepository;
             }
         }
@@ -105,7 +118,7 @@
             get
             {
                 if (this.order_statusRepository == null)
-                    this.order_statusRepository = new Order_statusRepository();
+                    this.order_statusRepository = new Order_statusRepository(this.dbHelperOledb, this.modelCreators);
                 return this.order_statusRepository;
             }
         }
@@ -114,7 +127,7 @@
             get
             {
                 if (this.order_filesRepository == null)
-                    this.order_filesRepository = new Order_filesRepository();
+                    this.order_filesRepository = new Order_filesRepository(this.dbHelperOledb, this.modelCreators);
                 return this.order_filesRepository;
             }
         }
@@ -123,7 +136,7 @@
             get
             {
                 if (this.message_typeRepository == null)
-                    this.message_typeRepository = new Message_typeRepository();
+                    this.message_typeRepository = new Message_typeRepository(this.dbHelperOledb, this.modelCreators);
                 return this.message_typeRepository;
             }
         }

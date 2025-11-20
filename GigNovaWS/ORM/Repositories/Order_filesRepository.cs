@@ -4,6 +4,10 @@ namespace GigNovaWS
 {
     public class Order_filesRepository : Repository, IRepository<Order_file>
     {
+        public Order_filesRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
+        {
+
+        }
         public bool Create(Order_file model)
         {
             throw new NotImplementedException();

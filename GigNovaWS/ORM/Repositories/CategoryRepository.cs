@@ -6,6 +6,11 @@ namespace GigNovaWS
 {
     public class CategoryRepository : Repository, IRepository<Category>
     {
+
+        public CategoryRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
+        {
+
+        }
         public bool Create(Category model)
         {
             string sql = "Insert into Categories (category_name, category_photo) values ( @category_name ,  @category_photo)";

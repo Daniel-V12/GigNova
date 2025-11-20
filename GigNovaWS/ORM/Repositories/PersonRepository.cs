@@ -5,6 +5,10 @@ namespace GigNovaWS
 {
     public class PersonRepository : Repository, IRepository<Person>
     {
+        public PersonRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
+        {
+
+        }
         public bool Create(Person model)
         {
             throw new NotImplementedException();

@@ -83,7 +83,7 @@ namespace GigNovaWS
 
 
         // פעולה מונעת מפגיעות SQL INJECTION
-        public void AddParameter(string name, string value)
+        public void AddParameter(string name, object value)
         {
             this.dbCommand.Parameters.Add(new OleDbParameter(name, value));
         }

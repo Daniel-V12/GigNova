@@ -6,6 +6,10 @@ namespace GigNovaWS
 {
     public class OrderRepository : Repository, IRepository<Order>
     {
+        public OrderRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
+        {
+
+        }
         public bool Create(Order model)
         {
             string sql = @$"Insert into Orders (order_requirements, order_creation_date)
