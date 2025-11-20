@@ -6,6 +6,11 @@ namespace GigNovaWS
 {
     public class GigRepository : Repository, IRepository<Gig>
     {
+        public GigRepository (DbHelperOledb dbHelperOledb, ModelCreators modelCreators):base(dbHelperOledb, modelCreators)
+        { 
+
+        }
+ 
         public bool Create(Gig model)
         {
             //string sql = @$"Insert into Gigs (gig_name, gig_description, gig_date, gig_price)
@@ -15,8 +20,8 @@ namespace GigNovaWS
             this.dbHelperOledb.AddParameter("@gig_name", model.Gig_name);
             this.dbHelperOledb.AddParameter("@gig_description", model.Gig_description);
             this.dbHelperOledb.AddParameter("@gig_date", DateTime.Now.ToShortDateString());
-            this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price.ToString());
-            this.dbHelperOledb.AddParameter("@is_publish", "false");
+            this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price);
+            this.dbHelperOledb.AddParameter("@is_publish", false);
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
@@ -61,8 +66,8 @@ namespace GigNovaWS
             gig_description = @gig_description";
             this.dbHelperOledb.AddParameter("@gig_name", model.Gig_name);
             this.dbHelperOledb.AddParameter("@gig_description", model.Gig_description);
-            this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price.ToString());
-            this.dbHelperOledb.AddParameter("@is_publish", model.Is_publish.ToString());
+            this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price);
+            this.dbHelperOledb.AddParameter("@is_publish", model.Is_publish);
             return this.dbHelperOledb.Update(sql) > 0;
         }
 

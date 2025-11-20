@@ -4,6 +4,10 @@ namespace GigNovaWS
 {
     public class ReviewRepository : Repository, IRepository<Review>
     {
+        public ReviewRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
+        {
+
+        }
         public bool Create(Review model)
         {
             throw new NotImplementedException();

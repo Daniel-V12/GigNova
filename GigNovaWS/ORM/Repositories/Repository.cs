@@ -4,10 +4,10 @@
     {
         protected DbHelperOledb dbHelperOledb;
         protected ModelCreators modelCreators;
-        public Repository()
+        public Repository(DbHelperOledb dbHelperOled, ModelCreators modelCreators)
         {
-            this.dbHelperOledb = new DbHelperOledb();
-            this.modelCreators = new ModelCreators();
+            this.dbHelperOledb = dbHelperOled;
+            this.modelCreators = modelCreators;
         }
     }
 }

@@ -4,6 +4,10 @@ namespace GigNovaWS
 {
     public class BuyerRepository : Repository, IRepository<Buyer>
     {
+        public BuyerRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
+        {
+
+        }
         public bool Create(Buyer model)
         {
             throw new NotImplementedException();

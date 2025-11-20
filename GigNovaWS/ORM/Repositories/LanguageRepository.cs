@@ -4,6 +4,10 @@ namespace GigNovaWS
 {
     public class LanguageRepository : Repository, IRepository<Language>
     {
+        public LanguageRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
+        {
+
+        }
         public bool Create(Language model)
         {
             throw new NotImplementedException();
