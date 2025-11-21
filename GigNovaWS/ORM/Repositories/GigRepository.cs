@@ -1,16 +1,17 @@
 ﻿using GigNovaModels;
 using GigNovaModels.Models;
 using System.Data;
+using System.Text;
 
 namespace GigNovaWS
 {
     public class GigRepository : Repository, IRepository<Gig>
     {
-        public GigRepository (DbHelperOledb dbHelperOledb, ModelCreators modelCreators):base(dbHelperOledb, modelCreators)
-        { 
+        public GigRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
+        {
 
         }
- 
+
         public bool Create(Gig model)
         {
             //string sql = @$"Insert into Gigs (gig_name, gig_description, gig_date, gig_price)
@@ -74,7 +75,7 @@ namespace GigNovaWS
         //public List<Gig> GetGigByPrice(string price)
         //{
         //    string sql = "Select * from Gigs";
-        //this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price.ToString());
+        //    this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price.ToString());
         //    List<Gig> gigs = new List<Gig>();
         //    using (IDataReader reader = this.dbHelperOledb.Select(sql))
         //    {
@@ -85,5 +86,45 @@ namespace GigNovaWS
         //    }
         //    return gigs;
         //}
+
+        public List<Gig> GetGigByCategories(List<string>  categories)
+        {
+           
+          
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"SELECT Gigs.gig_id, Gigs.gig_name, Gigs.gig_description, Gigs.gig_delivery_time, 
+                          Gigs.language_id, Gigs.gig_date, Gigs.gig_photo, Gigs.gig_price, Gigs.seller_id, 
+                          Gigs.is_publish, Gigs.has_revisions, [Gigs - Categories].category_id\r\nFROM Gigs 
+                          INNER JOIN [Gigs - Categories] ON Gigs.gig_id = [Gigs - Categories].gig_id");
+            if (categories != null && categories.Count > 0)
+            {
+                sb.Append(" WHERE ");
+                int i = 0;
+                foreach( string category in categories)
+                {
+                    sb.Append($"category_id ={category}");
+                    i++;
+                    if (i != categories.Count - 1)
+                        sb.Append(" Or ");
+                }
+
+            }
+            List<Gig> gigs = new List<Gig>();
+            using (IDataReader reader = this.dbHelperOledb.Select(sb.ToString())) 
+            {
+                while (reader.Read())
+                {
+                    gigs.Add(this.modelCreators.GigCreator.CreateModel(reader));
+                }
+            }
+            return gigs;
+
+        }
+        public List<Gig> GetGigsByPage(int page)
+        {
+            int gigsperpage = 5;
+            List<Gig> gigs = this.GetAll();
+            return gigs.Skip(gigsperpage * (page - 1)).Take(gigsperpage).ToList();
+        }
     }
 }
