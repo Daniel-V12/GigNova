@@ -1,4 +1,6 @@
 ﻿using GigNovaModels.Models;
+using System;
+using System.Data;
 
 namespace GigNovaWS
 {
@@ -10,27 +12,52 @@ namespace GigNovaWS
         }
         public bool Create(Buyer model)
         {
-            throw new NotImplementedException();
+            string sql = "Insert into Buyers (buyer_description, buyer_display_name) values ( @buyer_description ,  @buyer_display_name)";
+            this.dbHelperOledb.AddParameter("@category_name", model.Buyer_description);
+            this.dbHelperOledb.AddParameter("@category_photo", model.Buyer_display_name);
+            return this.dbHelperOledb.Delete(sql) > 0;
         }
 
         public bool Delete(string id)
         {
-            throw new NotImplementedException();
+            string sql = @"Delete from Buyers where buyer_id = @buyer_id";
+            this.dbHelperOledb.AddParameter("buyer_id", id);
+            return this.dbHelperOledb.Delete(sql) > 0;
         }
 
         public List<Buyer> GetAll()
         {
-            throw new NotImplementedException();
+            string sql = "Select * from Buyers";
+            List<Buyer> buyers = new List<Buyer>();
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                while (reader.Read())
+                {
+                    buyers.Add(this.modelCreators.BuyerCreator.CreateModel(reader));
+                }
+            }
+            return buyers;
         }
 
         public Buyer GetById(string id)
         {
-            throw new NotImplementedException();
+            string sql = "Select * from Buyers where buyer_id = @buyer_id";
+            this.dbHelperOledb.AddParameter("@buyer_id", id);
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                reader.Read();
+                return this.modelCreators.BuyerCreator.CreateModel(reader);
+            }
         }
 
         public bool Update(Buyer model)
         {
-            throw new NotImplementedException();
+            string sql = @"Update Buyers set 
+            buyer_description = @buyer_description ,
+            buyer_display_name = @buyer_display_name";
+            this.dbHelperOledb.AddParameter("@buyer_description", model.Buyer_description);
+            this.dbHelperOledb.AddParameter("@buyer_description", model.Buyer_description);
+            return this.dbHelperOledb.Update(sql) > 0;
         }
     }
 }
