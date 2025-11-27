@@ -1,4 +1,5 @@
 ﻿using GigNovaModels.Models;
+using System.Data;
 
 namespace GigNovaWS
 {
@@ -10,27 +11,55 @@ namespace GigNovaWS
         }
         public bool Create(Seller model)
         {
-            throw new NotImplementedException();
+            string sql = "Insert into Sellers (seller_description, seller_display_name, seller_avatar) values ( @seller_description ,  @seller_display_name ,seller_avatar )";
+            this.dbHelperOledb.AddParameter("@seller_description", model.Seller_description);
+            this.dbHelperOledb.AddParameter("@seller_display_name", model.Seller_display_name);
+            this.dbHelperOledb.AddParameter("@seller_avatar", model.Seller_avatar);
+            return this.dbHelperOledb.Delete(sql) > 0;
         }
 
         public bool Delete(string id)
         {
-            throw new NotImplementedException();
+            string sql = @"Delete from Sellers where seller_id = @seller_id";
+            this.dbHelperOledb.AddParameter("seller_id", id);
+            return this.dbHelperOledb.Delete(sql) > 0;
         }
 
         public List<Seller> GetAll()
         {
-            throw new NotImplementedException();
+            string sql = "Select * from Sellers";
+            List<Seller> sellers = new List<Seller>();
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                while (reader.Read())
+                {
+                    sellers.Add(this.modelCreators.SellerCreator.CreateModel(reader));
+                }
+            }
+            return sellers;
         }
 
         public Seller GetById(string id)
         {
-            throw new NotImplementedException();
+            string sql = "Select * from Sellers where seller_id = @seller_id";
+            this.dbHelperOledb.AddParameter("@seller_id", id);
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                reader.Read();
+                return this.modelCreators.SellerCreator.CreateModel(reader);
+            }
         }
 
         public bool Update(Seller model)
         {
-            throw new NotImplementedException();
+            string sql = @"Update Sellers set 
+            seller_description = @seller_description,
+            seller_display_name = @seller_display_name,
+            seller_avatar = @seller_avatar";
+            this.dbHelperOledb.AddParameter("@seller_description", model.Seller_description);
+            this.dbHelperOledb.AddParameter("@seller_display_name", model.Seller_display_name);
+            this.dbHelperOledb.AddParameter("@seller_avatar", model.Seller_avatar);
+            return this.dbHelperOledb.Update(sql) > 0;
         }
     }
 }

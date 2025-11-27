@@ -12,7 +12,8 @@
         MessageCreator messageCreator;
         MessageTypeCreator messagetypeCreator;
         PersonCreator personCreator;
-        OrderFilesCreator orderfilesCreator;
+        OrderFileCreator orderfileCreator;
+        LanguageCreator languageCreator;
 
         public GigCreator GigCreator
         {
@@ -102,7 +103,7 @@
             }
         }
 
-        public PersonCreator PersonCreatorCreator
+        public PersonCreator PersonCreator
         {
             get
             {
@@ -112,13 +113,23 @@
             }
         }
 
-        public OrderFilesCreator OrderFilesCreator
+        public OrderFileCreator OrderFileCreator
         {
             get
             {
-                if (this.orderfilesCreator == null)
-                    this.orderfilesCreator = new OrderFilesCreator();
-                return this.orderfilesCreator;
+                if (this.orderfileCreator == null)
+                    this.orderfileCreator = new OrderFileCreator();
+                return this.orderfileCreator;
+            }
+        }
+
+        public LanguageCreator LanguageCreator
+        {
+            get
+            {
+                if (this.languageCreator == null)
+                    this.languageCreator = new LanguageCreator();
+                return this.languageCreator;
             }
         }
 

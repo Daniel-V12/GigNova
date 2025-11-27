@@ -16,13 +16,14 @@ namespace GigNovaWS
         {
             //string sql = @$"Insert into Gigs (gig_name, gig_description, gig_date, gig_price)
             //values ( '{model.Gig_name}' , '{model.Gig_description}', '{model.Gig_date}', '{model.Gig_price}' )";
-            string sql = @$"Insert into Gigs (gig_name, gig_description, gig_date, gig_price , is_publish)
-            values ( @gig_name , @gig_description , @gig_date , @gig_price, @is_publish )";
+            string sql = @$"Insert into Gigs (gig_name, gig_description, gig_date, gig_price , is_publish, has_revisions)
+            values ( @gig_name , @gig_description , @gig_date , @gig_price, @is_publish, @has_revisions )";
             this.dbHelperOledb.AddParameter("@gig_name", model.Gig_name);
             this.dbHelperOledb.AddParameter("@gig_description", model.Gig_description);
             this.dbHelperOledb.AddParameter("@gig_date", DateTime.Now.ToShortDateString());
             this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price);
             this.dbHelperOledb.AddParameter("@is_publish", false);
+            this.dbHelperOledb.AddParameter("@has_revisions", false);
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
@@ -69,6 +70,7 @@ namespace GigNovaWS
             this.dbHelperOledb.AddParameter("@gig_description", model.Gig_description);
             this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price);
             this.dbHelperOledb.AddParameter("@is_publish", model.Is_publish);
+            this.dbHelperOledb.AddParameter("@is_publish", model.Has_revisions);
             return this.dbHelperOledb.Update(sql) > 0;
         }
 
