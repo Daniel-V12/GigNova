@@ -10,6 +10,7 @@ namespace GigNovaModels.Models
     {
         string order_file_id;
         string order_file_name;
+        string order_id;
 
         public string Order_file_id
         {
@@ -21,6 +22,11 @@ namespace GigNovaModels.Models
         {
             get { return order_file_name; }
             set { order_file_name = value; }
+        }
+        public string Order_id
+        {
+            get { return order_id; }
+            set { order_id = value; }
         }
     }
 }

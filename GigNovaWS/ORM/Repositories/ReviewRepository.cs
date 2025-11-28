@@ -1,6 +1,7 @@
 ﻿using GigNovaModels;
 using GigNovaModels.Models;
 using System.Data;
+using System.Reflection;
 
 namespace GigNovaWS
 {
@@ -58,8 +59,23 @@ namespace GigNovaWS
             review_rating = @review_rating ,
             review_comment = @review_comment ";
             this.dbHelperOledb.AddParameter("@review_rating", model.Review_rating);
-            this.dbHelperOledb.AddParameter("@review_rating", model.Review_rating);
+            this.dbHelperOledb.AddParameter("@review_comment", model.Review_comment);
             return this.dbHelperOledb.Update(sql) > 0;
+        }
+
+        public double GetReviewBySeller(string  sellerId)
+        {
+            string sql = @"SELECT Avg(Reviews.review_rating) AS Avg
+                           FROM Reviews
+                           GROUP BY Reviews.seller_id
+                           HAVING (((Reviews.seller_id)=@SellerId));";
+              this.dbHelperOledb.AddParameter("@SellerId", sellerId);
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                reader.Read();
+                return Convert.ToDouble(reader["Avg"]);
+            }
+
         }
     }
 }
