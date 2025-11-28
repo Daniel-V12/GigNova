@@ -55,5 +55,13 @@ namespace GigNovaWS
         {
             throw new NotImplementedException();
         }
+
+
+        public List<Order> GetOrdersByPage(int page)
+        {
+            int ordersperpage = 5;
+            List<Order> orders = this.GetAll();
+            return orders.Skip(ordersperpage * (page - 1)).Take(ordersperpage).ToList();
+        }
     }
 }

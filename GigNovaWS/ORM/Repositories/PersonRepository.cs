@@ -55,7 +55,7 @@ namespace GigNovaWS
         public bool Update(Person model)
         {
             string sql = @"Update Gigs set 
-           person_username = @person_username ,
+            person_username = @person_username ,
             person_password = @person_password ,
             person_birthdate = @person_birthdate,
             person_join_date = @person_join_date

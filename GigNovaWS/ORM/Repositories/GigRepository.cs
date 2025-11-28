@@ -74,25 +74,25 @@ namespace GigNovaWS
             return this.dbHelperOledb.Update(sql) > 0;
         }
 
-        //public List<Gig> GetGigByPrice(string price)
-        //{
-        //    string sql = "Select * from Gigs";
-        //    this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price.ToString());
-        //    List<Gig> gigs = new List<Gig>();
-        //    using (IDataReader reader = this.dbHelperOledb.Select(sql))
-        //    {
-        //        while (reader.Read())
-        //        {
-        //            gigs.Add(this.modelCreators.GigCreator.CreateModel(price));
-        //        }
-        //    }
-        //    return gigs;
-        //}
-
-        public List<Gig> GetGigByCategories(List<string>  categories)
+        public List<Gig> GetGigByPrice(double price)
         {
-           
-          
+            string sql = "Select * from Gigs where gig_price = @gig_price";
+            this.dbHelperOledb.AddParameter("@gig_price", price.ToString());
+            List<Gig> gigs = new List<Gig>();
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                while (reader.Read())
+                {
+                    gigs.Add(this.modelCreators.GigCreator.CreateModel(reader));
+                }
+            }
+            return gigs;
+        }
+
+        public List<Gig> GetGigByCategories(List<string> categories)
+        {
+
+
             StringBuilder sb = new StringBuilder();
             sb.Append(@"SELECT Gigs.gig_id, Gigs.gig_name, Gigs.gig_description, Gigs.gig_delivery_time, 
                           Gigs.language_id, Gigs.gig_date, Gigs.gig_photo, Gigs.gig_price, Gigs.seller_id, 
@@ -102,7 +102,7 @@ namespace GigNovaWS
             {
                 sb.Append(" WHERE ");
                 int i = 0;
-                foreach( string category in categories)
+                foreach (string category in categories)
                 {
                     sb.Append($"category_id ={category}");
                     i++;
@@ -112,7 +112,7 @@ namespace GigNovaWS
 
             }
             List<Gig> gigs = new List<Gig>();
-            using (IDataReader reader = this.dbHelperOledb.Select(sb.ToString())) 
+            using (IDataReader reader = this.dbHelperOledb.Select(sb.ToString()))
             {
                 while (reader.Read())
                 {
@@ -127,6 +127,62 @@ namespace GigNovaWS
             int gigsperpage = 5;
             List<Gig> gigs = this.GetAll();
             return gigs.Skip(gigsperpage * (page - 1)).Take(gigsperpage).ToList();
+        }
+
+        public Seller GetGigBySeller(string id)
+        {
+            string sql = @"Select * from Gigs where seller_id = @seller_id ";
+            this.dbHelperOledb.AddParameter("@seller_id", id);
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                reader.Read();
+                return this.modelCreators.SellerCreator.CreateModel(reader);
+            }
+        }
+
+        public List<Gig> GetGigsByDeliveryTime (string deliveryTime)
+        {
+            string sql = @"Select * from Gigs where gig_delivery_time = @gig_delivery_time ";
+            this.dbHelperOledb.AddParameter("@gig_delivery_time", deliveryTime);
+            List<Gig> gigs = new List<Gig>();
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                while (reader.Read())
+                {
+                    gigs.Add(this.modelCreators.GigCreator.CreateModel(reader));
+                }
+            }
+            return gigs;
+        }
+
+        public List<Gig> GetGigsByLanguage(string language)
+        {
+            string sql = @"Select * from Gigs where language_id = @language_id ";
+            this.dbHelperOledb.AddParameter("@language_id", language);
+            List<Gig> gigs = new List<Gig>();
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                while (reader.Read())
+                {
+                    gigs.Add(this.modelCreators.GigCreator.CreateModel(reader));
+                }
+            }
+            return gigs;
+        }
+
+        public List<Gig> GetGigsByRating(string rating)
+        {
+            string sql = @"Select * from Gigs where rating = @language_id ";
+            this.dbHelperOledb.AddParameter("@language_id", language);
+            List<Gig> gigs = new List<Gig>();
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                while (reader.Read())
+                {
+                    gigs.Add(this.modelCreators.GigCreator.CreateModel(reader));
+                }
+            }
+            return gigs;
         }
     }
 }

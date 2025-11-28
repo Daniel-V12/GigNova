@@ -11,5 +11,7 @@ namespace GigNovaModels.ViewModels
     {
         public Gig gig{ get; set; }
         public Seller seller { get; set; }
+        
+        public double Review {  get; set; }
     }
 }

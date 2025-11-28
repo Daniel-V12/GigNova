@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using GigNovaModels;
 using GigNovaModels.ViewModels;
 using System.Linq.Expressions;
+using System.Security.Cryptography.X509Certificates;
 namespace GigNovaWS.Controllers
 {
     [Route("api/[controller]/[action]")]
@@ -31,7 +32,7 @@ namespace GigNovaWS.Controllers
                 {
                     catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetAll();
                 }
-                else if (categories!= null && page == 0)
+                else if (categories != null && page == 0)
                 {
                     catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetGigByCategories(categoriesList);
                 }
@@ -50,7 +51,51 @@ namespace GigNovaWS.Controllers
             {
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
-        }   
+        }
+
+        [HttpGet]
+        public SelectedGigViewModel GetSelectedGigViewModel(string gig_id)
+        {
+            SelectedGigViewModel selectedGigViewModel = new SelectedGigViewModel();
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                selectedGigViewModel.gig = this.repositoryUOW.GigRepository.GetById(gig_id);
+                selectedGigViewModel.seller = this.repositoryUOW.SellerRepository.GetById(selectedGigViewModel.gig.Seller_id.ToString());
+                selectedGigViewModel.Review = this.repositoryUOW.ReviewRepository.GetReviewBySeller(selectedGigViewModel.seller.Seller_id);
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+                return selectedGigViewModel;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+        public CustomizeOrderViewModel GetCustomizeOrderViewModel(string order_id)
+        {
+            CustomizeOrderViewModel customizeOrderViewModel = new CustomizeOrderViewModel();
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                customizeOrderViewModel.order = this.repositoryUOW.OrderRepository.GetById(order_id);
+                customizeOrderViewModel.order_file = this.repositoryUOW.Order_filesRepository.GetById(customizeOrderViewModel.order_file.Order_id.ToString());
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+                return customizeOrderViewModel;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
     }
-    
 }
