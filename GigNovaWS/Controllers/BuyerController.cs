@@ -1,4 +1,5 @@
-﻿using GigNovaModels.ViewModels;
+﻿using GigNovaModels.Models;
+using GigNovaModels.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GigNovaWS.Controllers
@@ -12,12 +13,25 @@ namespace GigNovaWS.Controllers
         {
             this.repositoryUOW = new RepositoryUOW();
         }
+        
         [HttpGet]
 
-        public OrderedGigsViewModel GetOrderedGigsViewModel(int page = 0)
+        public List<Order> GetOrderedGigsViewModel(string buyerId)
         {
-
-
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                return this.repositoryUOW.OrderRepository.GetOrderByBuyerId(buyerId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return null;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
         } 
     }
 }

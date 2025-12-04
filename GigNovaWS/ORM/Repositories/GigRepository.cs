@@ -91,8 +91,6 @@ namespace GigNovaWS
 
         public List<Gig> GetGigByCategories(List<string> categories)
         {
-
-
             StringBuilder sb = new StringBuilder();
             sb.Append(@"SELECT Gigs.gig_id, Gigs.gig_name, Gigs.gig_description, Gigs.gig_delivery_time, 
                           Gigs.language_id, Gigs.gig_date, Gigs.gig_photo, Gigs.gig_price, Gigs.seller_id, 
@@ -170,19 +168,19 @@ namespace GigNovaWS
             return gigs;
         }
 
-        public List<Gig> GetGigsByRating(string rating)
-        {
-            string sql = @"Select * from Gigs where rating = @language_id ";
-            this.dbHelperOledb.AddParameter("@language_id", language);
-            List<Gig> gigs = new List<Gig>();
-            using (IDataReader reader = this.dbHelperOledb.Select(sql))
-            {
-                while (reader.Read())
-                {
-                    gigs.Add(this.modelCreators.GigCreator.CreateModel(reader));
-                }
-            }
-            return gigs;
-        }
+        //public List<Gig> GetGigsByRating(string rating)
+        //{
+        //    string sql = @"Select * from Gigs where review_rating = @review_rating ";
+        //    this.dbHelperOledb.AddParameter("@review_rating", review_rating);
+        //    List<Gig> gigs = new List<Gig>();
+        //    using (IDataReader reader = this.dbHelperOledb.Select(sql))
+        //    {
+        //        while (reader.Read())
+        //        {
+        //            gigs.Add(this.modelCreators.GigCreator.CreateModel(reader));
+        //        }
+        //    }
+        //    return gigs;
+        //}
     }
 }
