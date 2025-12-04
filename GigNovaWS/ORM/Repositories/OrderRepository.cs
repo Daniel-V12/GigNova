@@ -57,11 +57,26 @@ namespace GigNovaWS
         }
 
 
-        public List<Order> GetOrdersByPage(int page)
+        //public List<Order> GetOrdersByPage(int page)
+        //{
+        //    int ordersperpage = 5;
+        //    List<Order> orders = this.GetAll();
+        //    return orders.Skip(ordersperpage * (page - 1)).Take(ordersperpage).ToList();
+        //}
+
+        public List<Order> GetOrderByBuyerId(string buyerId)
         {
-            int ordersperpage = 5;
-            List<Order> orders = this.GetAll();
-            return orders.Skip(ordersperpage * (page - 1)).Take(ordersperpage).ToList();
+            string sql = "Select * from Orders where buyer_id = @buyer_id";
+            this.dbHelperOledb.AddParameter("@buyer_id", buyerId);
+            List<Order> orders = new List<Order>();
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                while (reader.Read())
+                {
+                    orders.Add(this.modelCreators.OrderCreator.CreateModel(reader));
+                }
+            }
+            return orders;
         }
     }
 }

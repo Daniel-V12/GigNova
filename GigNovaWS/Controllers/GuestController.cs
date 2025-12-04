@@ -68,6 +68,7 @@ namespace GigNovaWS.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.ToString());
                 return null;
             }
             finally
@@ -75,6 +76,7 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
+        [HttpGet]
 
         public CustomizeOrderViewModel GetCustomizeOrderViewModel(string order_id)
         {
@@ -83,8 +85,7 @@ namespace GigNovaWS.Controllers
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
                 customizeOrderViewModel.order = this.repositoryUOW.OrderRepository.GetById(order_id);
-                customizeOrderViewModel.order_file = this.repositoryUOW.Order_filesRepository.GetById(customizeOrderViewModel.order_file.Order_id.ToString());
-                this.repositoryUOW.DbHelperOledb.CloseConnection();
+                customizeOrderViewModel.order_file = this.repositoryUOW.Order_filesRepository.GetById(order_id);
                 return customizeOrderViewModel;
             }
             catch (Exception ex)

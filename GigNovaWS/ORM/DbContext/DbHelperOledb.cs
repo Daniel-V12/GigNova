@@ -20,7 +20,8 @@ namespace GigNovaWS
         {
             this.oLeDbConnection = new OleDbConnection();
             //this.oLeDbConnection.ConnectionString = $@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={Directory.GetCurrentDirectory()}\App_Data\\GigNova.accdb;Persist Security Info=True";
-            this.oLeDbConnection.ConnectionString = $@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Users\USER\source\repos\GigNova\GigNovaWS\App_Data\GigNova.accdb;Persist Security Info=True";
+            this.oLeDbConnection.ConnectionString = $@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Users\user\source\repos\GigNova\GigNovaWS\App_Data\GigNova.accdb";
+            //this.oLeDbConnection.ConnectionString = $@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Users\USER\source\repos\GigNova\GigNovaWS\App_Data\GigNova.accdb;Persist Security Info=True";
             this.dbCommand = new OleDbCommand();
             this.dbCommand.Connection = this.oLeDbConnection;
         }
