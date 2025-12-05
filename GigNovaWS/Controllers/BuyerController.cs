@@ -13,7 +13,7 @@ namespace GigNovaWS.Controllers
         {
             this.repositoryUOW = new RepositoryUOW();
         }
-        
+
         [HttpGet]
 
         public List<Order> GetOrderedGigsViewModel(string buyerId)
@@ -32,6 +32,6 @@ namespace GigNovaWS.Controllers
             {
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
-        } 
+        }
     }
 }
