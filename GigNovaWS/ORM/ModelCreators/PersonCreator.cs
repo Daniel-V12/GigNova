@@ -14,6 +14,7 @@ namespace GigNovaWS
             person.Person_birthdate = Convert.ToString(dataReader["person_birthdate"]);
             person.Person_join_date = Convert.ToString(dataReader["person_join_date"]);
             person.Person_email = Convert.ToString(dataReader["person_email"]);
+            person.Person_salt = Convert.ToString(dataReader["person_salt"]);
             return person;
         }
     }

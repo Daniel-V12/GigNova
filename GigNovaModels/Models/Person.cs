@@ -16,6 +16,9 @@ namespace GigNovaModels.Models
         string person_birthdate;
         string person_join_date;
         string person_email;
+
+        public string Person_salt { get; set; }
+
         public string Person_id
         {
             get { return person_id; }

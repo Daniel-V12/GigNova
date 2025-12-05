@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using GigNovaWS;
 using System.Data;
+using System.Security.Cryptography;
 namespace GigNovaTesting
 {
     internal class Program
@@ -73,6 +74,24 @@ namespace GigNovaTesting
         }
 
 
+        static string GetSalt(int length)
+        {
+            byte[] bytes = new byte[length];
+            RandomNumberGenerator.Fill(bytes);
+            string s = Convert.ToBase64String(bytes);
+            return s;
+        }
+
+        static string GetHash(string password, string salt)
+        {
+            string combine = password + salt;
+            byte[] bytes = System.Text.UTF8Encoding.UTF8.GetBytes(combine);
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] hash = sha256.ComputeHash(bytes);
+                return Convert.ToBase64String(hash);
+            }
+        }
 
         static void Main(string[] args)
         {
@@ -82,8 +101,21 @@ namespace GigNovaTesting
             //Console.ReadLine();
             //CheckUpdate();
             //Console.ReadLine();
-            CheckGigCreator();
-            CheckOrderCreator();
+            //CheckGigCreator();
+            //CheckOrderCreator();
+            //for (int i = 0; i < 10; i++) 
+            //    GetSalt(5);
+            //Console.ReadLine();
+            for (int i = 1; i <= 10; i++)
+            {
+                Console.WriteLine("Insert password: ");
+                string password = Console.ReadLine();
+                string salt = GetSalt(8);
+                string hash = GetHash(password, salt);
+                Console.WriteLine(salt);
+                Console.WriteLine(hash);
+            }
+            Console.ReadLine();
         }
         //static void TestGig()
         //{
