@@ -18,11 +18,9 @@ namespace GigNovaWS.Controllers
         [HttpGet]
         public CatalogViewModel GetCatalogViewModel(string categories = null, int page = 0)
         {
-            List<string> categoriesList = new List<string>();
-            if (categories != null)
-            {
-                categoriesList = null; //deseralization
-            }
+
+
+            List<string> categoriesList ;   
             CatalogViewModel catalogviewModel = new CatalogViewModel();
             try
             {
@@ -34,11 +32,19 @@ namespace GigNovaWS.Controllers
                 }
                 else if (categories != null && page == 0)
                 {
-                    catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetGigByCategories(categoriesList);
+                    
+                    string[] strings = categories.Split(',');
+                    catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetGigByCategories(strings);
                 }
                 else if (categories == null && page != 0)
                 {
+                   
                     catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetGigsByPage(page);
+                }
+                else if (categories != null && page != 0)
+                {
+                    string[] strings = categories.Split(',');
+                    catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetGigsByPageAndCategories(strings,page);
                 }
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
                 return catalogviewModel;
@@ -97,6 +103,5 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
-
     }
 }

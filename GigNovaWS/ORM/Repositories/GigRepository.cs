@@ -1,5 +1,6 @@
 ﻿using GigNovaModels;
 using GigNovaModels.Models;
+using GigNovaModels.ViewModels;
 using System.Data;
 using System.Text;
 
@@ -89,23 +90,25 @@ namespace GigNovaWS
             return gigs;
         }
 
-        public List<Gig> GetGigByCategories(List<string> categories)
+        public List<Gig> GetGigByCategories(string[] categories)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"SELECT Gigs.gig_id, Gigs.gig_name, Gigs.gig_description, Gigs.gig_delivery_time, 
                           Gigs.language_id, Gigs.gig_date, Gigs.gig_photo, Gigs.gig_price, Gigs.seller_id, 
-                          Gigs.is_publish, Gigs.has_revisions, [Gigs - Categories].category_id\r\nFROM Gigs 
+                          Gigs.is_publish, Gigs.has_revisions, [Gigs - Categories].category_id
+                          FROM Gigs 
                           INNER JOIN [Gigs - Categories] ON Gigs.gig_id = [Gigs - Categories].gig_id");
-            if (categories != null && categories.Count > 0)
+            if (categories != null && categories.Length > 0)
             {
                 sb.Append(" WHERE ");
                 int i = 0;
                 foreach (string category in categories)
                 {
-                    sb.Append($"category_id ={category}");
-                    i++;
-                    if (i != categories.Count - 1)
+                    sb.Append($"category_id ={category} ");
+                   
+                    if (i != categories.Length - 1)
                         sb.Append(" Or ");
+                    i++;
                 }
 
             }
@@ -114,11 +117,27 @@ namespace GigNovaWS
             {
                 while (reader.Read())
                 {
-                    gigs.Add(this.modelCreators.GigCreator.CreateModel(reader));
+                    Gig gig = this.modelCreators.GigCreator.CreateModel(reader);
+                    if(IfGigExist(gig, gigs)==false)
+                        gigs.Add(gig);
                 }
             }
             return gigs;
 
+        }
+
+        private bool IfGigExist(Gig gig, List<Gig> gigs)
+        {
+            foreach (Gig thisGig in gigs)
+            {
+                
+                    if (thisGig.Gig_id == gig.Gig_id) 
+                    {
+                        return true;
+                    }
+                
+            }
+            return false;
         }
         public List<Gig> GetGigsByPage(int page)
         {
@@ -167,6 +186,13 @@ namespace GigNovaWS
             }
             return gigs;
         }
+
+         public List<Gig> GetGigsByPageAndCategories(string[] strings, int page)
+         {
+            int gigsperpage = 5;
+            List<Gig> gigs = GetGigByCategories(strings);
+            return gigs.Skip(gigsperpage * (page - 1)).Take(gigsperpage).ToList();
+         }
 
         //public List<Gig> GetGigsByRating(string rating)
         //{
