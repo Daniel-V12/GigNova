@@ -12,6 +12,10 @@ namespace GigNovaModels.Models
         string order_file_name;
         string order_id;
 
+        public Order_file()
+        {
+
+        }
         public string Order_file_id
         {
             get { return order_file_id; }

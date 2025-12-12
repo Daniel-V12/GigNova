@@ -10,6 +10,10 @@ namespace GigNovaModels.Models
     {
         string order_status_id;
         string status_name;
+        public Order_status()
+        {
+
+        }
         public string Order_status_id
         {
             get { return order_status_id; }

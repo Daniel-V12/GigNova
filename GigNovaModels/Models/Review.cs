@@ -18,19 +18,23 @@ namespace GigNovaModels.Models
         int seller_id;
         int gig_id;
 
+        public Review()
+        {
+
+        }
         public string Review_id
         {
             get { return review_id; }
             set { review_id = value; }
         }
-        [Required(ErrorMessage = "Review rating is required")]
-        [IsDigits(ErrorMessage = "Must be a number only")]
+        //[Required(ErrorMessage = "Review rating is required")]
+        //[IsDigits(ErrorMessage = "Must be a number only")]
         public int Review_rating
         {
             get { return review_rating; }
             set { review_rating = value; }
         }
-        [Required(ErrorMessage = "Review comment is required")]
+        //[Required(ErrorMessage = "Review comment is required")]
         public string Review_comment
         {
             get { return review_comment; }

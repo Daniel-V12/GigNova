@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GigNovaModels\GigNovaModels.csproj" />
+    <ProjectReference Include="..\GigNovaWSClient\GigNovaWSClient.csproj" />
     <ProjectReference Include="..\GigNovaWS\GigNovaWS.csproj" />
   </ItemGroup>
 

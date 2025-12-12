@@ -11,6 +11,10 @@ namespace GigNovaModels.Models
         string language_id;
         string language_name;
 
+        public Language()
+        {
+
+        }
         public string Language_id
         {
             get { return language_id; }

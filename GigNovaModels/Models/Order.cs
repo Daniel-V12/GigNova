@@ -18,6 +18,12 @@ namespace GigNovaModels.Models
         int seller_id;
         bool is_payment;
 
+
+        public Order()
+        {
+
+        }
+
         public string Order_id
         {
             get { return order_id; }
