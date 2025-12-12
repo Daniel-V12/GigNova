@@ -14,6 +14,11 @@ namespace GigNovaModels.Models
         string category_id;
         string category_name;
         string category_photo;
+
+        public Category()
+        {
+
+        }
         public string Category_id
         {
             get { return category_id; }

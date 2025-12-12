@@ -24,15 +24,19 @@ namespace GigNovaModels.Models
         bool is_publish;
         bool has_revisions;
 
+        public Gig()
+        {
+
+        }
         public string Gig_id
         {
             get { return gig_id; }
             set { gig_id = value; }
         }
 
-        [FirstLetterCaps(ErrorMessage = "Gig title must start with a capital letter")]
-        [Required(ErrorMessage = "Gig title is required")]
-        [StringLength(20, MinimumLength = 2, ErrorMessage = "Gig title must be no longer than 20 characters and no less than 2")]
+        //[FirstLetterCaps(ErrorMessage = "Gig title must start with a capital letter")]
+        //[Required(ErrorMessage = "Gig title is required")]
+        //[StringLength(20, MinimumLength = 2, ErrorMessage = "Gig title must be no longer than 20 characters and no less than 2")]
         public string Gig_name
         {
             get { return gig_name; }
@@ -40,14 +44,14 @@ namespace GigNovaModels.Models
                 ValidateProperty(value, "Gig_name");
             }
         }
-        [Required(ErrorMessage = "Gig description is required")]
-        [StringLength(20, MinimumLength = 2, ErrorMessage = "Gig description must be no longer than 250 characters and no less than 2")]
+        //[Required(ErrorMessage = "Gig description is required")]
+        //[StringLength(20, MinimumLength = 2, ErrorMessage = "Gig description must be no longer than 250 characters and no less than 2")]
         public string Gig_description
         {
             get { return gig_description; }
             set { gig_description = value; ValidateProperty(value, "Gig_description"); }
         }
-        [Required(ErrorMessage = "Gig delivery time is required")]
+        //[Required(ErrorMessage = "Gig delivery time is required")]
         public int Gig_delivery_time
         {
             get { return gig_delivery_time; }
@@ -58,7 +62,7 @@ namespace GigNovaModels.Models
             get { return gig_date; }
             set { gig_date = value; ValidateProperty(value, "Gig_date"); }
         }
-        [Required(ErrorMessage = "Language is required")]
+        //[Required(ErrorMessage = "Language is required")]
         public int Language_id
         {
             get { return language_id; }
@@ -72,8 +76,8 @@ namespace GigNovaModels.Models
             set { gig_photo = value; ValidateProperty(value, "Gig_photo"); }
         }
 
-        [Required(ErrorMessage = "Gig price is required")]
-        [IsDigits(ErrorMessage = "Must be a number only")]
+        //[Required(ErrorMessage = "Gig price is required")]
+        //[IsDigits(ErrorMessage = "Must be a number only")]
         public double Gig_price
         {
             get { return gig_price; }

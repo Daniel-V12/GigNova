@@ -18,6 +18,10 @@ namespace GigNovaModels.Models
         string message_date;
         int order_id;
 
+        public Message()
+        {
+
+        }
         public string Message_id
         {
             get { return message_id; }

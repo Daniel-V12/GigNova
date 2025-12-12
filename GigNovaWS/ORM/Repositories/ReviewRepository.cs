@@ -65,7 +65,7 @@ namespace GigNovaWS
 
         public double GetReviewBySeller(string  sellerId)
         {
-            string sql = @"SELECT Avg(Reviews.review_rating) AS Avg
+            string sql = @"SELECT Avg(Reviews.review_rating) AS [Avg]
                            FROM Reviews
                            GROUP BY Reviews.seller_id
                            HAVING (((Reviews.seller_id)=@SellerId));";

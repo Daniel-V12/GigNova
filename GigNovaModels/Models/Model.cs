@@ -18,6 +18,10 @@ namespace GigNovaModels
         private object threadLock = new object();
         private bool isValid;
 
+        public Model()
+        {
+        }
+
         public bool HasErrors
         {
             get { return errors.Any(propErrors => propErrors.Value != null && propErrors.Value.Count > 0); }

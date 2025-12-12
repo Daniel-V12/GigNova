@@ -4,6 +4,9 @@ using System.Text.Json;
 using GigNovaWS;
 using System.Data;
 using System.Security.Cryptography;
+using GigNovaWSClient;
+using System.Diagnostics.Eventing.Reader;
+using GigNovaModels.ViewModels;
 namespace GigNovaTesting
 {
     internal class Program
@@ -93,6 +96,19 @@ namespace GigNovaTesting
             }
         }
 
+        static void TestGigNovaClient()
+        {
+            ApiClient<SelectedGigViewModel> apiClient = new ApiClient<SelectedGigViewModel>();
+            apiClient.Scheme = "https";
+            apiClient.Host = "localhost";
+            apiClient.Port = 7059;
+            apiClient.Path = "api/Guest/GetSelectedGigViewModel/";
+            apiClient.AddParameter("gig_id", "6");
+            SelectedGigViewModel gig = apiClient.GetAsync().Result;
+            Console.WriteLine(gig.gig.Gig_name);
+            Console.WriteLine(gig.gig.Gig_description);
+        }
+
         static void Main(string[] args)
         {
             //CurrencyList();
@@ -103,18 +119,24 @@ namespace GigNovaTesting
             //Console.ReadLine();
             //CheckGigCreator();
             //CheckOrderCreator();
+            
             //for (int i = 0; i < 10; i++) 
             //    GetSalt(5);
             //Console.ReadLine();
-            for (int i = 1; i <= 10; i++)
-            {
-                Console.WriteLine("Insert password: ");
-                string password = Console.ReadLine();
-                string salt = GetSalt(8);
-                string hash = GetHash(password, salt);
-                Console.WriteLine(salt);
-                Console.WriteLine(hash);
-            }
+            
+            //for (int i = 1; i <= 10; i++)
+            //{
+            //    Console.WriteLine("Insert password: ");
+            //    string password = Console.ReadLine();
+            //    string salt = GetSalt(8);
+            //    string hash = GetHash(password, salt);
+            //    Console.WriteLine(salt);
+            //    Console.WriteLine(hash);
+            //}
+            //Console.ReadLine();
+
+            Console.ReadLine();
+            TestGigNovaClient();
             Console.ReadLine();
         }
         //static void TestGig()

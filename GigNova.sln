@@ -7,7 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GigNovaModels", "GigNovaMod
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GigNovaTesting", "GigNovaTesting\GigNovaTesting.csproj", "{514F2489-F09D-427C-8983-89F900F5D702}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GigNovaWS", "GigNovaWS\GigNovaWS.csproj", "{04174084-8BDA-4586-9336-E241DA55DB89}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GigNovaWS", "GigNovaWS\GigNovaWS.csproj", "{04174084-8BDA-4586-9336-E241DA55DB89}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GigNovaWSClient", "GigNovaWSClient\GigNovaWSClient.csproj", "{86076DD3-8B7D-43E1-B1B4-868A636252C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GigNovaWebApp", "GigNovaWebApp\GigNovaWebApp.csproj", "{B4C3E10D-4369-4B52-9212-0D689CCD931F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +31,14 @@ Global
 		{04174084-8BDA-4586-9336-E241DA55DB89}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04174084-8BDA-4586-9336-E241DA55DB89}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{04174084-8BDA-4586-9336-E241DA55DB89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86076DD3-8B7D-43E1-B1B4-868A636252C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86076DD3-8B7D-43E1-B1B4-868A636252C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86076DD3-8B7D-43E1-B1B4-868A636252C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86076DD3-8B7D-43E1-B1B4-868A636252C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4C3E10D-4369-4B52-9212-0D689CCD931F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4C3E10D-4369-4B52-9212-0D689CCD931F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4C3E10D-4369-4B52-9212-0D689CCD931F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4C3E10D-4369-4B52-9212-0D689CCD931F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
