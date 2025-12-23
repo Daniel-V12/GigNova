@@ -14,6 +14,7 @@
         Order_statusRepository order_statusRepository;
         Order_filesRepository order_filesRepository;
         Message_typeRepository message_typeRepository;
+        Delivery_timeRepository delivery_timeRepository;
         DbHelperOledb dbHelperOledb;
         ModelCreators modelCreators;
 
@@ -138,6 +139,16 @@
                 if (this.message_typeRepository == null)
                     this.message_typeRepository = new Message_typeRepository(this.dbHelperOledb, this.modelCreators);
                 return this.message_typeRepository;
+            }
+        }
+
+        public Delivery_timeRepository Delivery_timeRepository
+        {
+            get
+            {
+                if (this.delivery_timeRepository == null)
+                    this.delivery_timeRepository = new Delivery_timeRepository(this.dbHelperOledb, this.modelCreators);
+                return this.delivery_timeRepository;
             }
         }
     }

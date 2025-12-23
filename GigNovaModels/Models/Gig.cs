@@ -14,7 +14,7 @@ namespace GigNovaModels.Models
         string gig_id;
         string gig_name;
         string gig_description;
-        int gig_delivery_time;
+        int delivery_time_id;
         int language_id;
         string gig_date;
         string gig_photo;
@@ -52,10 +52,10 @@ namespace GigNovaModels.Models
             set { gig_description = value; ValidateProperty(value, "Gig_description"); }
         }
         //[Required(ErrorMessage = "Gig delivery time is required")]
-        public int Gig_delivery_time
+        public int Delivery_time_id
         {
-            get { return gig_delivery_time; }
-            set { gig_delivery_time = value; ValidateProperty(value, "Gig_delivery_time"); }
+            get { return delivery_time_id; }
+            set { delivery_time_id = value; ValidateProperty(value, "Delivery_time_id"); }
         }
         public string Gig_date
         {
@@ -68,7 +68,6 @@ namespace GigNovaModels.Models
             get { return language_id; }
             set { language_id = value; }
         }
-
 
         public string Gig_photo
         {

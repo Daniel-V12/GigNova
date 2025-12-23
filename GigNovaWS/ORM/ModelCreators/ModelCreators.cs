@@ -1,4 +1,6 @@
-﻿namespace GigNovaWS
+﻿using GigNovaWS.ORM.ModelCreators;
+
+namespace GigNovaWS
 {
     public class ModelCreators
     {
@@ -14,6 +16,7 @@
         PersonCreator personCreator;
         OrderFileCreator orderfileCreator;
         LanguageCreator languageCreator;
+        DeliveryTimeCreator deliverytimeCreator;
 
         public GigCreator GigCreator
         {
@@ -130,6 +133,16 @@
                 if (this.languageCreator == null)
                     this.languageCreator = new LanguageCreator();
                 return this.languageCreator;
+            }
+        }
+
+        public DeliveryTimeCreator DeliveryTimeCreator
+        {
+            get
+            {
+                if (this.deliverytimeCreator == null)
+                    this.deliverytimeCreator = new DeliveryTimeCreator();
+                return this.deliverytimeCreator;
             }
         }
 

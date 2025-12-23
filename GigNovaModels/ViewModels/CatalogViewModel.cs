@@ -12,6 +12,7 @@ namespace GigNovaModels.ViewModels
         public List<Gig> Gigs { get; set; }
         public List<Category> Categories { get; set; }
         public List<Language> Languages { get; set; }
+        public List<Delivery_time> Delivery_Times { get; set; }
 
     }
 }
