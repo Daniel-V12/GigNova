@@ -16,6 +16,7 @@ namespace GigNovaModels.Models
 
         }
 
+        // d231231dawdsa
         public string Delivery_time_id
         {
             get { return delivery_time_id; }
