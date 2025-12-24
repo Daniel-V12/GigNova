@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using GigNovaModels;
 using GigNovaModels.ViewModels;
+using GigNovaModels.Models;
 using System.Linq.Expressions;
 using System.Security.Cryptography.X509Certificates;
 namespace GigNovaWS.Controllers
@@ -20,38 +21,46 @@ namespace GigNovaWS.Controllers
         {
 
 
-            List<string> categoriesList ;   
-            CatalogViewModel catalogviewModel = new CatalogViewModel();
+            string categoriesValue = categories;
+            if (string.IsNullOrWhiteSpace(categoriesValue))
+            {
+                categoriesValue = null;
+            }
+            CatalogViewModel catalogviewModel = new CatalogViewModel
+            {
+                Categories = new List<Category>(),
+                Gigs = new List<Gig>()
+            };
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
                 catalogviewModel.Categories = this.repositoryUOW.CategoryRepository.GetAll();
-                if (categories == null && page == 0)
+                if (categoriesValue == null && page == 0)
                 {
                     catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetAll();
                 }
-                else if (categories != null && page == 0)
+                else if (categoriesValue != null && page == 0)
                 {
-                    
-                    string[] strings = categories.Split(',');
+
+                    string[] strings = categoriesValue.Split(',');
                     catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetGigByCategories(strings);
                 }
-                else if (categories == null && page != 0)
+                else if (categoriesValue == null && page != 0)
                 {
-                   
+
                     catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetGigsByPage(page);
                 }
-                else if (categories != null && page != 0)
+                else if (categoriesValue != null && page != 0)
                 {
-                    string[] strings = categories.Split(',');
-                    catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetGigsByPageAndCategories(strings,page);
+                    string[] strings = categoriesValue.Split(',');
+                    catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetGigsByPageAndCategories(strings, page);
                 }
-                this.repositoryUOW.DbHelperOledb.CloseConnection();
                 return catalogviewModel;
             }
             catch (Exception ex)
             {
-                return null;
+                                Console.WriteLine(ex.ToString());
+                return catalogviewModel;
             }
             finally
             {
@@ -96,6 +105,58 @@ namespace GigNovaWS.Controllers
             }
             catch (Exception ex)
             {
+                return null;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+        [HttpPost]
+        public bool SignUp(SignUpViewModel signUpViewModel)
+        {
+            if (signUpViewModel == null || signUpViewModel.Person == null || signUpViewModel.Buyer == null)
+            {
+                return false;
+            }
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                bool personCreated = this.repositoryUOW.PersonRepository.Create(signUpViewModel.Person);
+                bool buyerCreated = this.repositoryUOW.BuyerRepository.Create(signUpViewModel.Buyer);
+                return personCreated && buyerCreated;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+        [HttpGet]
+        public string LogIn(string identifier, string password)
+        {
+            if (string.IsNullOrWhiteSpace(identifier) || string.IsNullOrWhiteSpace(password))
+            {
+                return null;
+            }
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                if (identifier.Contains("@"))
+                {
+                    return this.repositoryUOW.PersonRepository.LogInByEmail(identifier, password);
+                }
+                return this.repositoryUOW.PersonRepository.LogIn(identifier, password);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
                 return null;
             }
             finally
