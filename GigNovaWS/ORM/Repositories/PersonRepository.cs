@@ -14,12 +14,13 @@ namespace GigNovaWS
         {
             string sql = "Insert into Person (person_username, person_password, person_birthdate, person_join_date, person_email, person_salt) values (@person_username, @person_password, @person_birthdate, @person_join_date, @person_email, @person_salt)";
             this.dbHelperOledb.AddParameter("@person_username", model.Person_username);
+            this.dbHelperOledb.AddParameter("@person_birthdate", model.Person_birthdate);
             this.dbHelperOledb.AddParameter("@person_join_date", model.Person_join_date);
             this.dbHelperOledb.AddParameter("@person_email", model.Person_email);
             string salt = GetSalt(GetRandom());
             this.dbHelperOledb.AddParameter("@person_password", GetHash(model.Person_password, salt));
             this.dbHelperOledb.AddParameter("@person_salt", salt);
-            return this.dbHelperOledb.Delete(sql) > 0;
+            return this.dbHelperOledb.Insert(sql) > 0;
         }
 
         private string GetHash (string password, string salt)
@@ -96,6 +97,26 @@ namespace GigNovaWS
         {
             string sql = @"Select person_salt, person_id, person_password from Person where person_username = @person_username";
             this.dbHelperOledb.AddParameter("@person_username", username);
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                if (reader.Read() == true)
+                {
+                    string salt = reader["person_salt"].ToString();
+                    string hash = reader["person_password"].ToString();
+                    string calculateHash = GetHash(password, salt);
+                    if (hash == calculateHash)
+                    {
+                        return reader["person_id"].ToString();
+                    }
+                }
+                return null;
+            }
+        }
+
+        public string LogInByEmail(string email, string password)
+        {
+            string sql = @"Select person_salt, person_id, person_password from Person where person_email = @person_email";
+            this.dbHelperOledb.AddParameter("@person_email", email);
             using (IDataReader reader = this.dbHelperOledb.Select(sql))
             {
                 if (reader.Read() == true)

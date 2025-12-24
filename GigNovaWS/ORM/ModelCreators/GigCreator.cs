@@ -11,7 +11,6 @@ namespace GigNovaWS
             gig.Gig_name = Convert.ToString(dataReader["gig_name"]);
             gig.Gig_description = Convert.ToString(dataReader["gig_description"]);
             gig.Gig_id = Convert.ToString(dataReader["gig_id"]);
-            gig.Gig_delivery_time = Convert.ToUInt16(dataReader["gig_delivery_time"]);
             gig.Language_id = Convert.ToUInt16(dataReader["language_id"]);
             gig.Gig_date = Convert.ToString(dataReader["gig_date"]);
             gig.Gig_price = Convert.ToUInt32(dataReader["gig_price"]);

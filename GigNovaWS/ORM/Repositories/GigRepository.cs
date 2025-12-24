@@ -146,31 +146,6 @@ namespace GigNovaWS
             return gigs.Skip(gigsperpage * (page - 1)).Take(gigsperpage).ToList();
         }
 
-        public Seller GetGigBySeller(string id)
-        {
-            string sql = @"Select * from Gigs where seller_id = @seller_id ";
-            this.dbHelperOledb.AddParameter("@seller_id", id);
-            using (IDataReader reader = this.dbHelperOledb.Select(sql))
-            {
-                reader.Read();
-                return this.modelCreators.SellerCreator.CreateModel(reader);
-            }
-        }
-
-        public List<Gig> GetGigsByDeliveryTime (string deliveryTime)
-        {
-            string sql = @"Select * from Gigs where gig_delivery_time = @gig_delivery_time ";
-            this.dbHelperOledb.AddParameter("@gig_delivery_time", deliveryTime);
-            List<Gig> gigs = new List<Gig>();
-            using (IDataReader reader = this.dbHelperOledb.Select(sql))
-            {
-                while (reader.Read())
-                {
-                    gigs.Add(this.modelCreators.GigCreator.CreateModel(reader));
-                }
-            }
-            return gigs;
-        }
 
         public List<Gig> GetGigsByLanguage(string language)
         {
@@ -187,12 +162,35 @@ namespace GigNovaWS
             return gigs;
         }
 
-         public List<Gig> GetGigsByPageAndCategories(string[] strings, int page)
+        public List<Gig> GetGigsBySeller(string sellerId)
+        {
+            string sql = @"Select * from Gigs where seller_id = @seller_id ";
+            this.dbHelperOledb.AddParameter("@seller_id", sellerId);
+            List<Gig> gigs = new List<Gig>();
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                while (reader.Read())
+                {
+                    gigs.Add(this.modelCreators.GigCreator.CreateModel(reader));
+                }
+            }
+            return gigs;
+        }
+
+        public List<Gig> GetGigsBySellerByPage(string sellerId, int page)
+        {
+            int gigsperpage = 5;
+            List<Gig> gigs = GetGigsBySeller(sellerId);
+            return gigs.Skip(gigsperpage * (page - 1)).Take(gigsperpage).ToList();
+        }
+
+        public List<Gig> GetGigsByPageAndCategories(string[] strings, int page)
          {
             int gigsperpage = 5;
             List<Gig> gigs = GetGigByCategories(strings);
             return gigs.Skip(gigsperpage * (page - 1)).Take(gigsperpage).ToList();
          }
+
 
         //public List<Gig> GetGigsByRating(string rating)
         //{
