@@ -13,12 +13,12 @@ namespace GigNovaWS
         public bool Create(Person model)
         {
             string sql = "Insert into Person (person_username, person_password, person_birthdate, person_join_date, person_email, person_salt) values (@person_username, @person_password, @person_birthdate, @person_join_date, @person_email, @person_salt)";
+            string salt = GetSalt(GetRandom());
             this.dbHelperOledb.AddParameter("@person_username", model.Person_username);
+            this.dbHelperOledb.AddParameter("@person_password", GetHash(model.Person_password, salt));
             this.dbHelperOledb.AddParameter("@person_birthdate", model.Person_birthdate);
             this.dbHelperOledb.AddParameter("@person_join_date", model.Person_join_date);
             this.dbHelperOledb.AddParameter("@person_email", model.Person_email);
-            string salt = GetSalt(GetRandom());
-            this.dbHelperOledb.AddParameter("@person_password", GetHash(model.Person_password, salt));
             this.dbHelperOledb.AddParameter("@person_salt", salt);
             return this.dbHelperOledb.Insert(sql) > 0;
         }
@@ -79,18 +79,16 @@ namespace GigNovaWS
 
         public bool Update(Person model)
         {
-            string sql = @"Update Gigs set 
+            string sql = @"Update Person set 
             person_username = @person_username ,
-            person_password = @person_password ,
             person_birthdate = @person_birthdate,
-            person_join_date = @person_join_date
-            person_email = @person_email";
+            person_email = @person_email
+            where person_id = @person_id";
             this.dbHelperOledb.AddParameter("@person_username", model.Person_username);
-            this.dbHelperOledb.AddParameter("@person_password", model.Person_password);
             this.dbHelperOledb.AddParameter("@person_birthdate", model.Person_birthdate);
-            this.dbHelperOledb.AddParameter("@person_join_date", model.Person_join_date);
             this.dbHelperOledb.AddParameter("@person_email", model.Person_email);
-            return this.dbHelperOledb.Delete(sql) > 0;
+            this.dbHelperOledb.AddParameter("@person_id", model.Person_id);
+            return this.dbHelperOledb.Update(sql) > 0;
         }
 
         public string LogIn(string username, string password)

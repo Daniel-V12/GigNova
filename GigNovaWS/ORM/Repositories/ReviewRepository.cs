@@ -13,11 +13,14 @@ namespace GigNovaWS
         }
         public bool Create(Review model)
         {
-            string sql = @$"Insert into Reviews (review_rating, review_comment,review_creation_date)
-            values ( @review_rating , @review_comment , @review_creation_date)";
+            string sql = @$"Insert into Reviews (review_rating, review_comment, review_creation_date, buyer_id, seller_id, gig_id)
+            values ( @review_rating , @review_comment , @review_creation_date, @buyer_id, @seller_id, @gig_id)";
             this.dbHelperOledb.AddParameter("@review_rating", model.Review_rating);
             this.dbHelperOledb.AddParameter("@review_comment", model.Review_comment);
             this.dbHelperOledb.AddParameter("@Review_creation_date", DateTime.Now.ToShortDateString());
+            this.dbHelperOledb.AddParameter("@buyer_id", model.Buyer_id);
+            this.dbHelperOledb.AddParameter("@seller_id", model.Seller_id);
+            this.dbHelperOledb.AddParameter("@gig_id", model.Gig_id);
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
@@ -63,6 +66,21 @@ namespace GigNovaWS
             return this.dbHelperOledb.Update(sql) > 0;
         }
 
+        public List<Review> GetReviewsByGigId(string gigId)
+        {
+            string sql = "Select * from Reviews where gig_id = @gig_id";
+            this.dbHelperOledb.AddParameter("@gig_id", gigId);
+            List<Review> reviews = new List<Review>();
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                while (reader.Read())
+                {
+                    reviews.Add(this.modelCreators.ReviewCreator.CreateModel(reader));
+                }
+            }
+            return reviews;
+        }
+
         public double GetReviewBySeller(string  sellerId)
         {
             string sql = @"SELECT Avg(Reviews.review_rating) AS [Avg]
@@ -77,5 +95,22 @@ namespace GigNovaWS
             }
 
         }
+
+        public double GetAverageRatingByGigId(string gigId)
+        {
+            string sql = @"SELECT Avg(Reviews.review_rating) AS [Avg]
+                           FROM Reviews
+                           WHERE Reviews.gig_id = @gig_id;";
+            this.dbHelperOledb.AddParameter("@gig_id", gigId);
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                if (reader.Read() == true && reader["Avg"] != DBNull.Value)
+                {
+                    return Convert.ToDouble(reader["Avg"]);
+                }
+                return 0;
+            }
+        }
     }
+
 }

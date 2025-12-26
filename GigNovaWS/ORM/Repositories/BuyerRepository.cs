@@ -54,9 +54,11 @@ namespace GigNovaWS
         {
             string sql = @"Update Buyers set 
             buyer_description = @buyer_description ,
-            buyer_display_name = @buyer_display_name";
+            buyer_display_name = @buyer_display_name
+            where buyer_id = @buyer_id";
             this.dbHelperOledb.AddParameter("@buyer_description", model.Buyer_description);
-            this.dbHelperOledb.AddParameter("@buyer_description", model.Buyer_description);
+            this.dbHelperOledb.AddParameter("@buyer_display_name", model.Buyer_display_name);
+            this.dbHelperOledb.AddParameter("@buyer_id", model.Buyer_id);
             return this.dbHelperOledb.Update(sql) > 0;
         }
     }

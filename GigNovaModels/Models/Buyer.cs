@@ -24,7 +24,7 @@ namespace GigNovaModels.Models
             get { return buyer_description; }
             set { buyer_description = value; }
         }
-        [FirstLetterCaps(ErrorMessage = "Display name must start with a capital letter")]
+        //[FirstLetterCaps(ErrorMessage = "Display name must start with a capital letter")]
         [Required(ErrorMessage = "Display name is required")]
         [StringLength(20, MinimumLength = 2, ErrorMessage = "Display name must be no longer than 20 characters and no less than 2")]
         public string Buyer_display_name

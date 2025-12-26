@@ -1,4 +1,4 @@
-﻿using GigNovaModels.Models;
+﻿ using GigNovaModels.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,5 +10,6 @@ namespace GigNovaModels.ViewModels
     public class MessagesBoxViewModel
     {
         public List<Message> Messages { get; set; }
+        public List<Person> Senders { get; set; }
     }
 }

@@ -12,10 +12,15 @@ namespace GigNovaWS
         }
         public bool Create(Order model)
         {
-            string sql = @$"Insert into Orders (order_requirements, order_creation_date)
-            values ( @order_name , @order_creation_date)";
+            string sql = @$"Insert into Orders (order_status_id, order_requirements, order_creation_date, gig_id, buyer_id, seller_id, is_payment)
+            values ( @order_status_id , @order_requirements , @order_creation_date, @gig_id, @buyer_id, @seller_id, @is_payment)";
+            this.dbHelperOledb.AddParameter("@order_status_id", model.Order_status_id);
             this.dbHelperOledb.AddParameter("@order_requirements", model.Order_requirements);
             this.dbHelperOledb.AddParameter("@order_creation_date", DateTime.Now.ToShortDateString());
+            this.dbHelperOledb.AddParameter("@gig_id", model.Gig_id);
+            this.dbHelperOledb.AddParameter("@buyer_id", model.Buyer_id);
+            this.dbHelperOledb.AddParameter("@seller_id", model.Seller_id);
+            this.dbHelperOledb.AddParameter("@is_payment", model.Is_payment);
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
@@ -53,7 +58,16 @@ namespace GigNovaWS
 
         public bool Update(Order model)
         {
-            throw new NotImplementedException();
+            string sql = @"Update Orders set 
+            order_status_id = @order_status_id,
+            order_requirements = @order_requirements,
+            is_payment = @is_payment
+            where order_id = @order_id";
+            this.dbHelperOledb.AddParameter("@order_status_id", model.Order_status_id);
+            this.dbHelperOledb.AddParameter("@order_requirements", model.Order_requirements);
+            this.dbHelperOledb.AddParameter("@is_payment", model.Is_payment);
+            this.dbHelperOledb.AddParameter("@order_id", model.Order_id);
+            return this.dbHelperOledb.Update(sql) > 0;
         }
 
 
@@ -78,6 +92,26 @@ namespace GigNovaWS
             }
             return orders;
         }
+        public bool UpdateOrderStatus(string orderId, int statusId)
+        {
+            string sql = @"Update Orders set 
+            order_status_id = @order_status_id
+            where order_id = @order_id";
+            this.dbHelperOledb.AddParameter("@order_status_id", statusId);
+            this.dbHelperOledb.AddParameter("@order_id", orderId);
+            return this.dbHelperOledb.Update(sql) > 0;
+        }
+
+        public bool UpdatePaymentStatus(string orderId, bool isPayment)
+        {
+            string sql = @"Update Orders set 
+            is_payment = @is_payment
+            where order_id = @order_id";
+            this.dbHelperOledb.AddParameter("@is_payment", isPayment);
+            this.dbHelperOledb.AddParameter("@order_id", orderId);
+            return this.dbHelperOledb.Update(sql) > 0;
+        }
+
         public List<Order> GetOrderByBuyerId(string buyerId)
         {
             string sql = "Select * from Orders where buyer_id = @buyer_id";

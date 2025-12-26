@@ -11,11 +11,11 @@ namespace GigNovaWS
         }
         public bool Create(Seller model)
         {
-            string sql = "Insert into Sellers (seller_description, seller_display_name, seller_avatar) values ( @seller_description ,  @seller_display_name ,seller_avatar )";
+            string sql = "Insert into Sellers (seller_description, seller_display_name, seller_avatar) values ( @seller_description ,  @seller_display_name , @seller_avatar )";
             this.dbHelperOledb.AddParameter("@seller_description", model.Seller_description);
             this.dbHelperOledb.AddParameter("@seller_display_name", model.Seller_display_name);
             this.dbHelperOledb.AddParameter("@seller_avatar", model.Seller_avatar);
-            return this.dbHelperOledb.Delete(sql) > 0;
+            return this.dbHelperOledb.Insert(sql) > 0;
         }
 
         public bool Delete(string id)

@@ -16,7 +16,7 @@ namespace GigNovaWS
             string sql = "Insert into Categories (category_name, category_photo) values ( @category_name ,  @category_photo)";
             this.dbHelperOledb.AddParameter("@category_name", model.Category_name);
             this.dbHelperOledb.AddParameter("@category_photo", model.Category_photo);
-            return this.dbHelperOledb.Delete(sql) > 0;
+            return this.dbHelperOledb.Insert(sql) > 0;
         }
 
         public bool Delete(string id)
@@ -55,9 +55,10 @@ namespace GigNovaWS
         {
             string sql = @"Update Categories set 
             category_name = @category_name ,
-            category_photo = @category_photo";
+            category_photo = @category_photo
+            where category_id = @category_id";
             this.dbHelperOledb.AddParameter("@category_name", model.Category_name);
-            this.dbHelperOledb.AddParameter("@category_photo", model.Category_photo);
+            this.dbHelperOledb.AddParameter("@category_id", model.Category_id);
             return this.dbHelperOledb.Update(sql) > 0;
         }
     }
