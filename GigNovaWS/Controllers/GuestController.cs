@@ -17,12 +17,10 @@ namespace GigNovaWS.Controllers
             this.repositoryUOW = new RepositoryUOW();
         }
         [HttpGet]
-        public CatalogViewModel GetCatalogViewModel(string categories = null, int page = 0)
+        public CatalogViewModel GetCatalogViewModel(string categories = null, int page = 0, double min_price = 0, double max_price = 0, int delivery_time_id = 0, int language_id = 0, string search = null, double min_rating = 0)
         {
-
-
             string categoriesValue = categories;
-            if (string.IsNullOrWhiteSpace(categoriesValue))
+            if (categoriesValue == null)
             {
                 categoriesValue = null;
             }
@@ -35,6 +33,8 @@ namespace GigNovaWS.Controllers
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
                 catalogviewModel.Categories = this.repositoryUOW.CategoryRepository.GetAll();
+                catalogviewModel.Languages = this.repositoryUOW.LanguageRepository.GetAll();
+                catalogviewModel.Delivery_Times = this.repositoryUOW.Delivery_timeRepository.GetAll();
                 if (categoriesValue == null && page == 0)
                 {
                     catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetAll();
@@ -55,11 +55,75 @@ namespace GigNovaWS.Controllers
                     string[] strings = categoriesValue.Split(',');
                     catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetGigsByPageAndCategories(strings, page);
                 }
+                if (min_price != 0 || max_price != 0)
+                {
+                    List<Gig> filtered = new List<Gig>();
+                    foreach (Gig gig in catalogviewModel.Gigs)
+                    {
+                        bool minOk = min_price == 0 || gig.Gig_price >= min_price;
+                        bool maxOk = max_price == 0 || gig.Gig_price <= max_price;
+                        if (minOk && maxOk)
+                        {
+                            filtered.Add(gig);
+                        }
+                    }
+                    catalogviewModel.Gigs = filtered;
+                }
+                if (delivery_time_id != 0)
+                {
+                    List<Gig> filtered = new List<Gig>();
+                    foreach (Gig gig in catalogviewModel.Gigs)
+                    {
+                        if (gig.Delivery_time_id == delivery_time_id)
+                        {
+                            filtered.Add(gig);
+                        }
+                    }
+                    catalogviewModel.Gigs = filtered;
+                }
+                if (language_id != 0)
+                {
+                    List<Gig> filtered = new List<Gig>();
+                    foreach (Gig gig in catalogviewModel.Gigs)
+                    {
+                        if (gig.Language_id == language_id)
+                        {
+                            filtered.Add(gig);
+                        }
+                    }
+                    catalogviewModel.Gigs = filtered;
+                }
+                if (search != null)
+                {
+                    string searchLower = search.ToLower();
+                    List<Gig> filtered = new List<Gig>();
+                    foreach (Gig gig in catalogviewModel.Gigs)
+                    {
+                        if (gig.Gig_name != null && gig.Gig_name.ToLower().Contains(searchLower))
+                        {
+                            filtered.Add(gig);
+                        }
+                    }
+                    catalogviewModel.Gigs = filtered;
+                }
+                if (min_rating != 0)
+                {
+                    List<Gig> filtered = new List<Gig>();
+                    foreach (Gig gig in catalogviewModel.Gigs)
+                    {
+                        double avgRating = this.repositoryUOW.ReviewRepository.GetAverageRatingByGigId(gig.Gig_id);
+                        if (avgRating >= min_rating)
+                        {
+                            filtered.Add(gig);
+                        }
+                    }
+                    catalogviewModel.Gigs = filtered;
+                }
                 return catalogviewModel;
             }
             catch (Exception ex)
             {
-                                Console.WriteLine(ex.ToString());
+                Console.WriteLine(ex.ToString());
                 return catalogviewModel;
             }
             finally
@@ -67,6 +131,7 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
+
 
         [HttpGet]
         public SelectedGigViewModel GetSelectedGigViewModel(string gig_id)
@@ -77,7 +142,7 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
                 selectedGigViewModel.gig = this.repositoryUOW.GigRepository.GetById(gig_id);
                 selectedGigViewModel.seller = this.repositoryUOW.SellerRepository.GetById(selectedGigViewModel.gig.Seller_id.ToString());
-                selectedGigViewModel.Review = this.repositoryUOW.ReviewRepository.GetReviewBySeller(selectedGigViewModel.seller.Seller_id);
+                selectedGigViewModel.Review = this.repositoryUOW.ReviewRepository.GetAverageRatingByGigId(gig_id);
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
                 return selectedGigViewModel;
             }
@@ -91,8 +156,27 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
-        [HttpGet]
 
+        [HttpGet]
+        public List<Review> ViewGigReviews(string gig_id)
+        {
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                return this.repositoryUOW.ReviewRepository.GetReviewsByGigId(gig_id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return null;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+        [HttpGet]
         public CustomizeOrderViewModel GetCustomizeOrderViewModel(string order_id)
         {
             CustomizeOrderViewModel customizeOrderViewModel = new CustomizeOrderViewModel();
@@ -138,10 +222,11 @@ namespace GigNovaWS.Controllers
             }
         }
 
+
         [HttpGet]
         public string LogIn(string identifier, string password)
         {
-            if (string.IsNullOrWhiteSpace(identifier) || string.IsNullOrWhiteSpace(password))
+            if (identifier == null || password == null)
             {
                 return null;
             }
@@ -164,5 +249,7 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
+
+
     }
 }

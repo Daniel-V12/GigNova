@@ -28,6 +28,23 @@ namespace GigNovaWS
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
+        public bool CreateBySeller(Gig model)
+        {
+            string sql = @$"Insert into Gigs (gig_name, gig_description, gig_date, gig_price, gig_photo, language_id, gig_delivery_time, seller_id, is_publish, has_revisions)
+            values ( @gig_name , @gig_description , @gig_date , @gig_price, @gig_photo, @language_id, @gig_delivery_time, @seller_id, @is_publish, @has_revisions )";
+            this.dbHelperOledb.AddParameter("@gig_name", model.Gig_name);
+            this.dbHelperOledb.AddParameter("@gig_description", model.Gig_description);
+            this.dbHelperOledb.AddParameter("@gig_date", DateTime.Now.ToShortDateString());
+            this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price);
+            this.dbHelperOledb.AddParameter("@gig_photo", model.Gig_photo);
+            this.dbHelperOledb.AddParameter("@language_id", model.Language_id);
+            this.dbHelperOledb.AddParameter("@gig_delivery_time", model.Delivery_time_id);
+            this.dbHelperOledb.AddParameter("@seller_id", model.Seller_id);
+            this.dbHelperOledb.AddParameter("@is_publish", false);
+            this.dbHelperOledb.AddParameter("@has_revisions", model.Has_revisions);
+            return this.dbHelperOledb.Insert(sql) > 0;
+        }
+
         public bool Delete(string id)
         {
             string sql = @"Delete from Gigs where gig_id = @gig_id";
@@ -66,12 +83,53 @@ namespace GigNovaWS
             gig_name = @gig_name ,
             gig_description = @gig_description ,
             gig_price = @gig_price,
-            gig_description = @gig_description";
+            is_publish = @is_publish,
+            has_revisions = @has_revisions 
+            where gig_id = @gig_id";
             this.dbHelperOledb.AddParameter("@gig_name", model.Gig_name);
             this.dbHelperOledb.AddParameter("@gig_description", model.Gig_description);
             this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price);
             this.dbHelperOledb.AddParameter("@is_publish", model.Is_publish);
-            this.dbHelperOledb.AddParameter("@is_publish", model.Has_revisions);
+            this.dbHelperOledb.AddParameter("@has_revisions", model.Has_revisions);
+            return this.dbHelperOledb.Update(sql) > 0;
+        }
+        public bool UpdateBySeller(Gig model)
+        {
+            string sql = @"Update Gigs set 
+            gig_name = @gig_name ,
+            gig_description = @gig_description ,
+            gig_price = @gig_price,
+            gig_photo = @gig_photo,
+            language_id = @language_id,
+            gig_delivery_time = @gig_delivery_time,
+            has_revisions = @has_revisions
+            where gig_id = @gig_id and seller_id = @seller_id";
+            this.dbHelperOledb.AddParameter("@gig_name", model.Gig_name);
+            this.dbHelperOledb.AddParameter("@gig_description", model.Gig_description);
+            this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price);
+            this.dbHelperOledb.AddParameter("@gig_photo", model.Gig_photo);
+            this.dbHelperOledb.AddParameter("@language_id", model.Language_id);
+            this.dbHelperOledb.AddParameter("@gig_delivery_time", model.Delivery_time_id);
+            this.dbHelperOledb.AddParameter("@has_revisions", model.Has_revisions);
+            this.dbHelperOledb.AddParameter("@gig_id", model.Gig_id);
+            this.dbHelperOledb.AddParameter("@seller_id", model.Seller_id);
+            return this.dbHelperOledb.Update(sql) > 0;
+        }
+
+        public bool DeleteBySeller(string gigId, string sellerId)
+        {
+            string sql = @"Delete from Gigs where gig_id = @gig_id and seller_id = @seller_id";
+            this.dbHelperOledb.AddParameter("@gig_id", gigId);
+            this.dbHelperOledb.AddParameter("@seller_id", sellerId);
+            return this.dbHelperOledb.Delete(sql) > 0;
+        }
+
+        public bool SetPublishStatus(string gigId, string sellerId, bool isPublish)
+        {
+            string sql = @"Update Gigs set is_publish = @is_publish where gig_id = @gig_id and seller_id = @seller_id";
+            this.dbHelperOledb.AddParameter("@is_publish", isPublish);
+            this.dbHelperOledb.AddParameter("@gig_id", gigId);
+            this.dbHelperOledb.AddParameter("@seller_id", sellerId);
             return this.dbHelperOledb.Update(sql) > 0;
         }
 

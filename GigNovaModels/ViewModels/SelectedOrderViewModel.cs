@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.ViewModels
 {
-    public class MessageViewModel
+    public class SelectedOrderViewModel
     {
-        public Message message { get; set; }
-        public Order order { get; set; }
-        public Message_type message_type { get; set; }
+        public Order Order { get; set; }
+        public Buyer Buyer { get; set; }
     }
 }
