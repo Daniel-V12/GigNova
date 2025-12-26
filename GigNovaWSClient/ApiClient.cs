@@ -79,7 +79,7 @@ namespace GigNovaWSClient
             }
         }
 
-        public async Task<bool> PostAsync(T model, FileStream file)
+        public async Task<bool> PostAsync(T model, Stream file)
         {
             using (HttpRequestMessage httpRequest = new HttpRequestMessage())
             {
@@ -90,7 +90,7 @@ namespace GigNovaWSClient
                 StringContent model_content = new StringContent(json);
                 multipartFormDataContent.Add(model_content, "model");
                 StreamContent streamContent = new StreamContent(file);
-                multipartFormDataContent.Add(streamContent, "file", file.Name);
+                multipartFormDataContent.Add(streamContent, "file", "file");
                 httpRequest.Content = multipartFormDataContent;
                 using (HttpResponseMessage responseMessage = await this.httpClient.SendAsync(httpRequest))
                 {
@@ -100,7 +100,7 @@ namespace GigNovaWSClient
         }
 
 
-        public async Task<bool> PostAsync(T model, List<FileStream> files)
+        public async Task<bool> PostAsync(T model, List<Stream> files)
         {
             using (HttpRequestMessage httpRequest = new HttpRequestMessage())
             {
@@ -110,10 +110,10 @@ namespace GigNovaWSClient
                 string json = JsonSerializer.Serialize<T>(model);
                 StringContent model_content = new StringContent(json);
                 multipartFormDataContent.Add(model_content, "model");
-                foreach(FileStream fileStream in files)
+                foreach(Stream fileStream in files)
                 {
                     StreamContent streamContent = new StreamContent(fileStream);
-                    multipartFormDataContent.Add(streamContent, "file", fileStream.Name);
+                    multipartFormDataContent.Add(streamContent, "file", "file");
                 }
                 httpRequest.Content = multipartFormDataContent;
                 using (HttpResponseMessage responseMessage = await this.httpClient.SendAsync(httpRequest))
