@@ -1,0 +1,99 @@
+﻿
+@{
+    ViewData["Title"] = "HomePage";
+    Layout = "~/Views/Shared/MasterGuestPage.cshtml";
+}
+
+<div>
+    <!--  MAIN  -->
+    <main id="main">
+        <!--  HERO  -->
+        <section class="hero">
+            <div class="container hero-grid">
+                <figure class="hero-media">
+                    <img src="..\photos\hero_photo.png" alt="Freelancer working at a desk" width="960" height="540" />
+                </figure>
+
+                <div class="hero-copy">
+                    <h1>Hire freelancers, get it done—fast.</h1>
+                    <p>
+                        Connect with verified pros across design, music &amp; audio, programming, and more. Post a job or
+                        browse gigs to kickstart your next project.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEARCH STRIP  -->
+        <section class="search-strip">
+            <div class="container">
+                <h2>
+                    Find the right <strong>service</strong> for your project — search for gigs
+                </h2>
+
+                <!-- Keeping the label simple and visible -->
+                <form class="search-form" action="/search" method="get">
+                    <input id="q" name="q" type="search" placeholder="Search gigs" aria-label="Search gigs">
+                    <button class="btn" type="submit">Search</button>
+                </form>
+            </div>
+        </section>
+
+        <!--  TRENDING GIGS  -->
+        <section class="trending">
+            <div class="container">
+                <h2>Current Trending Gigs</h2>
+
+                <ul class="card-grid">
+                    <!-- Card 1 -->
+                    <li class="card">
+                        <a class="card-link" href="/category/graphic-design">
+                            <header class="card-header">
+                                <h3 class="card-title">Graphic &amp; Design</h3>
+                            </header>
+                            <figure class="card-media">
+                                <img src="..\photos\trending_design.jpg" alt="Samples of graphic design work" />
+                            </figure>
+                        </a>
+                    </li>
+
+                    <!-- Card 2 -->
+                    <li class="card">
+                        <a class="card-link" href="/category/music-audio">
+                            <header class="card-header">
+                                <h3 class="card-title">Music &amp; Audio</h3>
+                            </header>
+                            <figure class="card-media">
+                                <img src="..\photos\trending_music.jpg" alt="Microphone and audio waveform" />
+                            </figure>
+                        </a>
+                    </li>
+
+                    <!-- Card 3 -->
+                    <li class="card">
+                        <a class="card-link" href="/category/programming">
+                            <header class="card-header">
+                                <h3 class="card-title">Programming</h3>
+                            </header>
+                            <figure class="card-media">
+                                <img src="..\photos\trending_programming.jpg" alt="Code editor on a laptop" />
+                            </figure>
+                        </a>
+                    </li>
+                </ul>
+
+                <p class="cta-wrap">
+                    <a class="btn btn-secondary" href="/gigs">View All Gigs Catalog</a>
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <!--FOOTER -->
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <p>&copy; 2025 GigNova. All rights reserved.</p>
+        </div>
+        </
+</div>
+

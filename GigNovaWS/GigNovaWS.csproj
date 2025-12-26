@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Images\**" />
+    <Content Remove="Images\**" />
+    <EmbeddedResource Remove="Images\**" />
+    <None Remove="Images\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="System.Data.OleDb" Version="9.0.10" />
   </ItemGroup>
@@ -16,10 +23,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Images\Buyers\" />
-    <Folder Include="Images\Sellers\" />
-    <Folder Include="Images\Guests\" />
-    <Folder Include="wwwroot\" />
+    <Folder Include="wwwroot\Images\Guest\" />
+    <Folder Include="wwwroot\Images\Buyer\" />
+    <Folder Include="wwwroot\Images\Seller\" />
   </ItemGroup>
 
 </Project>

@@ -7,7 +7,7 @@ namespace GigNovaWebApp.Controllers
     public class GuestController : Controller
     {
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult HomePage()
         {
             return View();
         }
@@ -19,7 +19,7 @@ namespace GigNovaWebApp.Controllers
             client.Scheme = "https";
             client.Host = "localhost";
             client.Port = 7059;
-            client.Path = "api/Guest/GetCatalogViewModel/";
+            client.Path = "api/Guest/GetCatalogViewModel";
             if (category_id != null)
             {
                 client.AddParameter("category_id", category_id);
@@ -31,5 +31,21 @@ namespace GigNovaWebApp.Controllers
             CatalogViewModel catalogViewModel = await client.GetAsync();
             return View(catalogViewModel);
         }
+
+        public async Task<IActionResult> ViewSelectedGig (string gig_id = null)
+        {
+            ApiClient<SelectedGigViewModel> client = new ApiClient<SelectedGigViewModel>();
+            client.Scheme = "https";
+            client.Host = "localhost";
+            client.Port = 5172;
+            client.Path = "api/Guest/GetSelectedGigViewModel/";
+            if (gig_id != null)
+            {
+                client.AddParameter("gig_id", gig_id);
+            }
+            SelectedGigViewModel selectedGigViewModel = await client.GetAsync();
+            return View(selectedGigViewModel);
+        }
+
     }
 }

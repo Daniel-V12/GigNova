@@ -249,6 +249,16 @@ namespace GigNovaWS
             return gigs.Skip(gigsperpage * (page - 1)).Take(gigsperpage).ToList();
          }
 
+        //public int GetGigCount()
+        //{
+        //    string sql = "Select Count(gig_id) as GigCount from Gigs";
+        //    using (IDataReader reader = this.dbHelperOledb.Select(sql))
+        //    {
+        //        reader.Read();
+        //        return Convert.ToInt32(reader["GigCount"]);
+        //    }
+        //}
+
 
         //public List<Gig> GetGigsByRating(string rating)
         //{
