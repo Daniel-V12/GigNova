@@ -14,5 +14,21 @@ namespace GigNovaModels.ViewModels
         public List<Language> Languages { get; set; }
         public List<Delivery_time> Delivery_Times { get; set; }
 
+        public int Page { get; set; } = 0;
+        public int TotalPages { get; set; } = 0;
+        public int GigsPerPageCount { get; set; } = 9;
+
+        public string GigCategories { get; set; } = "";
+
+        public double min_price { get; set; } = 0;
+        public double max_price { get; set; } = 0;
+        public int delivery_time_id { get; set; } = 0;
+        public int language_id { get; set; } = 0;
+        public string search { get; set; } = "";
+        public double min_rating { get; set; } = 0;
+
+
+
+
     }
 }

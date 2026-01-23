@@ -17,7 +17,9 @@ namespace GigNovaWS.Controllers
             this.repositoryUOW = new RepositoryUOW();
         }
         [HttpGet]
-        public CatalogViewModel GetCatalogViewModel(string categories = null, int page = 0, double min_price = 0, double max_price = 0, int delivery_time_id = 0, int language_id = 0, string search = null, double min_rating = 0)
+        public CatalogViewModel GetCatalogViewModel(string categories = null, int page = 1, double min_price = 0,
+                                                   double max_price = 0, int delivery_time_id = 0, int language_id = 0,
+                                                   string search = null, double min_rating = 0)
         {
             string categoriesValue = categories;
             if (categoriesValue == null)
@@ -35,9 +37,14 @@ namespace GigNovaWS.Controllers
                 catalogviewModel.Categories = this.repositoryUOW.CategoryRepository.GetAll();
                 catalogviewModel.Languages = this.repositoryUOW.LanguageRepository.GetAll();
                 catalogviewModel.Delivery_Times = this.repositoryUOW.Delivery_timeRepository.GetAll();
-                if (categoriesValue == null && page == 0)
+                int gigs = 0;
+                if (categoriesValue == null && page == 1)
                 {
+                   
+
                     catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetAll();
+                    gigs = catalogviewModel.Gigs.Count;
+                    catalogviewModel.Gigs = catalogviewModel.Gigs.Skip((page -1) * catalogviewModel.GigsPerPageCount).Take(catalogviewModel.GigsPerPageCount).ToList();
                 }
                 else if (categoriesValue != null && page == 0)
                 {
@@ -52,6 +59,7 @@ namespace GigNovaWS.Controllers
                 }
                 else if (categoriesValue != null && page != 0)
                 {
+
                     string[] strings = categoriesValue.Split(',');
                     catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetGigsByPageAndCategories(strings, page);
                 }
@@ -119,6 +127,12 @@ namespace GigNovaWS.Controllers
                     }
                     catalogviewModel.Gigs = filtered;
                 }
+
+                catalogviewModel.TotalPages = gigs / catalogviewModel.GigsPerPageCount;
+                if (gigs % catalogviewModel.GigsPerPageCount > 0)
+                    catalogviewModel.TotalPages++;
+                catalogviewModel.Page = page;
+
                 return catalogviewModel;
             }
             catch (Exception ex)
