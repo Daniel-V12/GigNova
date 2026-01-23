@@ -1,4 +1,5 @@
-﻿
+﻿@using GigNovaModels.ViewModels
+@using GigNovaModels.Models
 @{
     ViewData["Title"] = "MasterGuestPage";
 }
@@ -11,7 +12,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>GigNova - Guest Dashboard</title>
         <meta name="description" content="GigNova is a freelance marketplace where buyers and sellers connect to get projects done—design, music, programming, and more." />
-        <link href="~/css/masterguestpage.css" rel="stylesheet" />
+        <link href="~/css/masterguest_page.css" rel="stylesheet" />
     </head>
     <body>
         <!--  HEADER = -->
@@ -22,7 +23,7 @@
                 </div>
 
                 <nav class="nav-buttons">
-                    <a href="http://localhost:5172/Guest/ViewCatalog" class="btn btn-view-catalog">View Catalog</a>
+                    <a href="http://localhost:5172/Guest/ViewCatalogPage" class="btn btn-view-catalog">View Catalog</a>
                     <a href="#" class="btn btn-login">Log In</a>
                     <a href="#" class="btn btn-signup">Sign Up</a>
                 </nav>
