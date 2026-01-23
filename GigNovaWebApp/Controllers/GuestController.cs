@@ -14,7 +14,7 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> ViewCatalog(
+        public async Task<IActionResult> ViewCatalogPage(
             string categories = null,
             int page = 0,
             double min_price = 0,
