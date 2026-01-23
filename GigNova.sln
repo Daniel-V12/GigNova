@@ -9,9 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GigNovaTesting", "GigNovaTe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GigNovaWS", "GigNovaWS\GigNovaWS.csproj", "{04174084-8BDA-4586-9336-E241DA55DB89}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GigNovaWSClient", "GigNovaWSClient\GigNovaWSClient.csproj", "{86076DD3-8B7D-43E1-B1B4-868A636252C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GigNovaWSClient", "GigNovaWSClient\GigNovaWSClient.csproj", "{86076DD3-8B7D-43E1-B1B4-868A636252C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GigNovaWebApp", "GigNovaWebApp\GigNovaWebApp.csproj", "{B4C3E10D-4369-4B52-9212-0D689CCD931F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GigNovaWebApp", "GigNovaWebApp\GigNovaWebApp.csproj", "{B4C3E10D-4369-4B52-9212-0D689CCD931F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
