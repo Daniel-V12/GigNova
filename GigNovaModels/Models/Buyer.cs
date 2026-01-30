@@ -8,16 +8,11 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Buyer :Model
+    public class Buyer :Person
     {
-        string buyer_id;
         string buyer_description;
         string buyer_display_name;
-        public string Buyer_id
-        {
-            get { return buyer_id; }
-            set { buyer_id = value; }
-        }
+       
         [Required(ErrorMessage = "Description is required")]
         public string Buyer_description
         {
