@@ -8,7 +8,6 @@ namespace GigNovaWS
         public Buyer CreateModel(IDataReader dataReader)
         {
             Buyer buyer = new Buyer();
-            buyer.Buyer_id = Convert.ToString(dataReader["buyer_id"]);
             buyer.Buyer_display_name = Convert.ToString(dataReader["buyer_display_name"]);
             buyer.Buyer_description = Convert.ToString(dataReader["buyer_description"]);
 

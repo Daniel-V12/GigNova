@@ -212,18 +212,13 @@ namespace GigNovaWS.Controllers
         }
 
         [HttpPost]
-        public bool SignUp(SignUpViewModel signUpViewModel)
+        public bool SignUpPage(Buyer buyer)
         {
-            if (signUpViewModel == null || signUpViewModel.Person == null || signUpViewModel.Buyer == null)
-            {
-                return false;
-            }
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
-                bool personCreated = this.repositoryUOW.PersonRepository.Create(signUpViewModel.Person);
-                bool buyerCreated = this.repositoryUOW.BuyerRepository.Create(signUpViewModel.Buyer);
-                return personCreated && buyerCreated;
+                bool ok = this.repositoryUOW.BuyerRepository.Create(buyer);
+                return ok;
             }
             catch (Exception ex)
             {
@@ -238,7 +233,7 @@ namespace GigNovaWS.Controllers
 
 
         [HttpGet]
-        public string LogIn(string identifier, string password)
+        public string LogInPage(string identifier, string password)
         {
             if (identifier == null || password == null)
             {

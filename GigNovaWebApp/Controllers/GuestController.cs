@@ -114,23 +114,37 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpGet]
-        public IActionResult SignUp()
+        public IActionResult SignUpPage(Buyer buyer = null)
         {
-            return View();
+           return View(buyer);   
         }
 
         [HttpPost]
-        public IActionResult SignUp(SignUpViewModel signUpViewModel)
+        public async Task<IActionResult> SignUp(Buyer buyer)
         {
-            if (signUpViewModel == null)
+            if (ModelState.IsValid == false)
             {
-                return View(signUpViewModel);
+                ViewBag.ErrorMessage = "The data you inserted is incorrect";  
+                return View("SignUpPage", buyer);
             }
-            return View(signUpViewModel);
+            ApiClient<Buyer> client = new ApiClient<Buyer>();
+            client.Scheme = "https";
+            client.Host = "localhost";
+            client.Port = 7059;
+            client.Path = "api/Guest/SignUpPage";
+            bool response =  await client.PostAsync(buyer);
+            if (response)
+            {
+                
+                return View("HomePage");
+            }
+            ViewBag.ErrorMessage = "Server problem, try again later";
+            return View("SignUpPage", buyer);
+
         }
 
         [HttpGet]
-        public IActionResult LogIn()
+        public IActionResult LogInPage()
         {
             return View();
         }

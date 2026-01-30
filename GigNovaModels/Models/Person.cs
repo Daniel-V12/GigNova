@@ -28,7 +28,13 @@ namespace GigNovaModels.Models
         public string Person_id
         {
             get { return person_id; }
-            set { person_id = value; }
+            set
+            {
+                if (value == null)
+                    person_id = "";
+                else
+                    person_id = value;
+            }
         }
         [NoSpaces(ErrorMessage = "Username cannot contain spaces.")]
         [Required(ErrorMessage = "Username is required")]
@@ -47,13 +53,20 @@ namespace GigNovaModels.Models
         public string Person_birthdate
         {
             get { return person_birthdate; }
-            set { person_birthdate = value; }
+            set
+            {
+                if (value == null)
+                    person_birthdate = "";
+                else
+                    person_birthdate = value;
+            }
         }
         public string Person_join_date
         {
             get { return person_join_date; }
             set { person_join_date = value; }
         }
+
         [EmailAddress(ErrorMessage = "Invalid email format")]
         [Required(ErrorMessage = "Email is required")]
         [NoSpaces(ErrorMessage = "Email cannot contain spaces.")]
