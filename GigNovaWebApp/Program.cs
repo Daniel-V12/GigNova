@@ -25,7 +25,7 @@ namespace GigNovaWebApp
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Guest}/{action=HomePage}/{id?}");
+                pattern: "{controller=Guest}/{action=GuestHomePage}/{id?}");
 
             app.Run();
         }

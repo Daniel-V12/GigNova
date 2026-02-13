@@ -8,7 +8,7 @@ namespace GigNovaWebApp.Controllers
     public class GuestController : Controller
     {
         [HttpGet]
-        public IActionResult HomePage()
+        public IActionResult GuestHomePage()
         {
             return View();
         }

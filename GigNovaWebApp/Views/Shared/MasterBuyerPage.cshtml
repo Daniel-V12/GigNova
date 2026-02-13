@@ -1,0 +1,29 @@
+﻿@using GigNovaModels.ViewModels
+@using GigNovaModels.Models
+@{
+    ViewData["Title"] = "MasterBuyerPage";
+}
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GigNova - Guest Dashboard</title>
+    <meta name="description" content="GigNova is a freelance marketplace where buyers and sellers connect to get projects done—design, music, programming, and more." />
+    <link href="~/css/masterbuyer_page.css" rel="stylesheet" />
+</head>
+<header class="dashboard-header">
+    <div class="dashboard-container">
+        <div class="logo-section">
+            <a href="http://localhost:5172/Buyer/BuyerHomePage" class="logo">GigNova//:</a>
+        </div>
+
+        <nav class="nav-buttons">
+            <a href="#" class="btn btn-view-catalog">View Catalog</a>
+            <a href="#" class="btn btn-my-orders">View My Orders</a>
+            <a href="#" class="btn btn-profile">Open Profile</a>
+            <a href="#" class="btn btn-become-seller">Become A Seller</a>
+        </nav>
+    </div>
+    @RenderBody();
+</header>
+
