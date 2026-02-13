@@ -4,33 +4,28 @@
     ViewData["Title"] = "MasterGuestPage";
 }
 
-<h1>
-    <!doctype html>
-    <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>GigNova - Guest Dashboard</title>
-        <meta name="description" content="GigNova is a freelance marketplace where buyers and sellers connect to get projects done—design, music, programming, and more." />
-        <link href="~/css/masterguest_page.css" rel="stylesheet" />
-    </head>
-    <body>
-        <!--  HEADER = -->
-        <header class="dashboard-header">
-            <div class="dashboard-container">
-                <div class="logo-section">
-                    <a href="http://localhost:5172/Guest/HomePage" class="logo">GigNova//:</a>
-                </div>
 
-                <nav class="nav-buttons">
-                    <a href="http://localhost:5172/Guest/ViewCatalogPage" class="btn btn-view-catalog">View Catalog</a>
-                    <a href="http://localhost:5172/Guest/LoginPage" class="btn btn-login">Log In</a>
-                    <a href="http://localhost:5172/Guest/SignUpPage" class="btn btn-signup">Sign Up</a>
-                </nav>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GigNova - Guest Dashboard</title>
+    <meta name="description" content="GigNova is a freelance marketplace where buyers and sellers connect to get projects done—design, music, programming, and more." />
+    <link href="~/css/masterguest_page.css" rel="stylesheet" />
+</head>
+<body>
+    <!--  HEADER = -->
+    <header class="dashboard-header">
+        <div class="dashboard-container">
+            <div class="logo-section">
+                <a href="http://localhost:5172/Guest/GuestHomePage" class="logo">GigNova//:</a>
             </div>
-        </header>
-        @RenderBody();
-    </body>
-</html>
-</h1>
 
+            <nav class="nav-buttons">
+                <a href="http://localhost:5172/Guest/ViewCatalogPage" class="btn btn-view-catalog">View Catalog</a>
+                <a href="http://localhost:5172/Guest/LoginPage" class="btn btn-login">Log In</a>
+                <a href="http://localhost:5172/Guest/SignUpPage" class="btn btn-signup">Sign Up</a>
+            </nav>
+        </div>
+    </header>
+    @RenderBody();
+</body>

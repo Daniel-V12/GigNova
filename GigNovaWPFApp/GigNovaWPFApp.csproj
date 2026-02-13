@@ -9,7 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="UserControls\" />
+    <Folder Include="Images\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GigNovaModels\GigNovaModels.csproj" />
+    <ProjectReference Include="..\GigNovaWSClient\GigNovaWSClient.csproj" />
   </ItemGroup>
 
 </Project>
