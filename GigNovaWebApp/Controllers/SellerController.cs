@@ -7,7 +7,7 @@ namespace GigNovaWebApp.Controllers
     public class SellerController : Controller
     {
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult SellerHomePage()
         {
             return View();
         }
