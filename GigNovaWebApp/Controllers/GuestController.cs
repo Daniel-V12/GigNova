@@ -136,11 +136,10 @@ namespace GigNovaWebApp.Controllers
             if (response)
             {
                 
-                return View("HomePage");
+                return View("GuestHomePage");
             }
             ViewBag.ErrorMessage = "Server problem, try again later";
             return View("SignUpPage", buyer);
-
         }
 
         [HttpGet]

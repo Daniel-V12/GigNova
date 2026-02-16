@@ -1,0 +1,77 @@
+﻿@{
+    ViewData["Title"] = "BecomeASellerPage";
+    Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+}
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GigNova - Become A Seller</title>
+<link href="~/css/buyer_pages/becomeseller_page.css" rel="stylesheet" />
+
+<!-- Signup Form -->
+<div class="signup-container">
+    <div class="signup-card">
+        <h1 class="signup-title">Become A Seller</h1>
+        <p class="signup-subtitle">Start offering your services and earn money on GigNova</p>
+
+        <form id="sellerForm">
+            <!-- Avatar Section -->
+            <div class="avatar-section">
+                <div class="avatar-container">
+                    <div class="avatar" id="avatarPreview">
+                        📸
+                    </div>
+                </div>
+                <label for="avatarUpload" class="upload-avatar-btn">
+                    Upload Profile Picture
+                </label>
+                <input type="file" id="avatarUpload" class="file-input" accept="image/*">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="displayName">Seller Display Name</label>
+                <input type="text"
+                       id="displayName"
+                       name="displayName"
+                       class="form-input"
+                       placeholder="Enter your seller display name"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="bio">Seller Bio</label>
+                <textarea id="bio"
+                          name="bio"
+                          class="form-textarea"
+                          placeholder="Tell potential clients about your skills, experience, and what services you offer..."
+                          maxlength="500"
+                          required></textarea>
+                <div class="char-count"><span id="charCount">0</span>/500 characters</div>
+            </div>
+
+            <!-- Payment Account Section -->
+            <div class="form-group">
+                <label class="form-label">Payment Account</label>
+                <button type="button" class="link-account-btn" id="linkAccountBtn">
+                    <span class="btn-icon">💳</span>
+                    <span class="btn-text">Link Payment Account</span>
+                </button>
+                <p class="account-status" id="accountStatus">No payment account linked</p>
+            </div>
+
+            <label class="checkbox-group">
+                <input type="checkbox"
+                       id="ageConfirm"
+                       name="ageConfirm"
+                       required>
+                <span class="checkbox-label">I confirm that I am 18 years of age or older and agree to GigNova's seller terms and conditions.</span>
+            </label>
+
+            <button type="submit" class="submit-btn" id="submitBtn" >Start Selling</button>
+
+            <div class="info-text">
+                By becoming a seller, you'll be able to create gigs, receive orders, and earn money on the platform.
+            </div>
+        </form>
+    </div>
+</div>

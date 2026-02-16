@@ -123,10 +123,33 @@ namespace GigNovaWebApp.Controllers
             return View();
         }
 
-        [HttpPost]
-        public IActionResult BecomeASeller(Seller seller)
+        [HttpGet]
+        public IActionResult BecomeASellerPage(Seller seller = null)
         {
             return View(seller);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BecomeASeller(Seller seller)
+        {
+            if (ModelState.IsValid == false)
+            {
+                ViewBag.ErrorMessage = "The data you inserted is incorrect";
+                return View("BecomeASellerPage", seller);
+            }
+            ApiClient<Seller> client = new ApiClient<Seller>();
+            client.Scheme = "https";
+            client.Host = "localhost";
+            client.Port = 7059;
+            client.Path = "api/Buyer/BecomeASeller";
+            bool response = await client.PostAsync(seller);
+            if (response)
+            {
+
+                return View("BuyerHomePage");
+            }
+            ViewBag.ErrorMessage = "Server problem, try again later";
+            return View("SellerHomePage", seller);
         }
     }
 }
