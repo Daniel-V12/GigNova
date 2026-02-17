@@ -1,0 +1,43 @@
+﻿@using GigNovaModels.ViewModels
+@model SelectedGigViewModel
+@{
+    ViewData["Title"] = "ViewSelectedGig";
+    Layout = "~/Views/Shared/MasterGuestPage.cshtml";
+}
+<link href="~/css/guest_pages/catalog_page.css" rel="stylesheet" />
+
+<div class="catalog-container">
+    <div class="gigs-section">
+        @if (Model != null && Model.gig != null)
+        {
+            <div class="gigs-header">
+                <h2>@Model.gig.Gig_name</h2>
+            </div>
+
+            <div class="gig-card" style="max-width:900px; margin:0 auto;">
+                <div class="gig-image-wrap" style="height:260px;">
+                    <img class="gig-image" src="http://localhost:7059/Images/@Model.gig.Gig_photo" alt="@Model.gig.Gig_name" />
+                </div>
+                <div class="gig-info">
+                    <p class="gig-description" style="min-height:auto;">@Model.gig.Gig_description</p>
+                    <div class="gig-footer">
+                        <div class="gig-price">
+                            <span class="price-label">Starting at</span>
+                            <span class="price-value">$@Model.gig.Gig_price</span>
+                        </div>
+                        <div class="gig-price">
+                            <span class="price-label">Rating</span>
+                            <span class="price-value">@Model.Review</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <h3>Gig was not found.</h3>
+            </div>
+        }
+    </div>
+</div>

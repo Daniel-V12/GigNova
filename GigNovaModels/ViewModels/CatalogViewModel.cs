@@ -24,7 +24,6 @@ namespace GigNovaModels.ViewModels
         public double max_price { get; set; } = 0;
         public int delivery_time_id { get; set; } = 0;
         public int language_id { get; set; } = 0;
-        public string search { get; set; } = "";
         public double min_rating { get; set; } = 0;
 
 
