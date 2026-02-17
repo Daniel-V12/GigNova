@@ -16,12 +16,11 @@ namespace GigNovaWebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> ViewCatalogPage(
             string categories = null,
-            int page = 0,
+            int page = 1,
             double min_price = 0,
             double max_price = 0,
             int delivery_time_id = 0,
             int language_id = 0,
-            string search = null,
             double min_rating = 0)
         {
             ApiClient<CatalogViewModel> client = new ApiClient<CatalogViewModel>();
@@ -52,10 +51,6 @@ namespace GigNovaWebApp.Controllers
             if (language_id != 0)
             {
                 client.AddParameter("language_id", language_id.ToString());
-            }
-            if (search != null)
-            {
-                client.AddParameter("search", search);
             }
             if (min_rating != 0)
             {
@@ -116,7 +111,7 @@ namespace GigNovaWebApp.Controllers
         [HttpGet]
         public IActionResult SignUpPage(Buyer buyer = null)
         {
-           return View(buyer);   
+            return View(buyer);
         }
 
         [HttpPost]
@@ -124,7 +119,7 @@ namespace GigNovaWebApp.Controllers
         {
             if (ModelState.IsValid == false)
             {
-                ViewBag.ErrorMessage = "The data you inserted is incorrect";  
+                ViewBag.ErrorMessage = "The data you inserted is incorrect";
                 return View("SignUpPage", buyer);
             }
             ApiClient<Buyer> client = new ApiClient<Buyer>();
@@ -132,10 +127,10 @@ namespace GigNovaWebApp.Controllers
             client.Host = "localhost";
             client.Port = 7059;
             client.Path = "api/Guest/SignUpPage";
-            bool response =  await client.PostAsync(buyer);
+            bool response = await client.PostAsync(buyer);
             if (response)
             {
-                
+
                 return View("GuestHomePage");
             }
             ViewBag.ErrorMessage = "Server problem, try again later";

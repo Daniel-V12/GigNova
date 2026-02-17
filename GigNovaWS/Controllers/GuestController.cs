@@ -16,122 +16,29 @@ namespace GigNovaWS.Controllers
         {
             this.repositoryUOW = new RepositoryUOW();
         }
+
         [HttpGet]
         public CatalogViewModel GetCatalogViewModel(string categories = null, int page = 1, double min_price = 0,
                                                    double max_price = 0, int delivery_time_id = 0, int language_id = 0,
-                                                   string search = null, double min_rating = 0)
+                                                   double min_rating = 0)
         {
-            string categoriesValue = categories;
-            if (categoriesValue == null)
-            {
-                categoriesValue = null;
-            }
-            CatalogViewModel catalogviewModel = new CatalogViewModel
-            {
-                Categories = new List<Category>(),
-                Gigs = new List<Gig>()
-            };
+            CatalogViewModel catalogviewModel = BuildCatalogViewModel(categories, min_price, max_price, delivery_time_id, language_id, min_rating);
+
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
                 catalogviewModel.Categories = this.repositoryUOW.CategoryRepository.GetAll();
                 catalogviewModel.Languages = this.repositoryUOW.LanguageRepository.GetAll();
                 catalogviewModel.Delivery_Times = this.repositoryUOW.Delivery_timeRepository.GetAll();
-                int gigs = 0;
-                if (categoriesValue == null && page == 1)
-                {
-                   
 
-                    catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetAll();
-                    gigs = catalogviewModel.Gigs.Count;
-                    catalogviewModel.Gigs = catalogviewModel.Gigs.Skip((page -1) * catalogviewModel.GigsPerPageCount).Take(catalogviewModel.GigsPerPageCount).ToList();
-                }
-                else if (categoriesValue != null && page == 0)
-                {
+                List<Gig> gigs = GetGigsByCategories(categories);
+                gigs = FilterByPrice(gigs, min_price, max_price);
+                gigs = FilterByDeliveryTime(gigs, delivery_time_id);
+                gigs = FilterByLanguage(gigs, language_id);
+                gigs = FilterByRating(gigs, min_rating);
 
-                    string[] strings = categoriesValue.Split(',');
-                    catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetGigByCategories(strings);
-                }
-                else if (categoriesValue == null && page != 0)
-                {
-
-                    catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetGigsByPage(page);
-                }
-                else if (categoriesValue != null && page != 0)
-                {
-
-                    string[] strings = categoriesValue.Split(',');
-                    catalogviewModel.Gigs = this.repositoryUOW.GigRepository.GetGigsByPageAndCategories(strings, page);
-                }
-                if (min_price != 0 || max_price != 0)
-                {
-                    List<Gig> filtered = new List<Gig>();
-                    foreach (Gig gig in catalogviewModel.Gigs)
-                    {
-                        bool minOk = min_price == 0 || gig.Gig_price >= min_price;
-                        bool maxOk = max_price == 0 || gig.Gig_price <= max_price;
-                        if (minOk && maxOk)
-                        {
-                            filtered.Add(gig);
-                        }
-                    }
-                    catalogviewModel.Gigs = filtered;
-                }
-                if (delivery_time_id != 0)
-                {
-                    List<Gig> filtered = new List<Gig>();
-                    foreach (Gig gig in catalogviewModel.Gigs)
-                    {
-                        if (gig.Delivery_time_id == delivery_time_id)
-                        {
-                            filtered.Add(gig);
-                        }
-                    }
-                    catalogviewModel.Gigs = filtered;
-                }
-                if (language_id != 0)
-                {
-                    List<Gig> filtered = new List<Gig>();
-                    foreach (Gig gig in catalogviewModel.Gigs)
-                    {
-                        if (gig.Language_id == language_id)
-                        {
-                            filtered.Add(gig);
-                        }
-                    }
-                    catalogviewModel.Gigs = filtered;
-                }
-                if (search != null)
-                {
-                    string searchLower = search.ToLower();
-                    List<Gig> filtered = new List<Gig>();
-                    foreach (Gig gig in catalogviewModel.Gigs)
-                    {
-                        if (gig.Gig_name != null && gig.Gig_name.ToLower().Contains(searchLower))
-                        {
-                            filtered.Add(gig);
-                        }
-                    }
-                    catalogviewModel.Gigs = filtered;
-                }
-                if (min_rating != 0)
-                {
-                    List<Gig> filtered = new List<Gig>();
-                    foreach (Gig gig in catalogviewModel.Gigs)
-                    {
-                        double avgRating = this.repositoryUOW.ReviewRepository.GetAverageRatingByGigId(gig.Gig_id);
-                        if (avgRating >= min_rating)
-                        {
-                            filtered.Add(gig);
-                        }
-                    }
-                    catalogviewModel.Gigs = filtered;
-                }
-
-                catalogviewModel.TotalPages = gigs / catalogviewModel.GigsPerPageCount;
-                if (gigs % catalogviewModel.GigsPerPageCount > 0)
-                    catalogviewModel.TotalPages++;
-                catalogviewModel.Page = page;
+                UpdatePagination(catalogviewModel, gigs.Count, ref page);
+                catalogviewModel.Gigs = gigs.Skip((page - 1) * catalogviewModel.GigsPerPageCount).Take(catalogviewModel.GigsPerPageCount).ToList();
 
                 return catalogviewModel;
             }
@@ -146,6 +53,164 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        private CatalogViewModel BuildCatalogViewModel(string categories, double min_price, double max_price, int delivery_time_id, int language_id, double min_rating)
+        {
+            CatalogViewModel catalogviewModel = new CatalogViewModel();
+            catalogviewModel.Categories = new List<Category>();
+            catalogviewModel.Gigs = new List<Gig>();
+            catalogviewModel.Languages = new List<Language>();
+            catalogviewModel.Delivery_Times = new List<Delivery_time>();
+            if (categories == null)
+            {
+                catalogviewModel.GigCategories = "";
+            }
+            else
+            {
+                catalogviewModel.GigCategories = categories;
+            }
+            catalogviewModel.min_price = min_price;
+            catalogviewModel.max_price = max_price;
+            catalogviewModel.delivery_time_id = delivery_time_id;
+            catalogviewModel.language_id = language_id;
+            catalogviewModel.min_rating = min_rating;
+            return catalogviewModel;
+        }
+
+        private List<Gig> GetGigsByCategories(string categories)
+        {
+            if (categories == null)
+            {
+                return this.repositoryUOW.GigRepository.GetAll();
+            }
+
+            List<string> categoriesList = new List<string>();
+            string[] splitCategories = categories.Split(',');
+            foreach (string category in splitCategories)
+            {
+                if (category != null)
+                {
+                    string categoryTrim = category.Trim();
+                    if (categoryTrim != "")
+                    {
+                        categoriesList.Add(categoryTrim);
+                    }
+                }
+            }
+            return this.repositoryUOW.GigRepository.GetGigByCategories(categoriesList.ToArray());
+        }
+
+        private List<Gig> FilterByPrice(List<Gig> gigs, double min_price, double max_price)
+        {
+            List<Gig> filtered = gigs;
+            if (min_price > 0)
+            {
+                List<Gig> minPriceFiltered = new List<Gig>();
+                foreach (Gig gig in filtered)
+                {
+                    if (gig.Gig_price >= min_price)
+                    {
+                        minPriceFiltered.Add(gig);
+                    }
+                }
+                filtered = minPriceFiltered;
+            }
+
+            if (max_price > 0)
+            {
+                List<Gig> maxPriceFiltered = new List<Gig>();
+                foreach (Gig gig in filtered)
+                {
+                    if (gig.Gig_price <= max_price)
+                    {
+                        maxPriceFiltered.Add(gig);
+                    }
+                }
+                filtered = maxPriceFiltered;
+            }
+            return filtered;
+        }
+
+        private List<Gig> FilterByDeliveryTime(List<Gig> gigs, int delivery_time_id)
+        {
+            if (delivery_time_id <= 0)
+            {
+                return gigs;
+            }
+
+            List<Gig> filtered = new List<Gig>();
+            foreach (Gig gig in gigs)
+            {
+                if (gig.Delivery_time_id == delivery_time_id)
+                {
+                    filtered.Add(gig);
+                }
+            }
+            return filtered;
+        }
+
+        private List<Gig> FilterByLanguage(List<Gig> gigs, int language_id)
+        {
+            if (language_id <= 0)
+            {
+                return gigs;
+            }
+
+            List<Gig> filtered = new List<Gig>();
+            foreach (Gig gig in gigs)
+            {
+                if (gig.Language_id == language_id)
+                {
+                    filtered.Add(gig);
+                }
+            }
+            return filtered;
+        }
+
+        private List<Gig> FilterByRating(List<Gig> gigs, double min_rating)
+        {
+            if (min_rating <= 0)
+            {
+                return gigs;
+            }
+
+            List<Gig> filtered = new List<Gig>();
+            foreach (Gig gig in gigs)
+            {
+                double avgRating = this.repositoryUOW.ReviewRepository.GetAverageRatingByGigId(gig.Gig_id);
+                if (avgRating >= min_rating)
+                {
+                    filtered.Add(gig);
+                }
+            }
+            return filtered;
+        }
+
+        private void UpdatePagination(CatalogViewModel catalogviewModel, int gigsCount, ref int page)
+        {
+            int perPage = catalogviewModel.GigsPerPageCount;
+            if (gigsCount == 0)
+            {
+                catalogviewModel.TotalPages = 0;
+            }
+            else
+            {
+                catalogviewModel.TotalPages = gigsCount / perPage;
+                if (gigsCount % perPage > 0)
+                {
+                    catalogviewModel.TotalPages++;
+                }
+            }
+
+            if (page < 1)
+            {
+                page = 1;
+            }
+            if (catalogviewModel.TotalPages > 0 && page > catalogviewModel.TotalPages)
+            {
+                page = catalogviewModel.TotalPages;
+            }
+            catalogviewModel.Page = page;
+        }
 
         [HttpGet]
         public SelectedGigViewModel GetSelectedGigViewModel(string gig_id)

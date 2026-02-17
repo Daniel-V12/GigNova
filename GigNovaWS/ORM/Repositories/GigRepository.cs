@@ -162,8 +162,9 @@ namespace GigNovaWS
                 int i = 0;
                 foreach (string category in categories)
                 {
-                    sb.Append($"category_id ={category} ");
-                   
+                    sb.Append("[Gigs - Categories].[category_id] = ? ");
+                    this.dbHelperOledb.AddParameter("@category_id_" + i, category);
+
                     if (i != categories.Length - 1)
                         sb.Append(" Or ");
                     i++;
@@ -176,7 +177,7 @@ namespace GigNovaWS
                 while (reader.Read())
                 {
                     Gig gig = this.modelCreators.GigCreator.CreateModel(reader);
-                    if(IfGigExist(gig, gigs)==false)
+                    if (IfGigExist(gig, gigs) == false)
                         gigs.Add(gig);
                 }
             }
@@ -188,12 +189,12 @@ namespace GigNovaWS
         {
             foreach (Gig thisGig in gigs)
             {
-                
-                    if (thisGig.Gig_id == gig.Gig_id) 
-                    {
-                        return true;
-                    }
-                
+
+                if (thisGig.Gig_id == gig.Gig_id)
+                {
+                    return true;
+                }
+
             }
             return false;
         }
@@ -243,11 +244,11 @@ namespace GigNovaWS
         }
 
         public List<Gig> GetGigsByPageAndCategories(string[] strings, int page)
-         {
+        {
             int gigsperpage = 5;
             List<Gig> gigs = GetGigByCategories(strings);
             return gigs.Skip(gigsperpage * (page - 1)).Take(gigsperpage).ToList();
-         }
+        }
 
         //public int GetGigCount()
         //{
@@ -276,3 +277,4 @@ namespace GigNovaWS
         //}
     }
 }
+
