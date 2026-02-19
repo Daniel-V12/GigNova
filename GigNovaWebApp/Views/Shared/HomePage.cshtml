@@ -1,17 +1,45 @@
-﻿@using GigNovaModels.ViewModels
-@using GigNovaModels.Models
-@{
-    ViewData["Title"] = "SellerHomePage";
-    Layout = "~/Views/Shared/MasterSellerPage.cshtml";
+﻿@{
+    string actor = "guest";
+    string layoutPath = "~/Views/Shared/MasterGuestPage.cshtml";
+
+    if (ViewData["HomeActor"] != null)
+    {
+        actor = ViewData["HomeActor"].ToString();
+    }
+    if (ViewData["LayoutPath"] != null)
+    {
+        layoutPath = ViewData["LayoutPath"].ToString();
+    }
+
+    Layout = layoutPath;
+    ViewData["Title"] = "HomePage";
+
+    string heroTitle = "Welcome to GigNova";
+    string heroSubtitle = "A platform connecting freelancers with clients.\nStart your journey as a seller or find the services you need.";
+    string middleCardTitle = "Become a Seller";
+    string middleCardDescription = "Share your skills with the world. Create gigs and start earning by offering your services.";
+
+    if (actor == "buyer")
+    {
+        heroTitle = "Welcome Back Buyer !";
+        heroSubtitle = "Ready to find the perfect freelancer for your next project?\nBrowse thousands of gigs or check your active orders.";
+    }
+
+    if (actor == "seller")
+    {
+        heroTitle = "Welcome Back Seller !";
+        heroSubtitle = "Ready to grow your freelance business?\nPublish your gigs and keep track of incoming orders.";
+        middleCardTitle = "Manage Orders & Gigs";
+        middleCardDescription = "Stay in control of your services and sales. Edit your gigs, monitor incoming orders, and manage your workflow effortlessly.";
+    }
 }
-<link href="~/css/seller_pages/seller_home_page.css" rel="stylesheet" />
 
-<!-- Hero Section -->
+<link href="~/css/shared_pages/home_page.css" rel="stylesheet" />
+
 <section class="hero-section">
-    <h1 class="hero-title">Welcome Back Seller !</h1>
-    <p class="hero-subtitle">Ready to grow your freelance business?<br>Publish your gigs and keep track of incoming orders.</p>
+    <h1 class="hero-title">@heroTitle</h1>
+    <p class="hero-subtitle">@heroSubtitle</p>
 
-    <!-- Info Cards -->
     <div class="info-cards">
         <div class="info-card">
             <div class="card-icon">🎨</div>
@@ -21,8 +49,8 @@
 
         <div class="info-card">
             <div class="card-icon">💼</div>
-            <h3 class="card-title">Manage Orders & Gigs</h3>
-            <p class="card-description">Stay in control of your services and sales. Edit your gigs, monitor incoming orders, and manage your workflow effortlessly.</p>
+            <h3 class="card-title">@middleCardTitle</h3>
+            <p class="card-description">@middleCardDescription</p>
         </div>
 
         <div class="info-card">
@@ -33,7 +61,6 @@
     </div>
 </section>
 
-<!-- Features Section -->
 <section class="features-section">
     <h2 class="features-title">How It Works</h2>
 
@@ -72,7 +99,6 @@
     </div>
 </section>
 
-<!-- About Section -->
 <section class="about-section">
     <div class="about-content">
         <h2 class="about-title">About GigNova</h2>

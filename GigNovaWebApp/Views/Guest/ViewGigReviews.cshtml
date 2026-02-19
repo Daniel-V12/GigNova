@@ -1,0 +1,47 @@
+﻿@using GigNovaModels.Models
+@model List<Review>
+@{
+    ViewData["Title"] = "ViewGigReviews";
+    Layout = "~/Views/Shared/MasterGuestPage.cshtml";
+
+    double averageRating = 0;
+    if (Model != null && Model.Count > 0)
+    {
+        double sum = 0;
+        foreach (Review review in Model)
+        {
+            sum += review.Review_rating;
+        }
+        averageRating = sum / Model.Count;
+    }
+}
+<link href="~/css/guest_pages/catalog_page.css" rel="stylesheet" />
+
+<div class="catalog-container">
+    <div class="gigs-section">
+        <div class="gigs-header">
+            <h2>Gig Reviews (@(Model == null ? 0 : Model.Count))</h2>
+            <p class="price-label" style="margin-top:6px;">Overall average rating: @averageRating</p>
+        </div>
+
+        @if (Model != null && Model.Count > 0)
+        {
+            foreach (Review review in Model)
+            {
+                <div class="gig-card" style="margin-bottom:12px;">
+                    <div class="gig-info">
+                        <p class="gig-title" style="margin-bottom:6px;">Rating: @review.Review_rating / 5</p>
+                        <p class="gig-description" style="min-height:auto; margin-bottom:8px;">@review.Review_comment</p>
+                        <p class="price-label">@review.Review_creation_date</p>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <h3>No reviews yet for this gig.</h3>
+            </div>
+        }
+    </div>
+</div>

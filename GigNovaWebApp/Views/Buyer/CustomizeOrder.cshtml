@@ -1,0 +1,40 @@
+﻿@model GigNovaModels.ViewModels.CustomizeOrderViewModel
+@{
+    ViewData["Title"] = "CustomizeOrder";
+    Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+}
+
+<link href="~/css/guest_pages/catalog_page.css" rel="stylesheet" />
+
+<section class="catalog-page">
+    <div class="catalog-main">
+        <h1 style="margin-top:0;">Customize Order</h1>
+
+        @if (Model == null || Model.order == null)
+        {
+            <div class="empty-state">Order details were not found.</div>
+        }
+        else
+        {
+            <div class="gig-card" style="display:block;max-width:700px;cursor:default;">
+                <h3 style="margin-top:0;">Order Summary</h3>
+                <p><strong>Gig ID:</strong> @Model.order.Gig_id</p>
+                <p><strong>Seller ID:</strong> @Model.order.Seller_id</p>
+                <p><strong>Status ID:</strong> @Model.order.Order_status_id</p>
+                <p><strong>Created:</strong> @Model.order.Order_creation_date</p>
+
+                <h4>Requirements</h4>
+                <p>
+                    @if (Model.order.Order_requirements == null)
+                    {
+                        <span>No requirements added yet.</span>
+                    }
+                    else
+                    {
+                        <span>@Model.order.Order_requirements</span>
+                    }
+                </p>
+            </div>
+        }
+    </div>
+</section>

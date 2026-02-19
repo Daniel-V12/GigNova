@@ -13,17 +13,16 @@
     <link href="~/css/masters/masterguest_page.css" rel="stylesheet" />
 </head>
 <body>
-    <!--  HEADER = -->
     <header class="dashboard-header">
         <div class="dashboard-container">
             <div class="logo-section">
-                <a href="http://localhost:5172/Guest/GuestHomePage" class="logo">GigNova//:</a>
+                <a asp-controller="Guest" asp-action="HomePage" class="logo">GigNova//:</a>
             </div>
 
             <nav class="nav-buttons">
-                <a href="http://localhost:5172/Guest/ViewCatalogPage" class="btn btn-view-catalog">View Catalog</a>
-                <a href="http://localhost:5172/Guest/LoginPage" class="btn btn-login">Log In</a>
-                <a href="http://localhost:5172/Guest/SignUpPage" class="btn btn-signup">Sign Up</a>
+                <a asp-controller="Guest" asp-action="ViewCatalogPage" class="btn btn-view-catalog">View Catalog</a>
+                <a asp-controller="Guest" asp-action="LogInPage" class="btn btn-login">Log In</a>
+                <a asp-controller="Guest" asp-action="SignUpPage" class="btn btn-signup">Sign Up</a>
             </nav>
         </div>
     </header>

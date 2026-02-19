@@ -151,7 +151,7 @@ namespace GigNovaWS
         public List<Gig> GetGigByCategories(string[] categories)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(@"SELECT Gigs.gig_id, Gigs.gig_name, Gigs.gig_description, Gigs.gig_delivery_time, 
+            sb.Append(@"SELECT Gigs.gig_id, Gigs.gig_name, Gigs.gig_description, Gigs.delivery_time_id, 
                           Gigs.language_id, Gigs.gig_date, Gigs.gig_photo, Gigs.gig_price, Gigs.seller_id, 
                           Gigs.is_publish, Gigs.has_revisions, [Gigs - Categories].category_id
                           FROM Gigs 
@@ -277,4 +277,3 @@ namespace GigNovaWS
         //}
     }
 }
-

@@ -105,19 +105,52 @@ namespace GigNovaWS.Controllers
         }
 
         [HttpGet]
-        public CustomizeOrderViewModel GetCustomizeOrderViewModel(string order_id)
+        public CustomizeOrderViewModel GetCustomizeOrderViewModel(string order_id = null, string gig_id = null)
         {
             CustomizeOrderViewModel customizeOrderViewModel = new CustomizeOrderViewModel();
+            customizeOrderViewModel.order = new Order();
+            customizeOrderViewModel.order_file = new Order_file();
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
-                customizeOrderViewModel.order = this.repositoryUOW.OrderRepository.GetById(order_id);
-                customizeOrderViewModel.order_file = this.repositoryUOW.Order_filesRepository.GetById(order_id);
+
+                if (order_id != null)
+                {
+                    customizeOrderViewModel.order = this.repositoryUOW.OrderRepository.GetById(order_id);
+                    customizeOrderViewModel.order_file = this.repositoryUOW.Order_filesRepository.GetById(order_id);
+                    if (customizeOrderViewModel.order == null)
+                    {
+                        customizeOrderViewModel.order = new Order();
+                    }
+                    if (customizeOrderViewModel.order_file == null)
+                    {
+                        customizeOrderViewModel.order_file = new Order_file();
+                    }
+                    return customizeOrderViewModel;
+                }
+
+                if (gig_id != null)
+                {
+                    Gig gig = this.repositoryUOW.GigRepository.GetById(gig_id);
+                    if (gig != null)
+                    {
+                        customizeOrderViewModel.order.Order_id = "0";
+                        customizeOrderViewModel.order.Order_status_id = 1;
+                        customizeOrderViewModel.order.Order_creation_date = DateTime.Now.ToShortDateString();
+                        customizeOrderViewModel.order.Gig_id = Convert.ToInt32(gig.Gig_id);
+                        customizeOrderViewModel.order.Seller_id = gig.Seller_id;
+                        customizeOrderViewModel.order.Buyer_id = 1;
+                        customizeOrderViewModel.order.Is_payment = false;
+                        customizeOrderViewModel.order.Order_requirements = "";
+                    }
+                }
+
                 return customizeOrderViewModel;
             }
             catch (Exception ex)
             {
-                return null;
+                Console.WriteLine(ex.ToString());
+                return customizeOrderViewModel;
             }
             finally
             {
@@ -125,7 +158,7 @@ namespace GigNovaWS.Controllers
             }
         }
 
-            [HttpGet]
+        [HttpGet]
         public MessagesBoxViewModel MessagingBoxViewModel(string buyer_id)
         {
             MessagesBoxViewModel viewModel = new MessagesBoxViewModel

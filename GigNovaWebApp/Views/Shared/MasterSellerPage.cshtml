@@ -4,26 +4,27 @@
     ViewData["Title"] = "MasterSellerPage";
 }
 
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GigNova - Seller Dashboard</title>
     <link href="~/css/masters/masterseller_page.css" rel="stylesheet" />
 </head>
-<header class="dashboard-header">
-    <div class="dashboard-container">
-        <div class="logo-section">
-            <a href="http://localhost:5172/Seller/SellerHomePage" class="logo">GigNova//:</a>
-        </div>
+<body>
+    <header class="dashboard-header">
+        <div class="dashboard-container">
+            <div class="logo-section">
+                <a asp-controller="Seller" asp-action="HomePage" class="logo">GigNova//:</a>
+            </div>
 
-        <nav class="nav-buttons">
-            <a href="http://localhost:5172/Guest/ViewCatalogPage" class="btn btn-view-catalog">View Catalog</a>
-            <a href="#" class="btn btn-my-gigs">Manage My Gigs</a>
-            <a href="#" class="btn btn-my-orders">My Purchases</a>
-            <a href="#" class="btn btn-incoming-orders">Incoming Orders</a>
-            <a href="http://localhost:5172/Seller/SellerProfile" class="btn btn-profile">Open Profile</a>
-        </nav>
-    </div>
+            <nav class="nav-buttons">
+                <a asp-controller="Guest" asp-action="ViewCatalogPage" class="btn btn-view-catalog">View Catalog</a>
+                <a href="#" class="btn btn-my-gigs">Manage My Gigs</a>
+                <a href="#" class="btn btn-my-orders">My Purchases</a>
+                <a href="#" class="btn btn-incoming-orders">Incoming Orders</a>
+                <a asp-controller="Seller" asp-action="SellerProfile" class="btn btn-profile">Open Profile</a>
+            </nav>
+        </div>
+    </header>
     @RenderBody();
-</header>
+</body>
