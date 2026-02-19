@@ -1,8 +1,16 @@
-﻿@using GigNovaModels.ViewModels
+﻿@using Microsoft.AspNetCore.Http
+@using GigNovaModels.ViewModels
 @model SelectedGigViewModel
 @{
     ViewData["Title"] = "ViewSelectedGig";
     Layout = "~/Views/Shared/MasterGuestPage.cshtml";
+    string personId = Context.Session.GetString("person_id");
+    string purchaseController = "Guest";
+    if (personId != null)
+    {
+        Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+        purchaseController = "Buyer";
+    }
 }
 <link href="~/css/guest_pages/catalog_page.css" rel="stylesheet" />
 
@@ -32,7 +40,7 @@
                     </div>
 
                     <div style="margin-top:14px; display:flex; gap:12px; flex-wrap:wrap;">
-                        <a class="action-btn apply-btn" asp-controller="Guest" asp-action="CustomizeOrder" asp-route-gig_id="@Model.gig.Gig_id" style="max-width:260px;">Continue to Purchase</a>
+                        <a class="action-btn apply-btn" asp-controller="@purchaseController" asp-action="CustomizeOrder" asp-route-gig_id="@Model.gig.Gig_id" style="max-width:260px;">Continue to Purchase</a>
                         <a class="action-btn clear-btn" asp-controller="Guest" asp-action="ViewGigReviews" asp-route-gig_id="@Model.gig.Gig_id" style="max-width:220px;">View Gig Reviews</a>
                     </div>
 

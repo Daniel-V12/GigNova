@@ -1,8 +1,14 @@
-﻿@using GigNovaModels.Models
+﻿@using Microsoft.AspNetCore.Http
+@using GigNovaModels.Models
 @model List<Review>
 @{
     ViewData["Title"] = "ViewGigReviews";
     Layout = "~/Views/Shared/MasterGuestPage.cshtml";
+    string personId = Context.Session.GetString("person_id");
+    if (personId != null)
+    {
+        Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+    }
 
     double averageRating = 0;
     if (Model != null && Model.Count > 0)

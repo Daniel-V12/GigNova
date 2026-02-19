@@ -10,20 +10,20 @@ namespace GigNovaModels.Models
 {
     public class Person:Model
     {
-        string person_id;
+        string person_id = "";
         string person_username;
         string person_password;
         string person_birthdate;
-        string person_join_date;
+        string person_join_date = "";
         string person_email;
-
+        
 
         public Person()
         {
 
         }
 
-        public string Person_salt { get; set; }
+        public string Person_salt { get; set; } = "";
 
         public string Person_id
         {
