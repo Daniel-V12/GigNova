@@ -14,22 +14,41 @@
                 <h2>@Model.gig.Gig_name</h2>
             </div>
 
-            <div class="gig-card" style="max-width:900px; margin:0 auto;">
-                <div class="gig-image-wrap" style="height:260px;">
+            <div class="gig-card" style="max-width:1000px; margin:0 auto;">
+                <div class="gig-image-wrap" style="height:280px;">
                     <img class="gig-image" src="http://localhost:7059/Images/@Model.gig.Gig_photo" alt="@Model.gig.Gig_name" />
                 </div>
+
                 <div class="gig-info">
-                    <p class="gig-description" style="min-height:auto;">@Model.gig.Gig_description</p>
-                    <div class="gig-footer">
-                        <div class="gig-price">
-                            <span class="price-label">Starting at</span>
-                            <span class="price-value">$@Model.gig.Gig_price</span>
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;">
+                        <div>
+                            <p class="gig-title" style="font-size:22px;">@Model.gig.Gig_name</p>
+                            <p class="gig-description" style="min-height:auto;">@Model.gig.Gig_description</p>
                         </div>
-                        <div class="gig-price">
-                            <span class="price-label">Rating</span>
-                            <span class="price-value">@Model.Review</span>
+                        <div style="text-align:right;">
+                            <span class="price-label">Starting at</span>
+                            <span class="price-value" style="font-size:28px;">$@Model.gig.Gig_price</span>
                         </div>
                     </div>
+
+                    <div style="margin-top:14px; display:flex; gap:12px; flex-wrap:wrap;">
+                        <a class="action-btn apply-btn" asp-controller="Guest" asp-action="CustomizeOrder" asp-route-gig_id="@Model.gig.Gig_id" style="max-width:260px;">Continue to Purchase</a>
+                        <a class="action-btn clear-btn" asp-controller="Guest" asp-action="ViewGigReviews" asp-route-gig_id="@Model.gig.Gig_id" style="max-width:220px;">View Gig Reviews</a>
+                    </div>
+
+                    @if (Model.seller != null)
+                    {
+                        <div style="margin-top:20px; border-top:1px solid #3d4270; padding-top:16px;">
+                            <a asp-controller="Guest" asp-action="ViewSellerProfile" asp-route-seller_id="@Model.seller.Seller_id" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:12px;">
+                                <img src="http://localhost:7059/Images/@Model.seller.Seller_avatar" alt="@Model.seller.Seller_display_name" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #4a4f80;" />
+                                <div>
+                                    <div style="color:#aeb3db;font-size:12px;">Seller</div>
+                                    <div style="color:white;font-weight:700;">@Model.seller.Seller_display_name</div>
+                                    <div style="color:#c6c9e7;font-size:13px;">Rating: @Model.Review</div>
+                                </div>
+                            </a>
+                        </div>
+                    }
                 </div>
             </div>
         }

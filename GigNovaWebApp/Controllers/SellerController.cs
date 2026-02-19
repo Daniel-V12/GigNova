@@ -7,9 +7,17 @@ namespace GigNovaWebApp.Controllers
     public class SellerController : Controller
     {
         [HttpGet]
+        public IActionResult HomePage()
+        {
+            ViewData["HomeActor"] = "seller";
+            ViewData["LayoutPath"] = "~/Views/Shared/MasterSellerPage.cshtml";
+            return View("~/Views/Shared/HomePage.cshtml");
+        }
+
+        [HttpGet]
         public IActionResult SellerHomePage()
         {
-            return View();
+            return RedirectToAction("HomePage");
         }
 
         [HttpGet]

@@ -237,6 +237,31 @@ namespace GigNovaWS.Controllers
         }
 
         [HttpGet]
+        public SellerPublicProfileViewModel GetSellerPublicProfileViewModel(string seller_id)
+        {
+            SellerPublicProfileViewModel viewModel = new SellerPublicProfileViewModel();
+            viewModel.gigs = new List<Gig>();
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                viewModel.seller = this.repositoryUOW.SellerRepository.GetById(seller_id);
+                viewModel.seller_person = this.repositoryUOW.PersonRepository.GetById(seller_id);
+                viewModel.gigs = this.repositoryUOW.GigRepository.GetGigsBySeller(seller_id);
+                viewModel.average_rating = this.repositoryUOW.ReviewRepository.GetReviewBySeller(seller_id);
+                return viewModel;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return viewModel;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+        [HttpGet]
         public List<Review> ViewGigReviews(string gig_id)
         {
             try
@@ -255,26 +280,6 @@ namespace GigNovaWS.Controllers
             }
         }
 
-        [HttpGet]
-        public CustomizeOrderViewModel GetCustomizeOrderViewModel(string order_id)
-        {
-            CustomizeOrderViewModel customizeOrderViewModel = new CustomizeOrderViewModel();
-            try
-            {
-                this.repositoryUOW.DbHelperOledb.OpenConnection();
-                customizeOrderViewModel.order = this.repositoryUOW.OrderRepository.GetById(order_id);
-                customizeOrderViewModel.order_file = this.repositoryUOW.Order_filesRepository.GetById(order_id);
-                return customizeOrderViewModel;
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-            finally
-            {
-                this.repositoryUOW.DbHelperOledb.CloseConnection();
-            }
-        }
 
         [HttpPost]
         public bool SignUpPage(Buyer buyer)

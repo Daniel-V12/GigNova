@@ -8,9 +8,17 @@ namespace GigNovaWebApp.Controllers
     public class GuestController : Controller
     {
         [HttpGet]
+        public IActionResult HomePage()
+        {
+            ViewData["HomeActor"] = "guest";
+            ViewData["LayoutPath"] = "~/Views/Shared/MasterGuestPage.cshtml";
+            return View("~/Views/Shared/HomePage.cshtml");
+        }
+
+        [HttpGet]
         public IActionResult GuestHomePage()
         {
-            return View();
+            return RedirectToAction("HomePage");
         }
 
         [HttpGet]
@@ -93,19 +101,30 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CustomizeOrder(string order_id)
+        public IActionResult CustomizeOrder(string order_id = null, string gig_id = null)
         {
-            ApiClient<CustomizeOrderViewModel> client = new ApiClient<CustomizeOrderViewModel>();
+            TempData["AuthMessage"] = "Please log in or sign up as a buyer before continuing to purchase.";
+            if (gig_id != null)
+            {
+                TempData["PurchaseGigId"] = gig_id;
+            }
+            return RedirectToAction("LogInPage", "Guest");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ViewSellerProfile(string seller_id)
+        {
+            ApiClient<SellerPublicProfileViewModel> client = new ApiClient<SellerPublicProfileViewModel>();
             client.Scheme = "https";
             client.Host = "localhost";
             client.Port = 7059;
-            client.Path = "api/Guest/GetCustomizeOrderViewModel";
-            if (order_id != null)
+            client.Path = "api/Guest/GetSellerPublicProfileViewModel";
+            if (seller_id != null)
             {
-                client.AddParameter("order_id", order_id);
+                client.AddParameter("seller_id", seller_id);
             }
-            CustomizeOrderViewModel customizeOrderViewModel = await client.GetAsync();
-            return View(customizeOrderViewModel);
+            SellerPublicProfileViewModel viewModel = await client.GetAsync();
+            return View(viewModel);
         }
 
         [HttpGet]
@@ -131,7 +150,7 @@ namespace GigNovaWebApp.Controllers
             if (response)
             {
 
-                return View("GuestHomePage");
+                return RedirectToAction("HomePage");
             }
             ViewBag.ErrorMessage = "Server problem, try again later";
             return View("SignUpPage", buyer);

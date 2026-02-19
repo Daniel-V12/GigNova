@@ -12,6 +12,11 @@
             <h1 class="login-title">Welcome Back</h1>
             <p class="login-subtitle">Log in to your GigNova account</p>
 
+            @if (TempData["AuthMessage"] != null)
+            {
+                <p style="background:#2b3052;color:#ffffff;padding:10px 12px;border-radius:8px;margin-bottom:12px;">@TempData["AuthMessage"]</p>
+            }
+
             <form id="loginForm">
                 <div class="form-group">
                     <label class="form-label" for="usernameOrEmail">Username or Email</label>

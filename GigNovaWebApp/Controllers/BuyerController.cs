@@ -8,9 +8,17 @@ namespace GigNovaWebApp.Controllers
     public class BuyerController : Controller
     {
         [HttpGet]
+        public IActionResult HomePage()
+        {
+            ViewData["HomeActor"] = "buyer";
+            ViewData["LayoutPath"] = "~/Views/Shared/MasterBuyerPage.cshtml";
+            return View("~/Views/Shared/HomePage.cshtml");
+        }
+
+        [HttpGet]
         public IActionResult BuyerHomePage()
         {
-            return View();
+            return RedirectToAction("HomePage");
         }
 
         [HttpGet]
@@ -58,7 +66,7 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CustomizeOrder(string order_id)
+        public async Task<IActionResult> CustomizeOrder(string order_id = null, string gig_id = null)
         {
             ApiClient<CustomizeOrderViewModel> client = new ApiClient<CustomizeOrderViewModel>();
             client.Scheme = "https";
@@ -68,6 +76,10 @@ namespace GigNovaWebApp.Controllers
             if (order_id != null)
             {
                 client.AddParameter("order_id", order_id);
+            }
+            if (gig_id != null)
+            {
+                client.AddParameter("gig_id", gig_id);
             }
             CustomizeOrderViewModel customizeOrderViewModel = await client.GetAsync();
             return View(customizeOrderViewModel);
@@ -146,10 +158,10 @@ namespace GigNovaWebApp.Controllers
             if (response)
             {
 
-                return View("BuyerHomePage");
+                return RedirectToAction("HomePage");
             }
             ViewBag.ErrorMessage = "Server problem, try again later";
-            return View("SellerHomePage", seller);
+            return View("BecomeASellerPage", seller);
         }
     }
 }

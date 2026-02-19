@@ -1,0 +1,75 @@
+﻿@using GigNovaModels.ViewModels
+@using GigNovaModels.Models
+@model SellerPublicProfileViewModel
+@{
+    ViewData["Title"] = "ViewSellerProfile";
+    Layout = "~/Views/Shared/MasterGuestPage.cshtml";
+}
+<link href="~/css/guest_pages/catalog_page.css" rel="stylesheet" />
+
+<div class="catalog-container">
+    <div class="gigs-section">
+        @if (Model != null && Model.seller != null)
+        {
+            <div class="gigs-header">
+                <h2>Seller Profile</h2>
+            </div>
+
+            <div class="gig-card" style="margin-bottom:20px;">
+                <div class="gig-info">
+                    <div style="display:flex;align-items:center;gap:14px;">
+                        <img src="http://localhost:7059/Images/@Model.seller.Seller_avatar" alt="@Model.seller.Seller_display_name" style="width:76px;height:76px;border-radius:50%;object-fit:cover;border:2px solid #4a4f80;" />
+                        <div>
+                            <p class="gig-title" style="font-size:22px;">@Model.seller.Seller_display_name</p>
+                            <p class="gig-description" style="min-height:auto;">@Model.seller.Seller_description</p>
+                            @if (Model.seller_person != null)
+                            {
+                                <p class="price-label">Join date: @Model.seller_person.Person_join_date</p>
+                            }
+                            <p class="price-label">Average rating: @Model.average_rating</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gigs-header">
+                <h2>Seller Gigs</h2>
+            </div>
+            <div class="gigs-grid">
+                @if (Model.gigs != null && Model.gigs.Count > 0)
+                {
+                    foreach (Gig gig in Model.gigs)
+                    {
+                        <a class="gig-card" asp-controller="Guest" asp-action="ViewSelectedGig" asp-route-gig_id="@gig.Gig_id">
+                            <div class="gig-image-wrap">
+                                <img class="gig-image" src="http://localhost:7059/Images/@gig.Gig_photo" alt="@gig.Gig_name" />
+                            </div>
+                            <div class="gig-info">
+                                <p class="gig-title">@gig.Gig_name</p>
+                                <p class="gig-description">@gig.Gig_description</p>
+                                <div class="gig-footer">
+                                    <div class="gig-price">
+                                        <span class="price-label">Starting at</span>
+                                        <span class="price-value">$@gig.Gig_price</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <h3>No gigs were found for this seller.</h3>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <h3>Seller profile was not found.</h3>
+            </div>
+        }
+    </div>
+</div>
