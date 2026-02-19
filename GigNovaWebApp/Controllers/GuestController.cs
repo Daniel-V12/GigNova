@@ -2,6 +2,7 @@
 using GigNovaModels.Models;
 using GigNovaModels.ViewModels;
 using GigNovaWSClient;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 namespace GigNovaWebApp.Controllers
 {
@@ -104,6 +105,7 @@ namespace GigNovaWebApp.Controllers
         public IActionResult CustomizeOrder(string order_id = null, string gig_id = null)
         {
             TempData["AuthMessage"] = "Please log in or sign up as a buyer before continuing to purchase.";
+            TempData["PendingPurchase"] = "1";
             if (gig_id != null)
             {
                 TempData["PurchaseGigId"] = gig_id;
@@ -130,12 +132,21 @@ namespace GigNovaWebApp.Controllers
         [HttpGet]
         public IActionResult SignUpPage(Buyer buyer = null)
         {
+            ModelState.Clear();
             return View(buyer);
         }
 
         [HttpPost]
         public async Task<IActionResult> SignUp(Buyer buyer)
         {
+            if (buyer != null && buyer.Buyer_description == null)
+            {
+                buyer.Buyer_description = "";
+            }
+            if (buyer != null)
+            {
+                buyer.Person_join_date = DateTime.Now.ToShortDateString();
+            }
             if (ModelState.IsValid == false)
             {
                 ViewBag.ErrorMessage = "The data you inserted is incorrect";
@@ -149,8 +160,24 @@ namespace GigNovaWebApp.Controllers
             bool response = await client.PostAsync(buyer);
             if (response)
             {
+                ApiClient<LoginRequestViewModel> loginClient = new ApiClient<LoginRequestViewModel>();
+                loginClient.Scheme = "https";
+                loginClient.Host = "localhost";
+                loginClient.Port = 7059;
+                loginClient.Path = "api/Guest/LogIn";
 
-                return RedirectToAction("HomePage");
+                LoginRequestViewModel loginRequest = new LoginRequestViewModel();
+                loginRequest.identifier = buyer.Person_email;
+                loginRequest.password = buyer.Person_password;
+
+                int loginResult = await loginClient.PostAsyncReturn<LoginRequestViewModel, int>(loginRequest);
+                if (loginResult != 0)
+                {
+                    HttpContext.Session.SetString("person_id", loginResult.ToString());
+                    return RedirectToAction("HomePage", "Buyer");
+                }
+
+                return RedirectToAction("LogInPage");
             }
             ViewBag.ErrorMessage = "Server problem, try again later";
             return View("SignUpPage", buyer);
@@ -159,28 +186,59 @@ namespace GigNovaWebApp.Controllers
         [HttpGet]
         public IActionResult LogInPage()
         {
+            string personId = HttpContext.Session.GetString("person_id");
+            if (personId != null)
+            {
+                return RedirectToAction("HomePage", "Buyer");
+            }
+
+            if (TempData["PendingPurchase"] == null)
+            {
+                TempData.Remove("PurchaseGigId");
+            }
+
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> LogIn(string identifier, string password)
         {
-            ApiClient<string> client = new ApiClient<string>();
+            if (identifier == null || password == null)
+            {
+                ViewBag.ErrorMessage = "Please enter username/email and password.";
+                return View("LogInPage");
+            }
+
+            ApiClient<LoginRequestViewModel> client = new ApiClient<LoginRequestViewModel>();
             client.Scheme = "https";
             client.Host = "localhost";
             client.Port = 7059;
             client.Path = "api/Guest/LogIn";
-            if (identifier != null)
+
+            LoginRequestViewModel loginRequest = new LoginRequestViewModel();
+            loginRequest.identifier = identifier;
+            loginRequest.password = password;
+
+            int loginResult = await client.PostAsyncReturn<LoginRequestViewModel, int>(loginRequest);
+            if (loginResult == 0)
             {
-                client.AddParameter("identifier", identifier);
+                ViewBag.ErrorMessage = "Invalid username/email or password.";
+                return View("LogInPage");
             }
-            if (password != null)
+
+            HttpContext.Session.SetString("person_id", loginResult.ToString());
+
+            string pendingPurchase = TempData["PendingPurchase"] as string;
+            if (pendingPurchase == "1")
             {
-                client.AddParameter("password", password);
+                string purchaseGigId = TempData["PurchaseGigId"] as string;
+                if (purchaseGigId != null)
+                {
+                    return RedirectToAction("CustomizeOrder", "Buyer", new { gig_id = purchaseGigId });
+                }
             }
-            string loginResult = await client.GetAsync();
-            ViewBag.LoginResult = loginResult;
-            return View();
+
+            return RedirectToAction("HomePage", "Buyer");
         }
 
     }

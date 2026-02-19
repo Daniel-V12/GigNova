@@ -284,11 +284,28 @@ namespace GigNovaWS.Controllers
         [HttpPost]
         public bool SignUpPage(Buyer buyer)
         {
+            if (buyer == null)
+            {
+                return false;
+            }
+            if (buyer.Buyer_description == null)
+            {
+                buyer.Buyer_description = "";
+            }
+            if (buyer.Person_join_date == null)
+            {
+                buyer.Person_join_date = DateTime.Now.ToShortDateString();
+            }
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
-                bool ok = this.repositoryUOW.BuyerRepository.Create(buyer);
-                return ok;
+                bool personCreated = this.repositoryUOW.PersonRepository.Create(buyer);
+                if (personCreated == false)
+                {
+                    return false;
+                }
+                bool buyerCreated = this.repositoryUOW.BuyerRepository.Create(buyer);
+                return buyerCreated;
             }
             catch (Exception ex)
             {
@@ -301,34 +318,45 @@ namespace GigNovaWS.Controllers
             }
         }
 
-
-        [HttpGet]
-        public string LogInPage(string identifier, string password)
+        [HttpPost]
+        public int LogIn(LoginRequestViewModel loginRequest)
         {
-            if (identifier == null || password == null)
+            if (loginRequest == null)
             {
-                return null;
+                return 0;
+            }
+            if (loginRequest.identifier == null || loginRequest.password == null)
+            {
+                return 0;
             }
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
-                if (identifier.Contains("@"))
+                string login_result = null;
+                if (loginRequest.identifier.Contains("@"))
                 {
-                    return this.repositoryUOW.PersonRepository.LogInByEmail(identifier, password);
+                    login_result = this.repositoryUOW.PersonRepository.LogInByEmail(loginRequest.identifier, loginRequest.password);
                 }
-                return this.repositoryUOW.PersonRepository.LogIn(identifier, password);
+                else
+                {
+                    login_result = this.repositoryUOW.PersonRepository.LogIn(loginRequest.identifier, loginRequest.password);
+                }
+
+                if (login_result == null)
+                {
+                    return 0;
+                }
+                return Convert.ToInt32(login_result);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                return null;
+                return 0;
             }
             finally
             {
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
-
-
     }
 }

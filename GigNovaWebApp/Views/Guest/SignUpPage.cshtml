@@ -6,79 +6,58 @@
     Layout = "~/Views/Shared/MasterGuestPage.cshtml";
 }
 <link href="~/css/guest_pages/signup_page.css" rel="stylesheet" />
-<body>
-    <!-- Signup Form -->
-    <div class="signup-container">
-        <div class="signup-card">
-            <h1 class="signup-title">Create Account</h1>
-            <p class="signup-subtitle">Join GigNova and start your journey</p>
-            @if (ViewBag.ErrorMessage != null)
-            {
-                <h1 class="errorMessage">
-                    @ViewBag.ErrorMessage.ToString()
-                </h1>
-            }
-            <form asp-controller="Guest"
-                  asp-action="SignUp" method="post" id="signupForm">
-                <div class="form-group">
-                    <label class="form-label" for="username">Username</label>
-                    <input asp-for="@Model.Person_username" class="inputData" type="text"
-                           name="username"
-                           placeholder="Enter your username"
-                    >
-                    <span asp-validation-for="@Model.Person_username" class="errorData"></span>
-                </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="email">Email</label>
-                    <input asp-for="@Model.Person_email" class="inputData" type="text"
-                           name="email"
-                           placeholder="Enter your email"
-                           >
-                    <span asp-validation-for="@Model.Person_email" class="errorData"></span>
-                </div>
+<div class="signup-container">
+    <div class="signup-card">
+        <h1 class="signup-title">Create Account</h1>
+        <p class="signup-subtitle">Join GigNova and start your journey</p>
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <h1 class="errorMessage">
+                @ViewBag.ErrorMessage.ToString()
+            </h1>
+        }
+        <form asp-controller="Guest" asp-action="SignUp" method="post" id="signupForm">
+            <div class="form-group">
+                <label class="form-label" for="Person_username">Username</label>
+                <input asp-for="Person_username" class="inputData" type="text" placeholder="Enter your username">
+                <span asp-validation-for="Person_username" class="errorData"></span>
+            </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="password">Password</label>
-                    <input asp-for="@Model.Person_password" class="inputData" type="text"
-                           name="password"
-                           placeholder="Create a password"
-                           >
-                    <span asp-validation-for="@Model.Person_password" class="errorData"></span>
-                </div>
+            <div class="form-group">
+                <label class="form-label" for="Person_email">Email</label>
+                <input asp-for="Person_email" class="inputData" type="text" placeholder="Enter your email">
+                <span asp-validation-for="Person_email" class="errorData"></span>
+            </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="birthdate">Birthdate</label>
-                    <input asp-for="@Model.Person_birthdate" class="inputData" type="date"
-                           name="birthdate"
-                    >
-                    <span asp-validation-for="@Model.Person_birthdate" class="errorData"></span>
+            <div class="form-group">
+                <label class="form-label" for="Person_password">Password</label>
+                <input asp-for="Person_password" class="inputData" type="password" placeholder="Create a password">
+                <span asp-validation-for="Person_password" class="errorData"></span>
+            </div>
 
-                </div>
+            <div class="form-group">
+                <label class="form-label" for="Person_birthdate">Birthdate</label>
+                <input asp-for="Person_birthdate" class="inputData" type="date">
+                <span asp-validation-for="Person_birthdate" class="errorData"></span>
+            </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="displayName">Display Name</label>
-                    <input asp-for="@Model.Buyer_display_name" type="text" class="inputData"
-                           name="displayName"
-                           placeholder="Enter your display name"
-                           >
-                    <span asp-validation-for="@Model.Buyer_display_name" class="errorData"></span>
-                </div>
+            <div class="form-group">
+                <label class="form-label" for="Buyer_display_name">Display Name</label>
+                <input asp-for="Buyer_display_name" type="text" class="inputData" placeholder="Enter your display name">
+                <span asp-validation-for="Buyer_display_name" class="errorData"></span>
+            </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="bio">Bio</label>
-                    <input asp-for="@Model.Buyer_description" type="text" class="inputData"
-                              name="bio"
-                              placeholder="Tell us about yourself (optional)"
-                              >
-                    <span asp-validation-for="@Model.Buyer_description" class="errorData"></span>
-                </div>
+            <div class="form-group">
+                <label class="form-label" for="Buyer_description">Bio</label>
+                <input asp-for="Buyer_description" type="text" class="inputData" placeholder="Tell us about yourself (optional)">
+                <span asp-validation-for="Buyer_description" class="errorData"></span>
+            </div>
 
-                <button type="submit" class="submit-btn">Sign Up</button>
-                <div class="login-link">
-                    Already have an account? <a href="http://localhost:5172/Guest/LogInPage">Log In</a>
-                </div>
-            </form>
-        </div>
+            <button type="submit" class="submit-btn">Sign Up</button>
+            <div class="login-link">
+                Already have an account? <a href="http://localhost:5172/Guest/LogInPage">Log In</a>
+            </div>
+        </form>
     </div>
-</body>
+</div>

@@ -1,9 +1,15 @@
-﻿@using GigNovaModels.ViewModels
+﻿@using Microsoft.AspNetCore.Http
+@using GigNovaModels.ViewModels
 @using GigNovaModels.Models
 @model SellerPublicProfileViewModel
 @{
     ViewData["Title"] = "ViewSellerProfile";
     Layout = "~/Views/Shared/MasterGuestPage.cshtml";
+    string personId = Context.Session.GetString("person_id");
+    if (personId != null)
+    {
+        Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+    }
 }
 <link href="~/css/guest_pages/catalog_page.css" rel="stylesheet" />
 

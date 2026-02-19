@@ -89,12 +89,14 @@ body {
     background: transparent;
     color: #4a90e2;
     border: 2px solid #4a90e2;
+    box-shadow: 0 0 0 rgba(74,144,226,0), 0 2px 8px rgba(0,0,0,0.2);
 }
 
     .btn-profile:hover {
         background: #4a90e2;
         color: white;
         transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(74,144,226,0.5);
     }
 
 .btn-become-seller {

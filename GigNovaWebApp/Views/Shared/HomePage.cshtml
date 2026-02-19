@@ -18,10 +18,22 @@
     string heroSubtitle = "A platform connecting freelancers with clients.\nStart your journey as a seller or find the services you need.";
     string middleCardTitle = "Become a Seller";
     string middleCardDescription = "Share your skills with the world. Create gigs and start earning by offering your services.";
+    string buyerDisplayName = "";
+    if (ViewData["BuyerDisplayName"] != null)
+    {
+        buyerDisplayName = ViewData["BuyerDisplayName"].ToString();
+    }
 
     if (actor == "buyer")
     {
-        heroTitle = "Welcome Back Buyer !";
+        if (buyerDisplayName != null && buyerDisplayName != "")
+        {
+            heroTitle = "Welcome Back, " + buyerDisplayName + "!";
+        }
+        else
+        {
+            heroTitle = "Welcome Back!";
+        }
         heroSubtitle = "Ready to find the perfect freelancer for your next project?\nBrowse thousands of gigs or check your active orders.";
     }
 

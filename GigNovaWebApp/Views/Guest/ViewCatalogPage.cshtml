@@ -1,10 +1,15 @@
+﻿@using Microsoft.AspNetCore.Http
 ﻿@using GigNovaModels.ViewModels
 @using GigNovaModels.Models
 @model CatalogViewModel
 @{
     ViewData["Title"] = "ViewCatalogPage";
     Layout = "~/Views/Shared/MasterGuestPage.cshtml";
-
+    string personId = Context.Session.GetString("person_id");
+    if (personId != null)
+    {
+        Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+    }
     List<string> selectedCategories = new List<string>();
     if (Model != null)
     {
