@@ -81,17 +81,19 @@ namespace GigNovaWS
             return reviews;
         }
 
-        public double GetReviewBySeller(string  sellerId)
+        public double GetReviewBySeller(string sellerId)
         {
             string sql = @"SELECT Avg(Reviews.review_rating) AS [Avg]
                            FROM Reviews
-                           GROUP BY Reviews.seller_id
-                           HAVING (((Reviews.seller_id)=@SellerId));";
-              this.dbHelperOledb.AddParameter("@SellerId", sellerId);
+                           WHERE Reviews.seller_id = @SellerId";
+            this.dbHelperOledb.AddParameter("@SellerId", sellerId);
             using (IDataReader reader = this.dbHelperOledb.Select(sql))
             {
-                reader.Read();
-                return Convert.ToDouble(reader["Avg"]);
+                if (reader.Read() == true && reader["Avg"] != DBNull.Value)
+                {
+                    return Convert.ToDouble(reader["Avg"]);
+                }
+                return 0;
             }
 
         }

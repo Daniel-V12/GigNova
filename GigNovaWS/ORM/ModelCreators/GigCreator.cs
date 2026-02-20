@@ -19,8 +19,26 @@ namespace GigNovaWS
             gig.Seller_id = Convert.ToUInt16(dataReader["seller_id"]);
             gig.Is_publish = Convert.ToBoolean(dataReader["is_publish"]);
             gig.Has_revisions = Convert.ToBoolean(dataReader["has_revisions"]);
+            gig.Category_id = TryGetCategoryId(dataReader);
 
             return gig;
+        }
+
+        private string TryGetCategoryId(IDataReader dataReader)
+        {
+            try
+            {
+                object value = dataReader["category_id"];
+                if (value == null)
+                {
+                    return "";
+                }
+                return Convert.ToString(value);
+            }
+            catch
+            {
+                return "";
+            }
         }
     }
 }

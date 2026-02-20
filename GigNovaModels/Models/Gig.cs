@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Gig:Model 
+    public class Gig : Model
     {
 
         string gig_id;
@@ -23,6 +23,7 @@ namespace GigNovaModels.Models
         int seller_id;
         bool is_publish;
         bool has_revisions;
+        string category_id;
 
         public Gig()
         {
@@ -40,7 +41,9 @@ namespace GigNovaModels.Models
         public string Gig_name
         {
             get { return gig_name; }
-            set { gig_name = value;
+            set
+            {
+                gig_name = value;
                 ValidateProperty(value, "Gig_name");
             }
         }
@@ -97,6 +100,12 @@ namespace GigNovaModels.Models
         {
             get { return has_revisions; }
             set { has_revisions = value; }
+        }
+
+        public string Category_id
+        {
+            get { return category_id; }
+            set { category_id = value; }
         }
     }
 }
