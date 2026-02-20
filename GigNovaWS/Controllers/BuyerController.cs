@@ -43,6 +43,11 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
                 viewModel.buyer = this.repositoryUOW.BuyerRepository.GetById(buyer_id);
                 viewModel.buyer_person = this.repositoryUOW.PersonRepository.GetById(buyer_id);
+                if (viewModel.buyer != null && viewModel.buyer_person != null)
+                {
+                    viewModel.buyer.Person_id = viewModel.buyer_person.Person_id;
+                    viewModel.buyer.Person_join_date = viewModel.buyer_person.Person_join_date;
+                }
                 return viewModel;
             }
             catch (Exception ex)
@@ -57,18 +62,76 @@ namespace GigNovaWS.Controllers
         }
 
         [HttpPost]
-        public bool UpdateBuyerProfile(BuyerProfileViewmodel viewModel)
+        public bool UpdateBuyerProfile(BuyerProfileUpdateViewModel viewModel)
         {
-            if (viewModel == null || viewModel.buyer == null || viewModel.buyer_person == null)
+            if (viewModel == null || viewModel.Person_id == null || viewModel.Person_id == "")
             {
                 return false;
             }
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
-                bool buyerUpdated = this.repositoryUOW.BuyerRepository.Update(viewModel.buyer);
-                bool personUpdated = this.repositoryUOW.PersonRepository.Update(viewModel.buyer_person);
-                return buyerUpdated && personUpdated;
+
+                Buyer buyer = new Buyer();
+                buyer.Person_id = viewModel.Person_id;
+                if (viewModel.Buyer_display_name == null)
+                {
+                    buyer.Buyer_display_name = "";
+                }
+                else
+                {
+                    buyer.Buyer_display_name = viewModel.Buyer_display_name;
+                }
+
+                if (viewModel.Buyer_description == null)
+                {
+                    buyer.Buyer_description = "";
+                }
+                else
+                {
+                    buyer.Buyer_description = viewModel.Buyer_description;
+                }
+
+                bool buyerUpdated = this.repositoryUOW.BuyerRepository.Update(buyer);
+                if (buyerUpdated == true)
+                {
+                    return true;
+                }
+
+                Buyer currentBuyer = this.repositoryUOW.BuyerRepository.GetById(viewModel.Person_id);
+                if (currentBuyer != null)
+                {
+                    if (currentBuyer.Buyer_display_name == buyer.Buyer_display_name &&
+                        currentBuyer.Buyer_description == buyer.Buyer_description)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+        [HttpPost]
+        public bool ChangeBuyerPassword(string buyer_id, string current_password, string new_password)
+        {
+            if (buyer_id == null || buyer_id == "" || current_password == null || current_password == "" || new_password == null || new_password == "")
+            {
+                return false;
+            }
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                return this.repositoryUOW.PersonRepository.UpdatePassword(buyer_id, current_password, new_password);
             }
             catch (Exception ex)
             {

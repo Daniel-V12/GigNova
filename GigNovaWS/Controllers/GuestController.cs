@@ -39,6 +39,7 @@ namespace GigNovaWS.Controllers
 
                 UpdatePagination(catalogviewModel, gigs.Count, ref page);
                 catalogviewModel.Gigs = gigs.Skip((page - 1) * catalogviewModel.GigsPerPageCount).Take(catalogviewModel.GigsPerPageCount).ToList();
+                catalogviewModel.GigCategoryNames = BuildGigCategoryNames(catalogviewModel.Gigs);
 
                 return catalogviewModel;
             }
@@ -97,6 +98,34 @@ namespace GigNovaWS.Controllers
                 }
             }
             return this.repositoryUOW.GigRepository.GetGigByCategories(categoriesList.ToArray());
+        }
+
+        private List<string> BuildGigCategoryNames(List<Gig> gigs)
+        {
+            List<string> gigCategoryNames = new List<string>();
+            if (gigs == null)
+            {
+                return gigCategoryNames;
+            }
+
+            foreach (Gig gig in gigs)
+            {
+                List<Category> gigCategories = this.repositoryUOW.GigRepository.GetCategoriesByGigId(gig.Gig_id);
+                if (gigCategories == null || gigCategories.Count == 0)
+                {
+                    gigCategoryNames.Add("");
+                }
+                else
+                {
+                    List<string> names = new List<string>();
+                    foreach (Category category in gigCategories)
+                    {
+                        names.Add(category.Category_name);
+                    }
+                    gigCategoryNames.Add(string.Join(", ", names));
+                }
+            }
+            return gigCategoryNames;
         }
 
         private List<Gig> FilterByPrice(List<Gig> gigs, double min_price, double max_price)
@@ -280,7 +309,6 @@ namespace GigNovaWS.Controllers
             }
         }
 
-
         [HttpPost]
         public bool SignUpPage(Buyer buyer)
         {
@@ -342,10 +370,11 @@ namespace GigNovaWS.Controllers
                     login_result = this.repositoryUOW.PersonRepository.LogIn(loginRequest.identifier, loginRequest.password);
                 }
 
-                if (login_result == null)
+                if (login_result == null || login_result == "")
                 {
                     return 0;
                 }
+
                 return Convert.ToInt32(login_result);
             }
             catch (Exception ex)

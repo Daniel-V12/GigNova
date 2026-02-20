@@ -21,18 +21,17 @@
                 <h2>Seller Profile</h2>
             </div>
 
-            <div class="gig-card" style="margin-bottom:20px;">
+            <div class="gig-card seller-profile-card" style="margin-bottom:20px;">
                 <div class="gig-info">
                     <div style="display:flex;align-items:center;gap:14px;">
                         <img src="http://localhost:7059/Images/@Model.seller.Seller_avatar" alt="@Model.seller.Seller_display_name" style="width:76px;height:76px;border-radius:50%;object-fit:cover;border:2px solid #4a4f80;" />
                         <div>
-                            <p class="gig-title" style="font-size:22px;">@Model.seller.Seller_display_name</p>
-                            <p class="gig-description" style="min-height:auto;">@Model.seller.Seller_description</p>
+                            <p class="gig-title seller-main-title" style="font-size:22px;">@Model.seller.Seller_display_name</p>
+                            <p class="gig-description seller-main-text" style="min-height:auto;">@Model.seller.Seller_description</p>
                             @if (Model.seller_person != null)
                             {
-                                <p class="price-label">Join date: @Model.seller_person.Person_join_date</p>
+                                <p class="price-label seller-main-text">Join date: @Model.seller_person.Person_join_date</p>
                             }
-                            <p class="price-label">Average rating: @Model.average_rating</p>
                         </div>
                     </div>
                 </div>

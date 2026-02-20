@@ -1,7 +1,66 @@
-﻿
+﻿@model GigNovaModels.ViewModels.BuyerProfileViewmodel
 @{
     ViewData["Title"] = "BuyerProfile";
     Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+
+    string joinDate = "";
+    string buyerDisplayName = "";
+    string buyerBio = "";
+    string username = "";
+    string email = "";
+    string birthdate = "";
+    string personId = "";
+
+    if (Model != null)
+    {
+        if (Model.buyer != null)
+        {
+            if (Model.buyer.Person_id != null)
+            {
+                personId = Model.buyer.Person_id;
+            }
+            if (Model.buyer.Buyer_display_name != null)
+            {
+                buyerDisplayName = Model.buyer.Buyer_display_name;
+            }
+            if (Model.buyer.Buyer_description != null)
+            {
+                buyerBio = Model.buyer.Buyer_description;
+            }
+            if (Model.buyer.Person_join_date != null && Model.buyer.Person_join_date != "")
+            {
+                joinDate = Model.buyer.Person_join_date;
+            }
+        }
+        if (Model.buyer_person != null)
+        {
+            if (Model.buyer_person.Person_username != null)
+            {
+                username = Model.buyer_person.Person_username;
+            }
+            if (Model.buyer_person.Person_email != null)
+            {
+                email = Model.buyer_person.Person_email;
+            }
+            if (Model.buyer_person.Person_birthdate != null)
+            {
+                birthdate = Model.buyer_person.Person_birthdate;
+            }
+            if (Model.buyer_person.Person_join_date != null && Model.buyer_person.Person_join_date != "")
+            {
+                joinDate = Model.buyer_person.Person_join_date;
+            }
+            if (personId == "" && Model.buyer_person.Person_id != null)
+            {
+                personId = Model.buyer_person.Person_id;
+            }
+        }
+    }
+
+    if (joinDate == "")
+    {
+        joinDate = "Unknown";
+    }
 }
 
 <meta charset="UTF-8">
@@ -9,85 +68,130 @@
 <title>GigNova - Buyer Profile</title>
 <link href="~/css/buyer_pages/buyerprofile_page.css" rel="stylesheet" />
 <div class="profile-container">
-    <!-- Profile Header -->
     <div class="profile-header">
         <h1 class="profile-title">Buyer Profile</h1>
-        <p class="join-date">Member since January 15, 2025</p>
+        <p class="join-date">Member since @joinDate</p>
     </div>
 
-    <!-- Buyer Information Section -->
-    <div class="profile-section">
-        <h2 class="section-title">Buyer Information</h2>
+    @if (TempData["BuyerProfileMessage"] != null)
+    {
+        <div class="profile-message">@TempData["BuyerProfileMessage"]</div>
+    }
 
-        <div class="form-group">
-            <label class="form-label" for="displayName">Display Name</label>
-            <input type="text"
-                   id="displayName"
-                   name="displayName"
-                   class="form-input"
-                   value="John Buyer"
-                   placeholder="Enter your display name">
+    <form asp-controller="Buyer" asp-action="BuyerProfile" method="post">
+        <div class="profile-section">
+            <h2 class="section-title">Buyer Information</h2>
+
+            <div class="form-group">
+                <label class="form-label" for="displayName">Display Name</label>
+                <input type="text"
+                       id="displayName"
+                       name="Buyer_display_name"
+                       class="form-input"
+                       value="@buyerDisplayName"
+                       placeholder="Enter your display name">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="bio">Bio</label>
+                <textarea id="bio"
+                          name="Buyer_description"
+                          class="form-textarea"
+                          placeholder="Tell us about yourself..."
+                          maxlength="500">@buyerBio</textarea>
+            </div>
+
+            <button class="edit-button" type="submit">Save Changes</button>
         </div>
 
-        <div class="form-group">
-            <label class="form-label" for="bio">Bio</label>
-            <textarea id="bio"
-                      name="bio"
-                      class="form-textarea"
-                      placeholder="Tell us about yourself..."
-                      maxlength="500">Looking for quality services to help grow my business.</textarea>
-            <div class="char-count"><span id="charCount">57</span>/500 characters</div>
+        <div class="profile-section">
+            <h2 class="section-title">Personal Information</h2>
+
+            <input type="hidden" name="buyer.Person_id" value="@personId" />
+            <input type="hidden" name="buyer_person.Person_id" value="@personId" />
+
+            <div class="form-group">
+                <label class="form-label" for="username">Username</label>
+                <input type="text"
+                       id="username"
+                       name="buyer_person.Person_username"
+                       class="form-input"
+                       value="@username"
+                       readonly>
+                <p class="info-text">Username cannot be changed</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">Email</label>
+                <input type="email"
+                       id="email"
+                       name="buyer_person.Person_email"
+                       class="form-input"
+                       value="@email"
+                       readonly>
+                <p class="info-text">Email cannot be changed</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="passwordDisplay">Password</label>
+                <input type="password"
+                       id="passwordDisplay"
+                       class="form-input"
+                       value="********"
+                       readonly>
+                <p class="info-text">Use the button below to change password</p>
+                <button type="button" class="change-password-button" onclick="openPasswordModal()">Change Password</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="birthdate">Birthdate</label>
+                <input type="text"
+                       id="birthdate"
+                       name="buyer_person.Person_birthdate"
+                       class="form-input"
+                       value="@birthdate"
+                       readonly>
+                <p class="info-text">Birthdate cannot be changed</p>
+            </div>
         </div>
+    </form>
 
-        <button class="edit-button">Save Changes</button>
-    </div>
+    <form asp-controller="Buyer" asp-action="LogOut" method="post">
+        <button class="logout-button" type="submit">Log Out</button>
+    </form>
+</div>
 
-    <!-- Personal Information Section -->
-    <div class="profile-section">
-        <h2 class="section-title">Personal Information</h2>
-
-        <div class="form-group">
-            <label class="form-label" for="username">Username</label>
-            <input type="text"
-                   id="username"
-                   name="username"
-                   class="form-input"
-                   value="johnbuyer123"
-                   disabled>
-            <p class="info-text">Username cannot be changed</p>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label" for="email">Email</label>
-            <input type="email"
-                   id="email"
-                   name="email"
-                   class="form-input"
-                   value="john.buyer@example.com"
-                   disabled>
-            <p class="info-text">Email cannot be changed</p>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label" for="password">Password</label>
-            <input type="password"
-                   id="password"
-                   name="password"
-                   class="form-input"
-                   value="********"
-                   disabled>
-            <p class="info-text">Password cannot be changed</p>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label" for="birthdate">Birthdate</label>
-            <input type="date"
-                   id="birthdate"
-                   name="birthdate"
-                   class="form-input"
-                   value="1990-05-15"
-                   disabled>
-            <p class="info-text">Birthdate cannot be changed</p>
-        </div>
+<div id="passwordModalOverlay" class="password-modal-overlay" onclick="closePasswordModal(event)">
+    <div class="password-modal">
+        <h3>Change Password</h3>
+        <form asp-controller="Buyer" asp-action="ChangePassword" method="post">
+            <div class="form-group">
+                <label class="form-label" for="currentPassword">Current Password</label>
+                <input type="password" id="currentPassword" name="currentPassword" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="newPassword">New Password</label>
+                <input type="password" id="newPassword" name="newPassword" class="form-input" required>
+            </div>
+            <div class="password-modal-buttons">
+                <button type="submit" class="edit-button">Save Password</button>
+                <button type="button" class="cancel-password-button" onclick="closePasswordModal()">Cancel</button>
+            </div>
+        </form>
     </div>
 </div>
+
+<script>
+    function openPasswordModal() {
+        document.getElementById("passwordModalOverlay").style.display = "flex";
+    }
+
+    function closePasswordModal(event) {
+        if (event) {
+            if (event.target.id != "passwordModalOverlay") {
+                return;
+            }
+        }
+        document.getElementById("passwordModalOverlay").style.display = "none";
+    }
+</script>

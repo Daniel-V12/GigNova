@@ -37,6 +37,11 @@ html, body {
         color: #ffffff;
     }
 
+.gigs-header h2 {
+    font-size: 34px;
+    font-weight: 900;
+}
+
 .category-buttons {
     display: flex;
     flex-wrap: wrap;
@@ -164,26 +169,30 @@ select {
 
 .gig-title {
     color: #fff;
-    font-weight: 700;
-    margin-bottom: 8px;
+    font-weight: 900;
+    font-size: 23px;
+    margin-bottom: 10px;
 }
 
 .gig-description {
     color: #c6c9e7;
-    font-size: 13px;
-    min-height: 36px;
-    margin-bottom: 12px;
+    font-size: 20px;
+    min-height: 52px;
+    line-height: 1.45;
+    margin-bottom: 14px;
 }
 
 .price-label {
     display: block;
     color: #aeb3db;
-    font-size: 11px;
+    font-size: 15px;
+    font-weight: 700;
 }
 
 .price-value {
     color: #fff;
-    font-weight: 800;
+    font-weight: 900;
+    font-size: 28px;
 }
 
 .empty-state {
@@ -243,4 +252,80 @@ select {
     .gigs-grid {
         grid-template-columns: 1fr;
     }
+}
+
+
+.gig-categories-wrap {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.gig-category-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    border: 1px solid #4a4f80;
+    border-radius: 12px;
+    background: #2f345c;
+    color: #d9defd;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.review-average-text {
+    font-size: 17px;
+}
+
+.review-rating-text {
+    font-size: 34px;
+    font-weight: 900;
+}
+
+.review-card .gig-description {
+    font-size: 16px;
+}
+
+.seller-main-title {
+    font-size: 30px !important;
+}
+
+.seller-main-text {
+    font-size: 24px !important;
+    font-weight: 700;
+}
+
+.selected-gig-title {
+    font-size: 30px !important;
+}
+
+.selected-gig-description {
+    font-size: 19px !important;
+    line-height: 1.5;
+}
+
+.selected-gig-price-label {
+    font-size: 16px;
+}
+
+.selected-seller-label {
+    color: #aeb3db;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.selected-seller-name {
+    color: white;
+    font-weight: 800;
+    font-size: 24px;
+}
+
+.selected-seller-rating {
+    color: #c6c9e7;
+    font-size: 18px;
+    font-weight: 700;
 }

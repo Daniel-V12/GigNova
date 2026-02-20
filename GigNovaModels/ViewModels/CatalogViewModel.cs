@@ -19,15 +19,12 @@ namespace GigNovaModels.ViewModels
         public int GigsPerPageCount { get; set; } = 9;
 
         public string GigCategories { get; set; } = "";
+        public List<string> GigCategoryNames { get; set; } = new List<string>();
 
         public double min_price { get; set; } = 0;
         public double max_price { get; set; } = 0;
         public int delivery_time_id { get; set; } = 0;
         public int language_id { get; set; } = 0;
         public double min_rating { get; set; } = 0;
-
-
-
-
     }
 }

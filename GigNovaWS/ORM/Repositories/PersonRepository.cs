@@ -23,7 +23,7 @@ namespace GigNovaWS
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
-        private string GetHash (string password, string salt)
+        private string GetHash(string password, string salt)
         {
             string combine = password + salt;
             byte[] bytes = System.Text.UTF8Encoding.UTF8.GetBytes(combine);
@@ -37,7 +37,7 @@ namespace GigNovaWS
         private int GetRandom()
         {
             Random rnd = new Random();
-            return rnd.Next(8,16);
+            return rnd.Next(8, 16);
         }
         private string GetSalt(int length)
         {
@@ -79,15 +79,70 @@ namespace GigNovaWS
 
         public bool Update(Person model)
         {
-            string sql = @"Update Person set 
+            string sql;
+            if (model.Person_password == null || model.Person_password == "")
+            {
+                sql = @"Update Person set
+                person_username = @person_username ,
+                person_birthdate = @person_birthdate,
+                person_email = @person_email
+                where person_id = @person_id";
+
+                this.dbHelperOledb.AddParameter("@person_username", model.Person_username);
+                this.dbHelperOledb.AddParameter("@person_birthdate", model.Person_birthdate);
+                this.dbHelperOledb.AddParameter("@person_email", model.Person_email);
+                this.dbHelperOledb.AddParameter("@person_id", model.Person_id);
+                return this.dbHelperOledb.Update(sql) > 0;
+            }
+
+            string salt = GetSalt(GetRandom());
+            string hash = GetHash(model.Person_password, salt);
+
+            sql = @"Update Person set
             person_username = @person_username ,
             person_birthdate = @person_birthdate,
-            person_email = @person_email
+            person_email = @person_email,
+            person_password = @person_password,
+            person_salt = @person_salt
             where person_id = @person_id";
+
             this.dbHelperOledb.AddParameter("@person_username", model.Person_username);
             this.dbHelperOledb.AddParameter("@person_birthdate", model.Person_birthdate);
             this.dbHelperOledb.AddParameter("@person_email", model.Person_email);
+            this.dbHelperOledb.AddParameter("@person_password", hash);
+            this.dbHelperOledb.AddParameter("@person_salt", salt);
             this.dbHelperOledb.AddParameter("@person_id", model.Person_id);
+            return this.dbHelperOledb.Update(sql) > 0;
+        }
+
+
+        public bool UpdatePassword(string person_id, string current_password, string new_password)
+        {
+            string sql = "Select person_salt, person_password from Person where person_id = @person_id";
+            this.dbHelperOledb.AddParameter("@person_id", person_id);
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                if (reader.Read() == false)
+                {
+                    return false;
+                }
+
+                string currentSalt = reader["person_salt"].ToString();
+                string currentHash = reader["person_password"].ToString();
+                string calculateCurrentHash = GetHash(current_password, currentSalt);
+                if (calculateCurrentHash != currentHash)
+                {
+                    return false;
+                }
+            }
+
+            string newSalt = GetSalt(GetRandom());
+            string newHash = GetHash(new_password, newSalt);
+
+            sql = "Update Person set person_password = @person_password, person_salt = @person_salt where person_id = @person_id";
+            this.dbHelperOledb.AddParameter("@person_password", newHash);
+            this.dbHelperOledb.AddParameter("@person_salt", newSalt);
+            this.dbHelperOledb.AddParameter("@person_id", person_id);
             return this.dbHelperOledb.Update(sql) > 0;
         }
 
