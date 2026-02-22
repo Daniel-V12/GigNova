@@ -211,6 +211,7 @@
                                 </div>
                                 <div class="gig-info">
                                     <p class="gig-title">@gig.Gig_name</p>
+                                    <p class="gig-description">@gig.Gig_description</p>
                                     @{
                                         string categoryNamesText = "";
                                         if (Model.GigCategoryNames != null && Model.GigCategoryNames.Count > i)
@@ -249,7 +250,6 @@
                                             </div>
                                         }
                                     }
-                                    <p class="gig-description">@gig.Gig_description</p>
                                     <div class="gig-footer">
                                         <div class="gig-price">
                                             <span class="price-label">Starting at</span>

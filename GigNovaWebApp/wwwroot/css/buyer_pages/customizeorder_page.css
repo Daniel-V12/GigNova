@@ -1,0 +1,146 @@
+﻿.customize-order-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 26px;
+    color: #eef1ff;
+}
+
+.page-title {
+    font-size: 42px;
+    margin-bottom: 18px;
+}
+
+.order-message {
+    background: rgba(220, 80, 80, 0.25);
+    border: 1px solid #d85a5a;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-weight: 700;
+}
+
+.customize-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 0.9fr;
+    gap: 18px;
+}
+
+.order-box,
+.summary-box {
+    background: #232642;
+    border: 1px solid #363d6b;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.section-title {
+    margin-top: 0;
+    margin-bottom: 14px;
+    font-size: 28px;
+}
+
+.form-group {
+    margin-bottom: 14px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: 700;
+    font-size: 17px;
+}
+
+.form-textarea {
+    width: 100%;
+    min-height: 220px;
+    resize: vertical;
+    border-radius: 10px;
+    border: 1px solid #4f578f;
+    background: #151833;
+    color: #eef1ff;
+    padding: 12px;
+    font-size: 16px;
+}
+
+.form-file {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #4f578f;
+    background: #151833;
+    color: #eef1ff;
+    padding: 9px;
+}
+
+.help-text {
+    margin-top: 6px;
+    color: #c6cae8;
+    font-size: 14px;
+}
+
+.pay-btn {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    background: #e94560;
+    color: white;
+    font-size: 20px;
+    font-weight: 800;
+    padding: 12px;
+    cursor: pointer;
+}
+
+.summary-gig {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.summary-image {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #4f578f;
+}
+
+.summary-gig-name {
+    margin: 0 0 6px 0;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.summary-description {
+    margin: 0;
+    font-size: 14px;
+    color: #c6cae8;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-top: 1px solid #3b4170;
+}
+
+    .summary-row.total {
+        font-size: 22px;
+        font-weight: 800;
+    }
+
+@media (max-width: 900px) {
+    .customize-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.uploaded-files-list {
+    margin: 0;
+    padding-left: 18px;
+    color: #d8ddfb;
+    font-size: 14px;
+}
+
+    .uploaded-files-list li {
+        margin-bottom: 4px;
+    }

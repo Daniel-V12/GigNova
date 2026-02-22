@@ -21,7 +21,6 @@ namespace GigNovaModels.Models
             get { return order_file_id; }
             set { order_file_id = value; }
         }
-
         public string Order_file_name
         {
             get { return order_file_name; }

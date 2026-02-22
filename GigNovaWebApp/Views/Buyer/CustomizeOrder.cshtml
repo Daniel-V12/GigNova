@@ -2,39 +2,224 @@
 @{
     ViewData["Title"] = "CustomizeOrder";
     Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+
+    string gigName = "";
+    string gigDescription = "";
+    string gigPhoto = "";
+    double gigPrice = 0;
+    int sellerId = 0;
+    int deliveryTime = 0;
+    string sellerDisplayName = "";
+    string sellerUsername = "";
+    string deliveryTimeName = "";
+
+    if (Model != null)
+    {
+        if (Model.gig != null)
+        {
+            if (Model.gig.Gig_name != null)
+            {
+                gigName = Model.gig.Gig_name;
+            }
+            if (Model.gig.Gig_description != null)
+            {
+                gigDescription = Model.gig.Gig_description;
+            }
+            if (Model.gig.Gig_photo != null)
+            {
+                gigPhoto = Model.gig.Gig_photo;
+            }
+            gigPrice = Model.gig.Gig_price;
+            sellerId = Model.gig.Seller_id;
+            deliveryTime = Model.gig.Delivery_time_id;
+        }
+        if (Model.order != null)
+        {
+            if (gigName == "")
+            {
+                gigName = "Gig #" + Model.order.Gig_id;
+            }
+            if (sellerId == 0)
+            {
+                sellerId = Model.order.Seller_id;
+            }
+        }
+
+        if (Model.seller != null)
+        {
+            if (Model.seller.Seller_display_name != null)
+            {
+                sellerDisplayName = Model.seller.Seller_display_name;
+            }
+        }
+        if (Model.seller_person != null)
+        {
+            if (Model.seller_person.Person_username != null)
+            {
+                sellerUsername = Model.seller_person.Person_username;
+            }
+        }
+        if (Model.delivery_time != null)
+        {
+            if (Model.delivery_time.Delivery_time_name != null)
+            {
+                deliveryTimeName = Model.delivery_time.Delivery_time_name;
+            }
+        }
+    }
+
+    if (sellerDisplayName == "")
+    {
+        sellerDisplayName = "Seller #" + sellerId;
+    }
+    if (sellerUsername == "")
+    {
+        sellerUsername = "unknown";
+    }
+    if (deliveryTimeName == "")
+    {
+        deliveryTimeName = "Delivery ID " + deliveryTime;
+    }
 }
 
-<link href="~/css/guest_pages/catalog_page.css" rel="stylesheet" />
+<link href="~/css/buyer_pages/customizeorder_page.css" rel="stylesheet" />
 
-<section class="catalog-page">
-    <div class="catalog-main">
-        <h1 style="margin-top:0;">Customize Order</h1>
+<div class="customize-order-container">
+    <h1 class="page-title">Customize Your Order</h1>
 
-        @if (Model == null || Model.order == null)
-        {
-            <div class="empty-state">Order details were not found.</div>
-        }
-        else
-        {
-            <div class="gig-card" style="display:block;max-width:700px;cursor:default;">
-                <h3 style="margin-top:0;">Order Summary</h3>
-                <p><strong>Gig ID:</strong> @Model.order.Gig_id</p>
-                <p><strong>Seller ID:</strong> @Model.order.Seller_id</p>
-                <p><strong>Status ID:</strong> @Model.order.Order_status_id</p>
-                <p><strong>Created:</strong> @Model.order.Order_creation_date</p>
+    @if (TempData["CustomizeOrderMessage"] != null)
+    {
+        <div class="order-message">@TempData["CustomizeOrderMessage"]</div>
+    }
 
-                <h4>Requirements</h4>
-                <p>
-                    @if (Model.order.Order_requirements == null)
+    @if (Model == null || Model.order == null)
+    {
+        <div class="order-box">Order details were not found.</div>
+    }
+    else
+    {
+        <div class="customize-grid">
+            <form asp-controller="Buyer" asp-action="CustomizeOrder" method="post" enctype="multipart/form-data" class="order-box">
+                <h2 class="section-title">Order Requirements</h2>
+
+                <input type="hidden" name="order.Order_id" value="@Model.order.Order_id" />
+                <input type="hidden" name="order.Order_status_id" value="@Model.order.Order_status_id" />
+                <input type="hidden" name="order.Gig_id" value="@Model.order.Gig_id" />
+                <input type="hidden" name="order.Seller_id" value="@Model.order.Seller_id" />
+
+                <div class="form-group">
+                    <label class="form-label" for="orderRequirements">Describe what you need</label>
+                    <textarea id="orderRequirements"
+                          name="order.Order_requirements"
+                          class="form-textarea"
+                          placeholder="Write your project requirements, details, goals, and anything the seller should know..."
+                          maxlength="2000">@Model.order.Order_requirements</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="orderFile">Upload files (optional)</label>
+                    <input id="orderFile" name="orderFiles" type="file" class="form-file" multiple onchange="onFilesSelected()" />
+                    <p class="help-text">You can upload multiple files of any type. This is optional.</p>
+                    <p id="selectedFilesText" class="help-text"></p>
+                </div>
+
+
+                @if (Model.order_files != null && Model.order_files.Count > 0)
+                {
+                    <div class="form-group">
+                        <p class="form-label">Uploaded files on this order</p>
+                        <ul class="uploaded-files-list">
+                            @foreach (var file in Model.order_files)
+                            {
+                                if (file != null && file.Order_file_name != null && file.Order_file_name != "")
+                                {
+                                    <li>@file.Order_file_name</li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <button type="submit" class="pay-btn">Pay & Create Order</button>
+            </form>
+
+            <aside class="summary-box">
+                <h2 class="section-title">Order Summary</h2>
+
+                <div class="summary-gig">
+                    @if (gigPhoto != "")
                     {
-                        <span>No requirements added yet.</span>
+                        <img src="http://localhost:7059/Images/@gigPhoto" alt="@gigName" class="summary-image" />
                     }
-                    else
-                    {
-                        <span>@Model.order.Order_requirements</span>
-                    }
-                </p>
-            </div>
+                    <div>
+                        <p class="summary-gig-name">@gigName</p>
+                        @if (gigDescription != "")
+                        {
+                            <p class="summary-description">@gigDescription</p>
+                        }
+                    </div>
+                </div>
+
+                <div class="summary-row"><span>Gig ID</span><strong>#@Model.order.Gig_id</strong></div>
+                <div class="summary-row"><span>Seller</span><strong>@sellerDisplayName (@sellerUsername)</strong></div>
+                <div class="summary-row"><span>Delivery Time</span><strong>@deliveryTimeName</strong></div>
+                <div class="summary-row"><span>Status</span><strong>Pending</strong></div>
+                <div class="summary-row total"><span>Total</span><strong>$@gigPrice</strong></div>
+            </aside>
+        </div>
+    }
+</div>
+
+
+<script>
+    var allSelectedFiles = [];
+    var selectedFileKeys = {};
+
+    function getFileKey(file) {
+        return file.name + "|" + file.size + "|" + file.lastModified;
+    }
+
+    function onFilesSelected() {
+        var input = document.getElementById("orderFile");
+        var text = document.getElementById("selectedFilesText");
+        if (input == null || text == null) {
+            return;
         }
-    </div>
-</section>
+
+        if (input.files != null) {
+            for (var i = 0; i < input.files.length; i++) {
+                var file = input.files[i];
+                var key = getFileKey(file);
+                if (selectedFileKeys[key] !== true) {
+                    allSelectedFiles.push(file);
+                    selectedFileKeys[key] = true;
+                }
+            }
+        }
+
+        var transfer = new DataTransfer();
+        for (var j = 0; j < allSelectedFiles.length; j++) {
+            transfer.items.add(allSelectedFiles[j]);
+        }
+        input.files = transfer.files;
+
+        if (input.files == null || input.files.length == 0) {
+            text.innerText = "";
+            return;
+        }
+
+        var names = [];
+        for (var k = 0; k < input.files.length; k++) {
+            names.push(input.files[k].name);
+        }
+
+        text.innerText = "Selected files (" + input.files.length + "): " + names.join(", ");
+    }
+
+    (function () {
+        var input = document.getElementById("orderFile");
+        if (input != null) {
+            input.addEventListener("change", onFilesSelected);
+        }
+    })();
+</script>

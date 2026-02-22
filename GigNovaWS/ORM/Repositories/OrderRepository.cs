@@ -24,6 +24,33 @@ namespace GigNovaWS
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
+        public string GetLastInsertedOrderId()
+        {
+            string sql = "Select @@IDENTITY as new_id";
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                if (reader.Read() == true)
+                {
+                    return Convert.ToString(reader["new_id"]);
+                }
+            }
+            return "";
+        }
+
+        public string GetLatestOrderIdByBuyer(string buyerId)
+        {
+            string sql = "Select Top 1 order_id from Orders where buyer_id = @buyer_id order by order_id desc";
+            this.dbHelperOledb.AddParameter("@buyer_id", buyerId);
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                if (reader.Read() == true)
+                {
+                    return Convert.ToString(reader["order_id"]);
+                }
+            }
+            return "";
+        }
+
         public bool Delete(string id)
         {
             string sql = @"Delete from Orders where order_id = @order_id";
