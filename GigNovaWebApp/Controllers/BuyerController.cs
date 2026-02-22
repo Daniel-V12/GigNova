@@ -207,8 +207,90 @@ namespace GigNovaWebApp.Controllers
             {
                 client.AddParameter("gig_id", gig_id);
             }
+            string buyerId = HttpContext.Session.GetString("person_id");
+            if (buyerId != null)
+            {
+                client.AddParameter("buyer_id", buyerId);
+            }
             CustomizeOrderViewModel customizeOrderViewModel = await client.GetAsync();
             return View(customizeOrderViewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CustomizeOrder(CustomizeOrderViewModel viewModel, List<IFormFile> orderFiles)
+        {
+            string buyerId = HttpContext.Session.GetString("person_id");
+            if (buyerId == null)
+            {
+                return RedirectToAction("HomePage", "Guest");
+            }
+
+            if (viewModel == null || viewModel.order == null)
+            {
+                return CustomizeOrderFailed("HomePage", null);
+            }
+
+            viewModel.order.Buyer_id = Convert.ToInt32(buyerId);
+            viewModel.order.Is_payment = true;
+            if (viewModel.order.Order_requirements == null)
+            {
+                viewModel.order.Order_requirements = "";
+            }
+
+            List<Stream> filesToSend = BuildFileStreams(orderFiles);
+            bool response = await PostCustomizeOrder(viewModel, filesToSend);
+            DisposeStreams(filesToSend);
+
+            if (response == false)
+            {
+                return CustomizeOrderFailed("CustomizeOrder", viewModel.order.Gig_id);
+            }
+
+            return RedirectToAction("HomePage");
+        }
+
+        private IActionResult CustomizeOrderFailed(string action, int? gigId)
+        {
+            TempData["CustomizeOrderMessage"] = "Failed to create order.";
+            if (action == "CustomizeOrder" && gigId.HasValue)
+            {
+                return RedirectToAction("CustomizeOrder", new { gig_id = gigId.Value });
+            }
+            return RedirectToAction(action);
+        }
+
+        private List<Stream> BuildFileStreams(List<IFormFile> orderFiles)
+        {
+            List<Stream> filesToSend = new List<Stream>();
+            if (orderFiles != null)
+            {
+                foreach (IFormFile file in orderFiles)
+                {
+                    if (file != null && file.Length > 0)
+                    {
+                        filesToSend.Add(file.OpenReadStream());
+                    }
+                }
+            }
+            return filesToSend;
+        }
+
+        private void DisposeStreams(List<Stream> filesToSend)
+        {
+            foreach (Stream thisStream in filesToSend)
+            {
+                thisStream.Dispose();
+            }
+        }
+
+        private async Task<bool> PostCustomizeOrder(CustomizeOrderViewModel viewModel, List<Stream> filesToSend)
+        {
+            ApiClient<CustomizeOrderViewModel> client = new ApiClient<CustomizeOrderViewModel>();
+            client.Scheme = "https";
+            client.Host = "localhost";
+            client.Port = 7059;
+            client.Path = "api/Buyer/CreateOrderAndPayWithFiles";
+            return await client.PostAsync(viewModel, filesToSend);
         }
 
         [HttpGet]

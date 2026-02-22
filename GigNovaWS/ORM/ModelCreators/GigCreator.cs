@@ -32,7 +32,7 @@ namespace GigNovaWS
                 if (value == null)
                 {
                     return "";
-                }
+                } 
                 return Convert.ToString(value);
             }
             catch
