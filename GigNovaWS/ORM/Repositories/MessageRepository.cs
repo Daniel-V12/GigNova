@@ -74,5 +74,26 @@ namespace GigNovaWS
             }
             return messages;
         }
+
+        public List<Message> GetByBuyerId(string buyerId)
+        {
+            return GetMessagesByReceiverId(buyerId);
+        }
+
+        public List<Message> GetByBuyerAndOrderId(string buyerId, string orderId)
+        {
+            string sql = "Select * from Messages where reciever_id = @reciever_id and order_id = @order_id";
+            this.dbHelperOledb.AddParameter("@reciever_id", buyerId);
+            this.dbHelperOledb.AddParameter("@order_id", orderId);
+            List<Message> messages = new List<Message>();
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                while (reader.Read())
+                {
+                    messages.Add(this.modelCreators.MessageCreator.CreateModel(reader));
+                }
+            }
+            return messages;
+        }
     }
 }

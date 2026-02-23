@@ -1,0 +1,104 @@
+﻿@using GigNovaModels.ViewModels
+@model List<CustomizeOrderViewModel>
+@{
+    ViewData["Title"] = "ViewOrders";
+    Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+}
+<link href="~/css/buyer_pages/orders_page.css" rel="stylesheet" />
+
+<div class="orders-container">
+    <div class="orders-main-content">
+        <section class="orders-section">
+            <div class="orders-header">
+                <h2>My Orders</h2>
+                <p>@(Model != null ? Model.Count : 0) order(s)</p>
+            </div>
+
+            <div class="orders-grid">
+                @if (Model != null && Model.Count > 0)
+                {
+                    foreach (CustomizeOrderViewModel thisOrder in Model)
+                    {
+                        if (thisOrder != null && thisOrder.order != null)
+                        {
+                            <a asp-controller="Buyer" asp-action="SelectedOrder" asp-route-order_id="@thisOrder.order.Order_id" class="order-card-link">
+                                <div class="order-card">
+                                    <div class="order-image-wrap">
+                                        @if (thisOrder.gig != null && thisOrder.gig.Gig_photo != null && thisOrder.gig.Gig_photo != "")
+                                        {
+                                            <img class="order-image" src="http://localhost:7059/Images/@thisOrder.gig.Gig_photo" alt="@thisOrder.gig.Gig_name" />
+                                        }
+                                        else
+                                        {
+                                            <div class="order-image empty-image">No image</div>
+                                        }
+                                    </div>
+                                    <div class="order-info">
+                                        <p class="order-title">@(thisOrder.gig != null ? thisOrder.gig.Gig_name : "Order")</p>
+                                        <p class="order-description">@(thisOrder.order.Order_requirements == null || thisOrder.order.Order_requirements == "" ? "No requirements provided." : thisOrder.order.Order_requirements)</p>
+                                        <div class="order-footer">
+                                            <div><strong>Order #</strong> @thisOrder.order.Order_id</div>
+                                            <div><strong>Created:</strong> @thisOrder.order.Order_creation_date</div>
+                                            <div><strong>Delivery:</strong> @(thisOrder.delivery_time != null ? thisOrder.delivery_time.Delivery_time_name : "-")</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                    }
+                }
+                else
+                {
+                    <div class="orders-empty-state">
+                        <h3>You do not have any orders yet.</h3>
+                        <p>Browse the catalog and place your first order.</p>
+                    </div>
+                }
+            </div>
+
+            @{
+                int currentPage = 1;
+                int totalPages = 1;
+                string buyerIdForPaging = "";
+
+                if (ViewData["CurrentPage"] != null)
+                {
+                    currentPage = Convert.ToInt32(ViewData["CurrentPage"]);
+                }
+                if (ViewData["TotalPages"] != null)
+                {
+                    totalPages = Convert.ToInt32(ViewData["TotalPages"]);
+                }
+                if (ViewData["BuyerIdForPaging"] != null)
+                {
+                    buyerIdForPaging = ViewData["BuyerIdForPaging"].ToString();
+                }
+            }
+
+            @if (totalPages > 1)
+            {
+                <div class="orders-pagination">
+                    @if (currentPage > 1)
+                    {
+                        <a class="open-messaging-btn" asp-controller="Buyer" asp-action="ViewOrders" asp-route-buyerId="@buyerIdForPaging" asp-route-page="@(currentPage - 1)">Previous</a>
+                    }
+                    else
+                    {
+                        <span class="open-messaging-btn pagination-disabled">Previous</span>
+                    }
+
+                    <span class="pagination-page-text">Page @currentPage of @totalPages</span>
+
+                    @if (currentPage < totalPages)
+                    {
+                        <a class="open-messaging-btn" asp-controller="Buyer" asp-action="ViewOrders" asp-route-buyerId="@buyerIdForPaging" asp-route-page="@(currentPage + 1)">Next</a>
+                    }
+                    else
+                    {
+                        <span class="open-messaging-btn pagination-disabled">Next</span>
+                    }
+                </div>
+            }
+        </section>
+    </div>
+</div>

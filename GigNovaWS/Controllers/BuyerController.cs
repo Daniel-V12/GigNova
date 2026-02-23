@@ -388,17 +388,23 @@ namespace GigNovaWS.Controllers
         }
 
         [HttpGet]
-        public MessagesBoxViewModel MessagingBoxViewModel(string buyer_id)
+        public MessagesBoxViewModel MessagingBoxViewModel(string buyer_id, string order_id = null)
         {
-            MessagesBoxViewModel viewModel = new MessagesBoxViewModel
-            {
-                Messages = new List<Message>(),
-                Senders = new List<Person>()
-            };
+            MessagesBoxViewModel viewModel = new MessagesBoxViewModel();
+            viewModel.Messages = new List<Message>();
+            viewModel.Senders = new List<Person>();
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
-                viewModel.Messages = this.repositoryUOW.MessageRepository.GetMessagesByReceiverId(buyer_id);
+                if (order_id != null && order_id != "")
+                {
+                    viewModel.Messages = this.repositoryUOW.MessageRepository.GetByBuyerAndOrderId(buyer_id, order_id);
+                }
+                else
+                {
+                    viewModel.Messages = this.repositoryUOW.MessageRepository.GetByBuyerId(buyer_id);
+                }
+
                 foreach (Message message in viewModel.Messages)
                 {
                     Person sender = this.repositoryUOW.PersonRepository.GetById(message.Sender_id.ToString());
@@ -412,6 +418,7 @@ namespace GigNovaWS.Controllers
                                 exists = true;
                             }
                         }
+
                         if (exists == false)
                         {
                             viewModel.Senders.Add(sender);
@@ -430,6 +437,7 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
+
 
         [HttpGet]
         public MessageViewModel GetMessageViewModel(string message_id)

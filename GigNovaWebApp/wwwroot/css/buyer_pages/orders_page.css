@@ -1,0 +1,259 @@
+﻿.orders-container {
+    width: min(1280px, 96vw);
+    margin: 16px auto;
+    padding: 16px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #252a4a 0%, #202447 100%);
+    border: 1px solid #4a4f80;
+}
+
+.orders-main-content {
+    display: grid;
+    grid-template-columns: 1fr;
+}
+
+.orders-section {
+    width: 100%;
+}
+
+.orders-header {
+    margin-bottom: 16px;
+    border-bottom: 1px solid #4a4f80;
+    padding-bottom: 10px;
+}
+
+    .orders-header h2 {
+        margin: 0;
+        color: #f2f3ff;
+        font-size: 42px;
+    }
+
+    .orders-header p {
+        margin-top: 4px;
+        margin-bottom: 0;
+        color: #c7c9df;
+    }
+
+.orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    align-items: stretch;
+}
+
+.order-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.order-card {
+    border: 1px solid #5a619b;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #1d2140;
+    transition: border-color 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.order-card-link:hover .order-card {
+    border-color: #8790da;
+}
+
+.order-image-wrap {
+    width: 100%;
+    height: 160px;
+    background-color: #0e1230;
+}
+
+.order-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.empty-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d7dbff;
+    font-weight: 600;
+}
+
+.order-info {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.order-title {
+    margin: 0;
+    font-size: 36px;
+    line-height: 1.1;
+    color: #f2f3ff;
+    font-weight: 700;
+    min-height: 78px;
+}
+
+.order-description {
+    margin-top: 8px;
+    margin-bottom: 10px;
+    color: #d5d8ef;
+    min-height: 52px;
+    word-break: break-word;
+}
+
+.order-footer {
+    display: grid;
+    gap: 4px;
+    color: #c7c9df;
+    margin-top: auto;
+}
+
+.orders-empty-state {
+    border: 1px dashed #6169aa;
+    border-radius: 10px;
+    padding: 20px;
+    color: #d5d8ef;
+    background-color: #1b1f3f;
+}
+
+.selected-order-card {
+    border: 1px solid #5a619b;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #1d2140;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.selected-order-image-wrap {
+    width: 100%;
+    height: 280px;
+    background-color: #0e1230;
+}
+
+.selected-order-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.selected-order-info {
+    padding: 16px;
+}
+
+.selected-order-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.selected-order-title {
+    margin: 0;
+    color: #f2f3ff;
+    font-size: 40px;
+    line-height: 1.1;
+    font-weight: 700;
+}
+
+.selected-order-description {
+    margin-top: 8px;
+    margin-bottom: 0;
+    color: #d5d8ef;
+    word-break: break-word;
+}
+
+.selected-order-price-wrap {
+    text-align: right;
+}
+
+.selected-order-price-label {
+    display: block;
+    color: #b9c0ee;
+    font-weight: 600;
+}
+
+.selected-order-price {
+    display: block;
+    color: #ffffff;
+    font-size: 46px;
+    font-weight: 800;
+}
+
+.selected-order-meta {
+    margin-top: 16px;
+    display: grid;
+    gap: 8px;
+    color: #c7c9df;
+}
+
+.current-status-row {
+    font-size: 22px;
+    color: #f2f3ff;
+}
+
+.current-status-value {
+    font-weight: 900;
+    color: #ffffff;
+    margin-left: 6px;
+}
+
+.selected-order-section {
+    margin-top: 18px;
+    border-top: 1px solid #3d4270;
+    padding-top: 14px;
+}
+
+.selected-order-section-title {
+    color: #f2f3ff;
+    font-weight: 700;
+    font-size: 30px;
+}
+
+.selected-order-files-list {
+    margin-top: 10px;
+    margin-bottom: 0;
+    padding-left: 18px;
+    color: #d5d8ef;
+}
+
+.open-messaging-btn {
+    display: inline-block;
+    text-decoration: none;
+    color: #f2f3ff;
+    background: linear-gradient(180deg, #5a69c7 0%, #4958b7 100%);
+    border: 1px solid #7d89d8;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+    .open-messaging-btn:hover {
+        background: linear-gradient(180deg, #6876d1 0%, #5564c3 100%);
+    }
+
+.orders-pagination {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.pagination-page-text {
+    color: #d7dbff;
+    font-weight: 700;
+}
+
+.pagination-disabled {
+    opacity: 0.55;
+    pointer-events: none;
+}
