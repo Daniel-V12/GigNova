@@ -1,0 +1,60 @@
+﻿@using GigNovaModels.ViewModels
+@model MessagesBoxViewModel
+@{
+    ViewData["Title"] = "MessagingBox";
+    Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+}
+<link href="~/css/buyer_pages/orders_page.css" rel="stylesheet" />
+
+<div class="orders-container">
+    <div class="orders-section">
+        <div class="orders-header">
+            <h2>Messaging</h2>
+            <p>Order communication between buyer and seller.</p>
+        </div>
+
+        @if (Model != null && Model.Messages != null && Model.Messages.Count > 0)
+        {
+            <div class="orders-grid" style="grid-template-columns:1fr;">
+                @foreach (GigNovaModels.Models.Message message in Model.Messages)
+                {
+                    if (message != null)
+                    {
+                        string senderName = "Unknown";
+                        if (Model.Senders != null)
+                        {
+                            foreach (GigNovaModels.Models.Person sender in Model.Senders)
+                            {
+                                if (sender != null && sender.Person_id == message.Sender_id.ToString())
+                                {
+                                    senderName = sender.Person_username;
+                                }
+                            }
+                        }
+
+                        <a asp-controller="Buyer" asp-action="Message" asp-route-message_id="@message.Message_id" class="order-card-link">
+                            <div class="order-card">
+                                <div class="order-info">
+                                    <p class="order-title" style="font-size:28px;">Message #@message.Message_id</p>
+                                    <p class="order-description" style="min-height:auto;">@message.Message_text</p>
+                                    <div class="order-footer">
+                                        <div><strong>From:</strong> @senderName</div>
+                                        <div><strong>Date:</strong> @message.Message_date</div>
+                                        <div><strong>Order #</strong> @message.Order_id</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+            </div>
+        }
+        else
+        {
+            <div class="orders-empty-state">
+                <h3>No messages found.</h3>
+                <p>There are no messages yet for this view.</p>
+            </div>
+        }
+    </div>
+</div>

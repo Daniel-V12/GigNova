@@ -44,19 +44,155 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> OrderedGigs(string buyerId)
+        public async Task<IActionResult> OrderedGigs(string buyerId, int page = 1)
         {
+            return RedirectToAction("ViewOrders", new { buyerId = buyerId, page = page });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ViewOrders(string buyerId, int page = 1)
+        {
+            if (buyerId == null || buyerId == "")
+            {
+                buyerId = HttpContext.Session.GetString("person_id");
+            }
+
+            if (buyerId == null || buyerId == "")
+            {
+                return RedirectToAction("HomePage", "Guest");
+            }
+
             ApiClient<List<Order>> client = new ApiClient<List<Order>>();
             client.Scheme = "https";
             client.Host = "localhost";
             client.Port = 7059;
             client.Path = "api/Buyer/GetOrderedGigsViewModel";
-            if (buyerId != null)
-            {
-                client.AddParameter("buyerId", buyerId);
-            }
+            client.AddParameter("buyerId", buyerId);
+
             List<Order> orders = await client.GetAsync();
-            return View(orders);
+
+            List<CustomizeOrderViewModel> orderedGigsViewModel = new List<CustomizeOrderViewModel>();
+            if (orders != null)
+            {
+                foreach (Order order in orders)
+                {
+                    CustomizeOrderViewModel selectedOrder = await GetOrderDetails(order.Order_id);
+                    if (selectedOrder != null)
+                    {
+                        orderedGigsViewModel.Add(selectedOrder);
+                    }
+                }
+
+                orderedGigsViewModel = orderedGigsViewModel
+                    .OrderByDescending(orderItem => ParseOrderCreationDate(orderItem))
+                    .ThenByDescending(orderItem => ParseOrderId(orderItem))
+                    .ToList();
+            }
+
+            int pageSize = 6;
+            if (page < 1)
+            {
+                page = 1;
+            }
+
+            int totalOrders = orderedGigsViewModel.Count;
+            int totalPages = totalOrders / pageSize;
+            if (totalOrders % pageSize != 0)
+            {
+                totalPages = totalPages + 1;
+            }
+            if (totalPages == 0)
+            {
+                totalPages = 1;
+            }
+            if (page > totalPages)
+            {
+                page = totalPages;
+            }
+
+            List<CustomizeOrderViewModel> pagedOrders = orderedGigsViewModel
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewData["CurrentPage"] = page;
+            ViewData["TotalPages"] = totalPages;
+            ViewData["BuyerIdForPaging"] = buyerId;
+
+            return View("~/Views/Buyer/ViewOrders.cshtml", pagedOrders);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SelectedOrder(string order_id)
+        {
+            if (order_id == null || order_id == "")
+            {
+                return RedirectToAction("ViewOrders");
+            }
+
+            CustomizeOrderViewModel selectedOrder = await GetOrderDetails(order_id);
+            if (selectedOrder == null || selectedOrder.order == null)
+            {
+                return RedirectToAction("ViewOrders");
+            }
+
+            return View("~/Views/Buyer/SelectedOrder.cshtml", selectedOrder);
+        }
+
+        private async Task<CustomizeOrderViewModel> GetOrderDetails(string orderId)
+        {
+            ApiClient<CustomizeOrderViewModel> detailsClient = new ApiClient<CustomizeOrderViewModel>();
+            detailsClient.Scheme = "https";
+            detailsClient.Host = "localhost";
+            detailsClient.Port = 7059;
+            detailsClient.Path = "api/Buyer/GetCustomizeOrderViewModel";
+            detailsClient.AddParameter("order_id", orderId);
+
+            return await detailsClient.GetAsync();
+        }
+
+        private DateTime ParseOrderCreationDate(CustomizeOrderViewModel? orderItem)
+        {
+            if (orderItem == null || orderItem.order == null)
+            {
+                return DateTime.MinValue;
+            }
+
+            if (orderItem.order.Order_creation_date == null || orderItem.order.Order_creation_date == "")
+            {
+                return DateTime.MinValue;
+            }
+
+            DateTime parsedDate;
+            bool parsed = DateTime.TryParse(orderItem.order.Order_creation_date, out parsedDate);
+            if (parsed)
+            {
+                return parsedDate;
+            }
+
+            return DateTime.MinValue;
+        }
+
+        private int ParseOrderId(CustomizeOrderViewModel? orderItem)
+        {
+            if (orderItem == null || orderItem.order == null)
+            {
+                return 0;
+            }
+
+            if (orderItem.order.Order_id == null || orderItem.order.Order_id == "")
+            {
+                return 0;
+            }
+
+            int parsedId;
+            bool parsed = int.TryParse(orderItem.order.Order_id, out parsedId);
+            if (parsed)
+            {
+                return parsedId;
+            }
+
+            return 0;
         }
 
         [HttpGet]
@@ -294,16 +430,27 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> MessagingBox(string buyer_id)
+        public async Task<IActionResult> MessagingBox(string buyer_id, string order_id = null)
         {
+            if (buyer_id == null || buyer_id == "")
+            {
+                buyer_id = HttpContext.Session.GetString("person_id");
+            }
+
+            if (buyer_id == null || buyer_id == "")
+            {
+                return RedirectToAction("HomePage", "Guest");
+            }
+
             ApiClient<MessagesBoxViewModel> client = new ApiClient<MessagesBoxViewModel>();
             client.Scheme = "https";
             client.Host = "localhost";
             client.Port = 7059;
             client.Path = "api/Buyer/MessagingBoxViewModel";
-            if (buyer_id != null)
+            client.AddParameter("buyer_id", buyer_id);
+            if (order_id != null && order_id != "")
             {
-                client.AddParameter("buyer_id", buyer_id);
+                client.AddParameter("order_id", order_id);
             }
             MessagesBoxViewModel viewModel = await client.GetAsync();
             return View(viewModel);

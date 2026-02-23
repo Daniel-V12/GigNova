@@ -9,7 +9,7 @@ namespace GigNovaWS
         {
             Order_status order_status = new Order_status();
             order_status.Order_status_id = Convert.ToString(dataReader["order_status_id"]);
-            order_status.Status_name = Convert.ToString(dataReader["status_id"]);
+            order_status.Status_name = Convert.ToString(dataReader["status_name"]);
             return order_status;
         }
     }

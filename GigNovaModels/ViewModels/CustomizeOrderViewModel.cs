@@ -16,5 +16,6 @@ namespace GigNovaModels.ViewModels
         public Seller seller { get; set; }
         public Person seller_person { get; set; }
         public Delivery_time delivery_time { get; set; }
+        public Order_status order_status { get; set; }
     }
 }

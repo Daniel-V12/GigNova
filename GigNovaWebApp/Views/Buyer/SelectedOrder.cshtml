@@ -1,0 +1,152 @@
+﻿@using GigNovaModels.ViewModels
+@model CustomizeOrderViewModel
+@{
+    ViewData["Title"] = "SelectedOrder";
+    Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+}
+<link href="~/css/buyer_pages/orders_page.css" rel="stylesheet" />
+
+<div class="orders-container">
+    <div class="orders-section">
+        @if (Model != null && Model.order != null)
+        {
+            <div class="orders-header">
+                <h2>Order #@Model.order.Order_id</h2>
+            </div>
+
+            <div class="selected-order-card">
+                <div class="selected-order-image-wrap">
+                    @if (Model.gig != null && Model.gig.Gig_photo != null && Model.gig.Gig_photo != "")
+                    {
+                        <img class="selected-order-image" src="http://localhost:7059/Images/@Model.gig.Gig_photo" alt="@Model.gig.Gig_name" />
+                    }
+                    else
+                    {
+                        <div class="selected-order-image empty-image">No image</div>
+                    }
+                </div>
+
+                <div class="selected-order-info">
+                    <div class="selected-order-top-row">
+                        <div>
+                            <p class="selected-order-title">@(Model.gig != null ? Model.gig.Gig_name : "Gig")</p>
+                            <p class="selected-order-description">@(Model.gig != null ? Model.gig.Gig_description : "")</p>
+                        </div>
+                        <div class="selected-order-price-wrap">
+                            <span class="selected-order-price-label">Order Total</span>
+                            @if (Model.gig != null)
+                            {
+                                <span class="selected-order-price">$@Model.gig.Gig_price</span>
+                            }
+                            else
+                            {
+                                <span class="selected-order-price">-</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="selected-order-meta">
+                        <div class="current-status-row">
+                            <strong>Current status:</strong>
+                            @{
+                                string currentStatusName = "";
+                                if (Model.order_status != null)
+                                {
+                                    if (Model.order_status.Status_name != null && Model.order_status.Status_name != "")
+                                    {
+                                        currentStatusName = Model.order_status.Status_name;
+                                    }
+                                }
+
+                                if (currentStatusName == "" && Model.order != null)
+                                {
+                                    if (Model.order.Order_status_id == 1)
+                                    {
+                                        currentStatusName = "In Progress";
+                                    }
+                                    else if (Model.order.Order_status_id == 2)
+                                    {
+                                        currentStatusName = "Delivered";
+                                    }
+                                    else if (Model.order.Order_status_id == 3)
+                                    {
+                                        currentStatusName = "Completed";
+                                    }
+                                    else if (Model.order.Order_status_id == 4)
+                                    {
+                                        currentStatusName = "Canceled";
+                                    }
+                                    else if (Model.order.Order_status_id == 5)
+                                    {
+                                        currentStatusName = "Revision In Progress";
+                                    }
+                                    else if (Model.order.Order_status_id == 6)
+                                    {
+                                        currentStatusName = "Revisioned";
+                                    }
+                                }
+
+                                if (currentStatusName == "")
+                                {
+                                    currentStatusName = "-";
+                                }
+                            }
+                            <span class="current-status-value">@currentStatusName</span>
+                        </div>
+                        <div><strong>Created:</strong> @Model.order.Order_creation_date</div>
+                        <div><strong>Delivery Time:</strong> @(Model.delivery_time != null ? Model.delivery_time.Delivery_time_name : "-")</div>
+                        <div>
+                            <strong>Seller:</strong>
+                            @if (Model.seller != null)
+                            {
+                                @Model.seller.Seller_display_name
+                                if (Model.seller_person != null && Model.seller_person.Person_username != null && Model.seller_person.Person_username != "")
+                                {
+                                    <span>(@Model.seller_person.Person_username)</span>
+                                }
+                            }
+                            else
+                            {
+                                @: -
+                            }
+                        </div>
+                    </div>
+
+                    <div class="selected-order-section">
+                        <div class="selected-order-section-title">Requirements</div>
+                        <p class="selected-order-description">@(Model.order.Order_requirements == null || Model.order.Order_requirements == "" ? "No requirements provided." : Model.order.Order_requirements)</p>
+                    </div>
+
+                    <div class="selected-order-section">
+                        <a asp-controller="Buyer" asp-action="MessagingBox" asp-route-order_id="@Model.order.Order_id" class="open-messaging-btn">Open Messaging</a>
+                    </div>
+
+                    <div class="selected-order-section">
+                        <div class="selected-order-section-title">Uploaded Files</div>
+                        @if (Model.order_files != null && Model.order_files.Count > 0)
+                        {
+                            <ul class="selected-order-files-list">
+                                @foreach (GigNovaModels.Models.Order_file file in Model.order_files)
+                                {
+                                    <li>
+                                        @file.Order_file_name
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="selected-order-description">No files were uploaded for this order.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="orders-empty-state">
+                <h3>Order was not found.</h3>
+            </div>
+        }
+    </div>
+</div>
