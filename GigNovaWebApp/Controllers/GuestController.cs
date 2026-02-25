@@ -174,7 +174,9 @@ namespace GigNovaWebApp.Controllers
                 if (loginResult != 0)
                 {
                     HttpContext.Session.SetString("person_id", loginResult.ToString());
+                    HttpContext.Session.SetString("actor", "buyer");
                     return RedirectToAction("HomePage", "Buyer");
+
                 }
 
                 return RedirectToAction("LogInPage");
@@ -184,11 +186,29 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpGet]
-        public IActionResult LogInPage()
+        public async Task<IActionResult> LogInPage()
         {
             string personId = HttpContext.Session.GetString("person_id");
             if (personId != null)
             {
+                string actor = HttpContext.Session.GetString("actor");
+                if (actor == "seller")
+                {
+                    return RedirectToAction("HomePage", "Seller");
+                }
+                if (actor == "buyer")
+                {
+                    return RedirectToAction("HomePage", "Buyer");
+                }
+
+                bool isSeller = await CheckIfSeller(personId);
+                if (isSeller)
+                {
+                    HttpContext.Session.SetString("actor", "seller");
+                    return RedirectToAction("HomePage", "Seller");
+                }
+
+                HttpContext.Session.SetString("actor", "buyer");
                 return RedirectToAction("HomePage", "Buyer");
             }
 
@@ -199,6 +219,8 @@ namespace GigNovaWebApp.Controllers
 
             return View();
         }
+
+
 
         [HttpPost]
         public async Task<IActionResult> LogIn(string identifier, string password)
@@ -238,7 +260,40 @@ namespace GigNovaWebApp.Controllers
                 }
             }
 
+            bool sellerAfterLogin = await CheckIfSeller(loginResult.ToString());
+            if (sellerAfterLogin)
+            {
+                HttpContext.Session.SetString("actor", "seller");
+                return RedirectToAction("HomePage", "Seller");
+            }
+
+            HttpContext.Session.SetString("actor", "buyer");
             return RedirectToAction("HomePage", "Buyer");
+
+        }
+
+        private async Task<bool> CheckIfSeller(string personId)
+        {
+            if (personId == null || personId == "")
+            {
+                return false;
+            }
+
+            ApiClient<bool> client = new ApiClient<bool>();
+            client.Scheme = "https";
+            client.Host = "localhost";
+            client.Port = 7059;
+            client.Path = "api/Guest/IsSeller";
+            client.AddParameter("person_id", personId);
+
+            try
+            {
+                return await client.GetAsync();
+            }
+            catch
+            {
+                return false;
+            }
         }
 
     }

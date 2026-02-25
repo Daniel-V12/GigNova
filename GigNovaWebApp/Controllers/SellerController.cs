@@ -2,6 +2,7 @@
 using GigNovaModels.Models;
 using GigNovaModels.ViewModels;
 using GigNovaWSClient;
+using Microsoft.AspNetCore.Http;
 namespace GigNovaWebApp.Controllers
 {
     public class SellerController : Controller
@@ -43,23 +44,147 @@ namespace GigNovaWebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> SellerProfile(string seller_id)
         {
+            if (seller_id == null || seller_id == "")
+            {
+                seller_id = HttpContext.Session.GetString("person_id");
+            }
+
+            if (seller_id == null || seller_id == "")
+            {
+                return RedirectToAction("HomePage", "Guest");
+            }
+
             ApiClient<SellerProfileViewModel> client = new ApiClient<SellerProfileViewModel>();
             client.Scheme = "https";
             client.Host = "localhost";
             client.Port = 7059;
             client.Path = "api/Seller/GetSellerProfileViewModel";
-            if (seller_id != null)
-            {
-                client.AddParameter("seller_id", seller_id);
-            }
+            client.AddParameter("seller_id", seller_id);
+
             SellerProfileViewModel viewModel = await client.GetAsync();
+            if (viewModel == null)
+            {
+                viewModel = new SellerProfileViewModel();
+            }
+            if (viewModel.seller == null)
+            {
+                viewModel.seller = new Seller();
+            }
+            if (viewModel.seller_person == null)
+            {
+                viewModel.seller_person = new Person();
+            }
+
+            viewModel.seller.Seller_id = seller_id;
+            if (viewModel.seller_person.Person_id == null || viewModel.seller_person.Person_id == "")
+            {
+                viewModel.seller_person.Person_id = seller_id;
+            }
+
             return View(viewModel);
         }
 
         [HttpPost]
-        public IActionResult SellerProfile(SellerProfileViewModel viewModel)
+        public async Task<IActionResult> SellerProfile(SellerProfileViewModel viewModel, IFormFile sellerAvatarFile)
         {
-            return View(viewModel);
+            string sellerId = HttpContext.Session.GetString("person_id");
+            if (sellerId == null || sellerId == "")
+            {
+                return RedirectToAction("HomePage", "Guest");
+            }
+
+            Seller sellerToUpdate = new Seller();
+            if (viewModel != null && viewModel.seller != null)
+            {
+                sellerToUpdate = viewModel.seller;
+            }
+
+            sellerToUpdate.Seller_id = sellerId;
+            if (sellerToUpdate.Seller_display_name == null || sellerToUpdate.Seller_display_name.Trim() == "")
+            {
+                TempData["SellerProfileMessage"] = "Display name is required.";
+                return RedirectToAction("SellerProfile", new { seller_id = sellerId });
+            }
+
+            if (sellerToUpdate.Seller_description == null)
+            {
+                sellerToUpdate.Seller_description = "";
+            }
+
+            List<Stream> avatarFiles = new List<Stream>();
+            if (sellerAvatarFile != null && sellerAvatarFile.Length > 0)
+            {
+                avatarFiles.Add(sellerAvatarFile.OpenReadStream());
+            }
+
+            ApiClient<Seller> client = new ApiClient<Seller>();
+            client.Scheme = "https";
+            client.Host = "localhost";
+            client.Port = 7059;
+            client.Path = "api/Buyer/BecomeASeller";
+
+            bool response = false;
+            try
+            {
+                response = await client.PostAsync(sellerToUpdate, avatarFiles);
+            }
+            catch
+            {
+                response = false;
+            }
+
+            foreach (Stream stream in avatarFiles)
+            {
+                stream.Dispose();
+            }
+
+            if (response)
+            {
+                TempData["SellerProfileMessage"] = "Profile updated successfully.";
+            }
+            else
+            {
+                TempData["SellerProfileMessage"] = "Failed to update profile.";
+            }
+
+            return RedirectToAction("SellerProfile", new { seller_id = sellerId });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword)
+        {
+            string sellerId = HttpContext.Session.GetString("person_id");
+            if (sellerId == null || sellerId == "")
+            {
+                return RedirectToAction("HomePage", "Guest");
+            }
+
+            if (currentPassword == null || currentPassword == "" || newPassword == null || newPassword == "")
+            {
+                TempData["SellerProfileMessage"] = "Please enter current and new password.";
+                return RedirectToAction("SellerProfile", new { seller_id = sellerId });
+            }
+
+            ApiClient<string> client = new ApiClient<string>();
+            client.Scheme = "https";
+            client.Host = "localhost";
+            client.Port = 7059;
+            client.Path = "api/Seller/ChangeSellerPassword";
+            client.AddParameter("seller_id", sellerId);
+            client.AddParameter("current_password", currentPassword);
+            client.AddParameter("new_password", newPassword);
+
+            bool response = await client.PostAsyncReturn<string, bool>("");
+            if (response)
+            {
+                TempData["SellerProfileMessage"] = "Password changed successfully.";
+            }
+            else
+            {
+                TempData["SellerProfileMessage"] = "Failed to change password. Make sure current password is correct.";
+            }
+
+            return RedirectToAction("SellerProfile", new { seller_id = sellerId });
         }
 
         [HttpGet]
