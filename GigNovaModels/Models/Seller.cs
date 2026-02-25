@@ -8,17 +8,18 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Seller:Model
+    public class Seller : Model
     {
 
         string seller_id;
         string seller_description;
         string seller_display_name;
         string seller_avatar;
+        bool seller_is_linked;
 
         public Seller()
         {
-           
+
         }
         public string Seller_id
         {
@@ -44,5 +45,12 @@ namespace GigNovaModels.Models
             get { return seller_avatar; }
             set { seller_avatar = value; } //ValidateProperty(value, "seller_avatar");
         }
+
+        public bool Seller_is_linked
+        {
+            get { return seller_is_linked; }
+            set { seller_is_linked = value; }
+        }
+
     }
 }

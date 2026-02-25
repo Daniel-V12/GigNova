@@ -34,12 +34,12 @@
                                         }
                                     </div>
                                     <div class="order-info">
-                                        <p class="order-title">@(thisOrder.gig != null ? thisOrder.gig.Gig_name : "Order")</p>
+                                        <p class="order-title">@((thisOrder.gig != null && thisOrder.gig.Gig_name != null && thisOrder.gig.Gig_name != "") ? thisOrder.gig.Gig_name : ("Order #" + thisOrder.order.Order_id))</p>
                                         <p class="order-description">@(thisOrder.order.Order_requirements == null || thisOrder.order.Order_requirements == "" ? "No requirements provided." : thisOrder.order.Order_requirements)</p>
                                         <div class="order-footer">
                                             <div><strong>Order #</strong> @thisOrder.order.Order_id</div>
                                             <div><strong>Created:</strong> @thisOrder.order.Order_creation_date</div>
-                                            <div><strong>Delivery:</strong> @(thisOrder.delivery_time != null ? thisOrder.delivery_time.Delivery_time_name : "-")</div>
+                                            <div><strong>Delivery:</strong> @((thisOrder.delivery_time != null && thisOrder.delivery_time.Delivery_time_name != null && thisOrder.delivery_time.Delivery_time_name != "") ? thisOrder.delivery_time.Delivery_time_name : "-")</div>
                                         </div>
                                     </div>
                                 </div>

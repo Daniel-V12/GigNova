@@ -17,20 +17,23 @@ namespace GigNovaWebApp.Controllers
             string buyerId = HttpContext.Session.GetString("person_id");
             if (buyerId != null)
             {
-                ApiClient<BuyerProfileViewmodel> client = new ApiClient<BuyerProfileViewmodel>();
-                client.Scheme = "https";
-                client.Host = "localhost";
-                client.Port = 7059;
-                client.Path = "api/Buyer/GetBuyerProfileViewModel";
-                client.AddParameter("buyer_id", buyerId);
-
-                BuyerProfileViewmodel viewModel = await client.GetAsync();
-                if (viewModel != null && viewModel.buyer != null)
+                try
                 {
-                    if (viewModel.buyer.Buyer_display_name != null)
+                    ApiClient<BuyerProfileViewmodel> client = new ApiClient<BuyerProfileViewmodel>();
+                    client.Scheme = "https";
+                    client.Host = "localhost";
+                    client.Port = 7059;
+                    client.Path = "api/Buyer/GetBuyerProfileViewModel";
+                    client.AddParameter("buyer_id", buyerId);
+
+                    BuyerProfileViewmodel viewModel = await client.GetAsync();
+                    if (viewModel != null && viewModel.buyer != null && viewModel.buyer.Buyer_display_name != null)
                     {
                         ViewData["BuyerDisplayName"] = viewModel.buyer.Buyer_display_name;
                     }
+                }
+                catch
+                {
                 }
             }
 
@@ -62,65 +65,44 @@ namespace GigNovaWebApp.Controllers
                 return RedirectToAction("HomePage", "Guest");
             }
 
-            ApiClient<List<Order>> client = new ApiClient<List<Order>>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Buyer/GetOrderedGigsViewModel";
-            client.AddParameter("buyerId", buyerId);
-
-            List<Order> orders = await client.GetAsync();
-
-            List<CustomizeOrderViewModel> orderedGigsViewModel = new List<CustomizeOrderViewModel>();
-            if (orders != null)
-            {
-                foreach (Order order in orders)
-                {
-                    CustomizeOrderViewModel selectedOrder = await GetOrderDetails(order.Order_id);
-                    if (selectedOrder != null)
-                    {
-                        orderedGigsViewModel.Add(selectedOrder);
-                    }
-                }
-
-                orderedGigsViewModel = orderedGigsViewModel
-                    .OrderByDescending(orderItem => ParseOrderCreationDate(orderItem))
-                    .ThenByDescending(orderItem => ParseOrderId(orderItem))
-                    .ToList();
-            }
-
-            int pageSize = 6;
             if (page < 1)
             {
                 page = 1;
             }
 
-            int totalOrders = orderedGigsViewModel.Count;
-            int totalPages = totalOrders / pageSize;
-            if (totalOrders % pageSize != 0)
+            int pageSize = 6;
+            List<CustomizeOrderViewModel> pagedOrders = new List<CustomizeOrderViewModel>();
+
+            ApiClient<List<CustomizeOrderViewModel>> client = new ApiClient<List<CustomizeOrderViewModel>>();
+            client.Scheme = "https";
+            client.Host = "localhost";
+            client.Port = 7059;
+            client.Path = "api/Buyer/GetOrderedGigsDetailsViewModel";
+            client.AddParameter("buyerId", buyerId);
+            client.AddParameter("page", page.ToString());
+            client.AddParameter("pageSize", pageSize.ToString());
+
+            try
             {
-                totalPages = totalPages + 1;
+                List<CustomizeOrderViewModel> loaded = await client.GetAsync();
+                if (loaded != null)
+                {
+                    pagedOrders = loaded;
+                }
             }
-            if (totalPages == 0)
+            catch
             {
-                totalPages = 1;
-            }
-            if (page > totalPages)
-            {
-                page = totalPages;
             }
 
-            List<CustomizeOrderViewModel> pagedOrders = orderedGigsViewModel
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
+            bool hasNextPage = pagedOrders.Count == pageSize;
             ViewData["CurrentPage"] = page;
-            ViewData["TotalPages"] = totalPages;
+            ViewData["TotalPages"] = hasNextPage ? page + 1 : page;
             ViewData["BuyerIdForPaging"] = buyerId;
 
             return View("~/Views/Buyer/ViewOrders.cshtml", pagedOrders);
         }
+
+
 
         [HttpGet]
         public async Task<IActionResult> SelectedOrder(string order_id)
@@ -130,8 +112,17 @@ namespace GigNovaWebApp.Controllers
                 return RedirectToAction("ViewOrders");
             }
 
-            CustomizeOrderViewModel selectedOrder = await GetOrderDetails(order_id);
-            if (selectedOrder == null || selectedOrder.order == null)
+            CustomizeOrderViewModel selectedOrder;
+            try
+            {
+                selectedOrder = await GetOrderDetails(order_id);
+            }
+            catch
+            {
+                selectedOrder = null;
+            }
+
+            if (selectedOrder == null || selectedOrder.order == null || selectedOrder.order.Order_id == null || selectedOrder.order.Order_id == "")
             {
                 return RedirectToAction("ViewOrders");
             }
@@ -158,13 +149,23 @@ namespace GigNovaWebApp.Controllers
                 return DateTime.MinValue;
             }
 
-            if (orderItem.order.Order_creation_date == null || orderItem.order.Order_creation_date == "")
+            return ParseOrderCreationDate(orderItem.order);
+        }
+
+        private DateTime ParseOrderCreationDate(Order? orderItem)
+        {
+            if (orderItem == null)
+            {
+                return DateTime.MinValue;
+            }
+
+            if (orderItem.Order_creation_date == null || orderItem.Order_creation_date == "")
             {
                 return DateTime.MinValue;
             }
 
             DateTime parsedDate;
-            bool parsed = DateTime.TryParse(orderItem.order.Order_creation_date, out parsedDate);
+            bool parsed = DateTime.TryParse(orderItem.Order_creation_date, out parsedDate);
             if (parsed)
             {
                 return parsedDate;
@@ -180,13 +181,23 @@ namespace GigNovaWebApp.Controllers
                 return 0;
             }
 
-            if (orderItem.order.Order_id == null || orderItem.order.Order_id == "")
+            return ParseOrderId(orderItem.order);
+        }
+
+        private int ParseOrderId(Order? orderItem)
+        {
+            if (orderItem == null)
+            {
+                return 0;
+            }
+
+            if (orderItem.Order_id == null || orderItem.Order_id == "")
             {
                 return 0;
             }
 
             int parsedId;
-            bool parsed = int.TryParse(orderItem.order.Order_id, out parsedId);
+            bool parsed = int.TryParse(orderItem.Order_id, out parsedId);
             if (parsed)
             {
                 return parsedId;
@@ -493,29 +504,75 @@ namespace GigNovaWebApp.Controllers
         [HttpGet]
         public IActionResult BecomeASellerPage(Seller seller = null)
         {
+            if (seller == null)
+            {
+                seller = new Seller();
+            }
             return View(seller);
         }
 
         [HttpPost]
-        public async Task<IActionResult> BecomeASeller(Seller seller)
+        public async Task<IActionResult> BecomeASeller(Seller seller, IFormFile sellerAvatarFile)
         {
-            if (ModelState.IsValid == false)
+            string personId = HttpContext.Session.GetString("person_id");
+            if (personId == null || personId == "")
             {
-                ViewBag.ErrorMessage = "The data you inserted is incorrect";
+                return RedirectToAction("HomePage", "Guest");
+            }
+
+            if (seller == null)
+            {
+                seller = new Seller();
+            }
+
+            seller.Seller_id = personId;
+
+            if (seller.Seller_display_name == null || seller.Seller_display_name.Trim() == "")
+            {
+                ViewBag.ErrorMessage = "Seller display name is required.";
                 return View("BecomeASellerPage", seller);
             }
+
+            if (seller.Seller_description == null || seller.Seller_description.Trim() == "")
+            {
+                ViewBag.ErrorMessage = "Seller description is required.";
+                return View("BecomeASellerPage", seller);
+            }
+
+            List<Stream> avatarFiles = new List<Stream>();
+            if (sellerAvatarFile != null && sellerAvatarFile.Length > 0)
+            {
+                avatarFiles.Add(sellerAvatarFile.OpenReadStream());
+            }
+
             ApiClient<Seller> client = new ApiClient<Seller>();
             client.Scheme = "https";
             client.Host = "localhost";
             client.Port = 7059;
             client.Path = "api/Buyer/BecomeASeller";
-            bool response = await client.PostAsync(seller);
+
+            bool response = false;
+            try
+            {
+                response = await client.PostAsync(seller, avatarFiles);
+            }
+            catch
+            {
+                response = false;
+            }
+
+            foreach (Stream stream in avatarFiles)
+            {
+                stream.Dispose();
+            }
+
             if (response)
             {
-
-                return RedirectToAction("HomePage");
+                TempData["BecomeSellerMessage"] = "You are now a seller.";
+                return RedirectToAction("HomePage", "Seller");
             }
-            ViewBag.ErrorMessage = "Server problem, try again later";
+
+            ViewBag.ErrorMessage = "Could not connect to server. Make sure WS is running on port 7059.";
             return View("BecomeASellerPage", seller);
         }
     }

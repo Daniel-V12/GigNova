@@ -16,6 +16,8 @@ namespace GigNovaWS.Controllers
         }
 
 
+
+
         [HttpGet]
         public List<Order> GetOrderedGigsViewModel(string buyerId)
         {
@@ -27,7 +29,7 @@ namespace GigNovaWS.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                return null;
+                return new List<Order>();
             }
             finally
             {
@@ -171,114 +173,216 @@ namespace GigNovaWS.Controllers
         [HttpGet]
         public CustomizeOrderViewModel GetCustomizeOrderViewModel(string order_id = null, string gig_id = null, string buyer_id = null)
         {
-            CustomizeOrderViewModel customizeOrderViewModel = new CustomizeOrderViewModel();
-            customizeOrderViewModel.order = new Order();
-            customizeOrderViewModel.order_file = new Order_file();
-            customizeOrderViewModel.order_files = new List<Order_file>();
-            customizeOrderViewModel.gig = new Gig();
-            customizeOrderViewModel.seller = new Seller();
-            customizeOrderViewModel.seller_person = new Person();
-            customizeOrderViewModel.delivery_time = new Delivery_time();
+            CustomizeOrderViewModel viewModel = CreateEmptyCustomizeOrderViewModel();
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
 
-                if (order_id != null)
+                if (string.IsNullOrWhiteSpace(order_id) == false)
                 {
-                    customizeOrderViewModel.order = this.repositoryUOW.OrderRepository.GetById(order_id);
-                    customizeOrderViewModel.order_file = this.repositoryUOW.Order_filesRepository.GetByOrderId(order_id);
-                    if (customizeOrderViewModel.order == null)
-                    {
-                        customizeOrderViewModel.order = new Order();
-                    }
-                    if (customizeOrderViewModel.order_file == null)
-                    {
-                        customizeOrderViewModel.order_file = new Order_file();
-                    }
-                    customizeOrderViewModel.order_files = this.repositoryUOW.Order_filesRepository.GetAllByOrderId(order_id);
-                    customizeOrderViewModel.gig = this.repositoryUOW.GigRepository.GetById(customizeOrderViewModel.order.Gig_id.ToString());
-                    if (customizeOrderViewModel.gig == null)
-                    {
-                        customizeOrderViewModel.gig = new Gig();
-                    }
-
-                    if (customizeOrderViewModel.gig.Seller_id > 0)
-                    {
-                        customizeOrderViewModel.seller = this.repositoryUOW.SellerRepository.GetById(customizeOrderViewModel.gig.Seller_id.ToString());
-                        customizeOrderViewModel.seller_person = this.repositoryUOW.PersonRepository.GetById(customizeOrderViewModel.gig.Seller_id.ToString());
-                    }
-
-                    if (customizeOrderViewModel.seller == null)
-                    {
-                        customizeOrderViewModel.seller = new Seller();
-                    }
-                    if (customizeOrderViewModel.seller_person == null)
-                    {
-                        customizeOrderViewModel.seller_person = new Person();
-                    }
-
-                    if (customizeOrderViewModel.gig.Delivery_time_id > 0)
-                    {
-                        customizeOrderViewModel.delivery_time = this.repositoryUOW.Delivery_timeRepository.GetById(customizeOrderViewModel.gig.Delivery_time_id.ToString());
-                    }
-                    if (customizeOrderViewModel.delivery_time == null)
-                    {
-                        customizeOrderViewModel.delivery_time = new Delivery_time();
-                    }
-
-                    return customizeOrderViewModel;
+                    FillCustomizeOrderFromOrderId(viewModel, order_id);
+                    return viewModel;
                 }
 
-                if (gig_id != null)
+                if (string.IsNullOrWhiteSpace(gig_id) == false)
                 {
-                    Gig gig = this.repositoryUOW.GigRepository.GetById(gig_id);
-                    if (gig != null)
-                    {
-                        customizeOrderViewModel.gig = gig;
-                        customizeOrderViewModel.order.Order_id = "0";
-                        customizeOrderViewModel.order.Order_status_id = 1;
-                        customizeOrderViewModel.order.Order_creation_date = DateTime.Now.ToShortDateString();
-                        customizeOrderViewModel.order.Gig_id = Convert.ToInt32(gig.Gig_id);
-                        customizeOrderViewModel.order.Seller_id = gig.Seller_id;
-                        if (buyer_id != null && buyer_id != "")
-                        {
-                            customizeOrderViewModel.order.Buyer_id = Convert.ToInt32(buyer_id);
-                        }
-                        customizeOrderViewModel.order.Is_payment = false;
-                        customizeOrderViewModel.order.Order_requirements = "";
-
-                        customizeOrderViewModel.seller = this.repositoryUOW.SellerRepository.GetById(gig.Seller_id.ToString());
-                        customizeOrderViewModel.seller_person = this.repositoryUOW.PersonRepository.GetById(gig.Seller_id.ToString());
-                        if (gig.Delivery_time_id > 0)
-                        {
-                            customizeOrderViewModel.delivery_time = this.repositoryUOW.Delivery_timeRepository.GetById(gig.Delivery_time_id.ToString());
-                        }
-
-                        if (customizeOrderViewModel.seller == null)
-                        {
-                            customizeOrderViewModel.seller = new Seller();
-                        }
-                        if (customizeOrderViewModel.seller_person == null)
-                        {
-                            customizeOrderViewModel.seller_person = new Person();
-                        }
-                        if (customizeOrderViewModel.delivery_time == null)
-                        {
-                            customizeOrderViewModel.delivery_time = new Delivery_time();
-                        }
-                    }
+                    FillCustomizeOrderFromGigId(viewModel, gig_id, buyer_id);
                 }
 
-                return customizeOrderViewModel;
+                return viewModel;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                return customizeOrderViewModel;
+                return viewModel;
             }
             finally
             {
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+        [HttpGet]
+        public List<CustomizeOrderViewModel> GetOrderedGigsDetailsViewModel(string buyerId, int page = 1, int pageSize = 6)
+        {
+            List<CustomizeOrderViewModel> viewModels = new List<CustomizeOrderViewModel>();
+            if (string.IsNullOrWhiteSpace(buyerId))
+            {
+                return viewModels;
+            }
+
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                List<Order> orders = this.repositoryUOW.OrderRepository.GetOrderByBuyerId(buyerId);
+                if (orders == null)
+                {
+                    return viewModels;
+                }
+
+                if (page < 1)
+                {
+                    page = 1;
+                }
+                if (pageSize < 1)
+                {
+                    pageSize = 6;
+                }
+
+                List<Order> pagedOrders = orders
+                    .OrderByDescending(order => DateTime.TryParse(order.Order_creation_date, out DateTime d) ? d : DateTime.MinValue)
+                    .ThenByDescending(order => int.TryParse(order.Order_id, out int id) ? id : 0)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                foreach (Order order in pagedOrders)
+                {
+                    if (order == null || string.IsNullOrWhiteSpace(order.Order_id))
+                    {
+                        continue;
+                    }
+
+                    CustomizeOrderViewModel current = CreateEmptyCustomizeOrderViewModel();
+                    FillCustomizeOrderFromOrderId(current, order.Order_id);
+                    viewModels.Add(current);
+                }
+
+                return viewModels;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return viewModels;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+
+        private CustomizeOrderViewModel CreateEmptyCustomizeOrderViewModel()
+        {
+            CustomizeOrderViewModel viewModel = new CustomizeOrderViewModel();
+            viewModel.order = new Order();
+            viewModel.order_file = new Order_file();
+            viewModel.order_files = new List<Order_file>();
+            viewModel.gig = new Gig();
+            viewModel.seller = new Seller();
+            viewModel.seller_person = new Person();
+            viewModel.delivery_time = new Delivery_time();
+            viewModel.order_status = new Order_status();
+            return viewModel;
+        }
+
+        private void FillCustomizeOrderFromOrderId(CustomizeOrderViewModel viewModel, string orderId)
+        {
+            Order foundOrder = this.repositoryUOW.OrderRepository.GetById(orderId);
+            if (foundOrder != null)
+            {
+                viewModel.order = foundOrder;
+            }
+
+            Order_file firstFile = this.repositoryUOW.Order_filesRepository.GetByOrderId(orderId);
+            if (firstFile != null)
+            {
+                viewModel.order_file = firstFile;
+            }
+
+            List<Order_file> files = this.repositoryUOW.Order_filesRepository.GetAllByOrderId(orderId);
+            if (files != null)
+            {
+                viewModel.order_files = files;
+            }
+
+            if (viewModel.order.Order_status_id > 0)
+            {
+                Order_status status = this.repositoryUOW.Order_statusRepository.GetById(viewModel.order.Order_status_id.ToString());
+                if (status != null)
+                {
+                    viewModel.order_status = status;
+                }
+            }
+
+            Gig gig = this.repositoryUOW.GigRepository.GetById(viewModel.order.Gig_id.ToString());
+            if (gig != null)
+            {
+                viewModel.gig = gig;
+            }
+
+            if (viewModel.gig.Seller_id > 0)
+            {
+                Seller seller = this.repositoryUOW.SellerRepository.GetById(viewModel.gig.Seller_id.ToString());
+                if (seller != null)
+                {
+                    viewModel.seller = seller;
+                }
+
+                Person sellerPerson = this.repositoryUOW.PersonRepository.GetById(viewModel.gig.Seller_id.ToString());
+                if (sellerPerson != null)
+                {
+                    viewModel.seller_person = sellerPerson;
+                }
+            }
+
+            if (viewModel.gig.Delivery_time_id > 0)
+            {
+                Delivery_time deliveryTime = this.repositoryUOW.Delivery_timeRepository.GetById(viewModel.gig.Delivery_time_id.ToString());
+                if (deliveryTime != null)
+                {
+                    viewModel.delivery_time = deliveryTime;
+                }
+            }
+        }
+
+        private void FillCustomizeOrderFromGigId(CustomizeOrderViewModel viewModel, string gigId, string buyerId)
+        {
+            Gig gig = this.repositoryUOW.GigRepository.GetById(gigId);
+            if (gig == null)
+            {
+                return;
+            }
+
+            viewModel.gig = gig;
+            viewModel.order.Order_id = "0";
+            viewModel.order.Order_status_id = 1;
+            viewModel.order.Order_creation_date = DateTime.Now.ToShortDateString();
+            viewModel.order.Gig_id = Convert.ToInt32(gig.Gig_id);
+            viewModel.order.Seller_id = gig.Seller_id;
+            viewModel.order.Is_payment = false;
+            viewModel.order.Order_requirements = "";
+
+            if (string.IsNullOrWhiteSpace(buyerId) == false)
+            {
+                viewModel.order.Buyer_id = Convert.ToInt32(buyerId);
+            }
+
+            Order_status status = this.repositoryUOW.Order_statusRepository.GetById(viewModel.order.Order_status_id.ToString());
+            if (status != null)
+            {
+                viewModel.order_status = status;
+            }
+
+            Seller seller = this.repositoryUOW.SellerRepository.GetById(gig.Seller_id.ToString());
+            if (seller != null)
+            {
+                viewModel.seller = seller;
+            }
+
+            Person sellerPerson = this.repositoryUOW.PersonRepository.GetById(gig.Seller_id.ToString());
+            if (sellerPerson != null)
+            {
+                viewModel.seller_person = sellerPerson;
+            }
+
+            if (gig.Delivery_time_id > 0)
+            {
+                Delivery_time deliveryTime = this.repositoryUOW.Delivery_timeRepository.GetById(gig.Delivery_time_id.ToString());
+                if (deliveryTime != null)
+                {
+                    viewModel.delivery_time = deliveryTime;
+                }
             }
         }
 
@@ -336,6 +440,7 @@ namespace GigNovaWS.Controllers
                     {
                         string extension = Path.GetExtension(file.FileName);
                         string fileName = orderId + "_" + fileCounter + extension;
+                        string originalFileName = Path.GetFileName(file.FileName);
                         string filePath = Path.Combine(uploadsFolder, fileName);
 
                         using (FileStream stream = new FileStream(filePath, FileMode.Create))
@@ -345,7 +450,7 @@ namespace GigNovaWS.Controllers
 
                         Order_file orderFile = new Order_file();
                         orderFile.Order_id = orderId;
-                        orderFile.Order_file_name = fileName;
+                        orderFile.Order_file_name = originalFileName;
                         this.repositoryUOW.Order_filesRepository.Create(orderFile);
                         fileCounter++;
                     }
@@ -437,7 +542,6 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
-
 
         [HttpGet]
         public MessageViewModel GetMessageViewModel(string message_id)
@@ -535,16 +639,75 @@ namespace GigNovaWS.Controllers
         }
 
         [HttpPost]
-        public bool BecomeASeller(Seller seller)
+        public async Task<bool> BecomeASeller()
         {
-            if (seller == null)
-            {
-                return false;
-            }
             try
             {
+                IFormCollection form = await Request.ReadFormAsync();
+                string modelJson = form["model"];
+                if (string.IsNullOrWhiteSpace(modelJson))
+                {
+                    return false;
+                }
+
+                JsonSerializerOptions options = new JsonSerializerOptions();
+                options.PropertyNameCaseInsensitive = true;
+                Seller seller = JsonSerializer.Deserialize<Seller>(modelJson, options);
+                if (seller == null || seller.Seller_id == null || seller.Seller_id == "")
+                {
+                    return false;
+                }
+
+                if (seller.Seller_description == null)
+                {
+                    seller.Seller_description = "";
+                }
+                if (seller.Seller_display_name == null)
+                {
+                    seller.Seller_display_name = "";
+                }
+
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
-                return this.repositoryUOW.SellerRepository.Create(seller);
+
+                if (form.Files != null && form.Files.Count > 0)
+                {
+                    IFormFile avatarFile = form.Files[0];
+                    if (avatarFile != null && avatarFile.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images");
+                        if (Directory.Exists(uploadsFolder) == false)
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string extension = Path.GetExtension(avatarFile.FileName);
+                        string avatarFileName = "seller_" + seller.Seller_id + extension;
+                        string avatarPath = Path.Combine(uploadsFolder, avatarFileName);
+
+                        using (FileStream stream = new FileStream(avatarPath, FileMode.Create))
+                        {
+                            await avatarFile.CopyToAsync(stream);
+                        }
+
+                        seller.Seller_avatar = avatarFileName;
+                    }
+                }
+
+                Seller existingSeller = this.repositoryUOW.SellerRepository.GetById(seller.Seller_id);
+                if (existingSeller == null)
+                {
+                    seller.Seller_is_linked = false;
+                    return this.repositoryUOW.SellerRepository.Create(seller);
+                }
+
+                seller.Seller_is_linked = existingSeller.Seller_is_linked;
+
+                if (seller.Seller_avatar == null || seller.Seller_avatar == "")
+                {
+                    seller.Seller_avatar = existingSeller.Seller_avatar;
+                }
+
+                return this.repositoryUOW.SellerRepository.Update(seller);
             }
             catch (Exception ex)
             {

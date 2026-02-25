@@ -11,10 +11,12 @@ namespace GigNovaWS
         }
         public bool Create(Seller model)
         {
-            string sql = "Insert into Sellers (seller_description, seller_display_name, seller_avatar) values ( @seller_description ,  @seller_display_name , @seller_avatar )";
+            string sql = "Insert into Sellers (seller_id, seller_description, seller_display_name, seller_avatar, is_linked) values (@seller_id, @seller_description, @seller_display_name, @seller_avatar, @is_linked)";
+            this.dbHelperOledb.AddParameter("@seller_id", model.Seller_id);
             this.dbHelperOledb.AddParameter("@seller_description", model.Seller_description);
             this.dbHelperOledb.AddParameter("@seller_display_name", model.Seller_display_name);
             this.dbHelperOledb.AddParameter("@seller_avatar", model.Seller_avatar);
+            this.dbHelperOledb.AddParameter("@is_linked", model.Seller_is_linked);
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
@@ -45,7 +47,10 @@ namespace GigNovaWS
             this.dbHelperOledb.AddParameter("@seller_id", id);
             using (IDataReader reader = this.dbHelperOledb.Select(sql))
             {
-                reader.Read();
+                if (reader.Read() == false)
+                {
+                    return null;
+                }
                 return this.modelCreators.SellerCreator.CreateModel(reader);
             }
         }
@@ -55,10 +60,14 @@ namespace GigNovaWS
             string sql = @"Update Sellers set 
             seller_description = @seller_description,
             seller_display_name = @seller_display_name,
-            seller_avatar = @seller_avatar";
+            seller_avatar = @seller_avatar,
+            is_linked = @is_linked
+            where seller_id = @seller_id";
             this.dbHelperOledb.AddParameter("@seller_description", model.Seller_description);
             this.dbHelperOledb.AddParameter("@seller_display_name", model.Seller_display_name);
             this.dbHelperOledb.AddParameter("@seller_avatar", model.Seller_avatar);
+            this.dbHelperOledb.AddParameter("@is_linked", model.Seller_is_linked);
+            this.dbHelperOledb.AddParameter("@seller_id", model.Seller_id);
             return this.dbHelperOledb.Update(sql) > 0;
         }
     }

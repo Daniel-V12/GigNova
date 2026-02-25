@@ -309,6 +309,31 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        [HttpGet]
+        public bool IsSeller(string person_id)
+        {
+            if (string.IsNullOrWhiteSpace(person_id))
+            {
+                return false;
+            }
+
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                Seller seller = this.repositoryUOW.SellerRepository.GetById(person_id);
+                return seller != null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
         [HttpPost]
         public bool SignUpPage(Buyer buyer)
         {

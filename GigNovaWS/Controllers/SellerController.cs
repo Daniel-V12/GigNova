@@ -89,6 +89,30 @@ namespace GigNovaWS.Controllers
             }
         }
 
+
+        [HttpPost]
+        public bool ChangeSellerPassword(string seller_id, string current_password, string new_password)
+        {
+            if (seller_id == null || seller_id == "" || current_password == null || current_password == "" || new_password == null || new_password == "")
+            {
+                return false;
+            }
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                return this.repositoryUOW.PersonRepository.UpdatePassword(seller_id, current_password, new_password);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
         [HttpGet]
         public OrdersViewModel GetOrdersViewModel(string seller_id)
         {
