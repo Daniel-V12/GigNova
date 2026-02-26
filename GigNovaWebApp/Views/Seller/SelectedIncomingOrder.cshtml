@@ -1,0 +1,206 @@
+﻿@using GigNovaModels.ViewModels
+@using GigNovaModels.Models
+@model SelectedOrderViewModel
+@{
+    ViewData["Title"] = "SelectedIncomingOrder";
+    Layout = "~/Views/Shared/MasterSellerPage.cshtml";
+
+    CustomizeOrderViewModel orderDetails = null;
+    if (ViewData["OrderDetails"] is CustomizeOrderViewModel details)
+    {
+        orderDetails = details;
+    }
+
+    List<Delivery> deliveries = new List<Delivery>();
+    if (ViewData["Deliveries"] is List<Delivery> list)
+    {
+        deliveries = list;
+    }
+
+    string sellerId = "";
+    if (ViewData["SellerId"] != null)
+    {
+        sellerId = ViewData["SellerId"].ToString();
+    }
+
+    string gigName = "Gig";
+    string gigPhoto = "";
+    string requirements = "";
+    string statusName = "";
+
+    if (orderDetails != null)
+    {
+        if (orderDetails.gig != null)
+        {
+            if (string.IsNullOrWhiteSpace(orderDetails.gig.Gig_name) == false)
+            {
+                gigName = orderDetails.gig.Gig_name;
+            }
+            if (string.IsNullOrWhiteSpace(orderDetails.gig.Gig_photo) == false)
+            {
+                gigPhoto = orderDetails.gig.Gig_photo;
+            }
+        }
+
+        if (orderDetails.order != null && string.IsNullOrWhiteSpace(orderDetails.order.Order_requirements) == false)
+        {
+            requirements = orderDetails.order.Order_requirements;
+        }
+
+        if (orderDetails.order_status != null && string.IsNullOrWhiteSpace(orderDetails.order_status.Status_name) == false)
+        {
+            statusName = orderDetails.order_status.Status_name;
+        }
+    }
+
+    if (Model != null && Model.Order != null && string.IsNullOrWhiteSpace(statusName))
+    {
+        if (Model.Order.Order_status_id == 2)
+        {
+            statusName = "Delivered";
+        }
+    }
+
+    string buyerDisplayName = "Buyer";
+    if (Model != null && Model.Buyer != null)
+    {
+        if (string.IsNullOrWhiteSpace(Model.Buyer.Buyer_display_name) == false)
+        {
+            buyerDisplayName = Model.Buyer.Buyer_display_name;
+        }
+        else if (string.IsNullOrWhiteSpace(Model.Buyer.Person_id) == false)
+        {
+            buyerDisplayName = "Buyer #" + Model.Buyer.Person_id;
+        }
+    }
+}
+<link href="~/css/seller_pages/incomingorders_page.css" rel="stylesheet" />
+
+<div class="incoming-orders-container">
+    <div class="incoming-orders-section">
+        @if (Model != null && Model.Order != null)
+        {
+            <div class="incoming-orders-header">
+                <h2>Incoming Order #@Model.Order.Order_id</h2>
+                <p>@buyerDisplayName purchased @gigName</p>
+            </div>
+
+            @if (TempData["SellerIncomingOrderMessage"] != null)
+            {
+                <div class="incoming-order-message">@TempData["SellerIncomingOrderMessage"]</div>
+            }
+
+            <div class="selected-incoming-card">
+                <div class="selected-incoming-image-wrap">
+                    @if (string.IsNullOrWhiteSpace(gigPhoto) == false)
+                    {
+                        <img class="selected-incoming-image" src="http://localhost:7059/Images/@gigPhoto" alt="@gigName" />
+                    }
+                    else
+                    {
+                        <div class="selected-incoming-image empty-image">No image</div>
+                    }
+                </div>
+
+                <div class="selected-incoming-info">
+                    <div class="selected-incoming-top-row">
+                        <h3 class="selected-incoming-title">@gigName</h3>
+                        <div class="selected-incoming-price-wrap">
+                            <span class="selected-incoming-price-label">Order</span>
+                            <span class="selected-incoming-price">#@Model.Order.Order_id</span>
+                        </div>
+                    </div>
+
+                    <div class="selected-incoming-meta">
+                        <div><strong>Buyer:</strong> @buyerDisplayName</div>
+                        <div><strong>Created:</strong> @Model.Order.Order_creation_date</div>
+                        <div><strong>Status:</strong> @statusName</div>
+                    </div>
+
+                    <div class="selected-incoming-section">
+                        <div class="selected-incoming-section-title">Requirements</div>
+                        <p class="selected-incoming-description">@(string.IsNullOrWhiteSpace(requirements) ? "No requirements provided." : requirements)</p>
+                    </div>
+
+                    <div class="selected-incoming-section">
+                        <div class="selected-incoming-section-title">Delivery History</div>
+                        @if (deliveries != null && deliveries.Count > 0)
+                        {
+                            foreach (Delivery delivery in deliveries)
+                            {
+                                <div class="delivery-history-item">
+                                    <div class="delivery-history-title">Delivery #@delivery.Delivery_id</div>
+                                    <div class="delivery-history-text">@(string.IsNullOrWhiteSpace(delivery.Delivery_text) ? "No delivery text" : delivery.Delivery_text)</div>
+                                    @if (string.IsNullOrWhiteSpace(delivery.Delivery_file) == false)
+                                    {
+                                        <div class="delivery-history-files">
+                                            <strong>Files:</strong>
+                                            @foreach (string fileName in delivery.Delivery_file.Split('|', StringSplitOptions.RemoveEmptyEntries))
+                                            {
+                                                <a href="http://localhost:7059/DeliveryFiles/@fileName" target="_blank">@fileName</a>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="selected-incoming-description">No deliveries were sent yet.</p>
+                        }
+                    </div>
+
+                    <div class="selected-incoming-actions">
+                        <a asp-controller="Buyer" asp-action="MessagingBox" asp-route-order_id="@Model.Order.Order_id" class="incoming-action-btn">Open Messaging</a>
+                        <button type="button" class="incoming-action-btn incoming-deliver-btn" onclick="openDeliveryModal()">Deliver Work / Send Revision</button>
+                        <a asp-controller="Seller" asp-action="IncomingOrders" asp-route-seller_id="@sellerId" class="incoming-action-btn incoming-secondary-btn">Back To Incoming Orders</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="deliveryModalOverlay" class="delivery-modal-overlay" onclick="closeDeliveryModal(event)">
+                <div class="delivery-modal">
+                    <h3>Send Delivery</h3>
+                    <form asp-controller="Seller" asp-action="DeliverGig" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="order_id" value="@Model.Order.Order_id" />
+                        <input type="hidden" name="seller_id" value="@sellerId" />
+
+                        <div class="form-group">
+                            <label class="form-label" for="delivery_text">Delivery Text</label>
+                            <textarea id="delivery_text" name="delivery_text" class="form-textarea" placeholder="Explain what you delivered, usage notes, and anything important..." maxlength="500"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="deliveryFiles">Upload Delivery Files</label>
+                            <input type="file" id="deliveryFiles" name="deliveryFiles" class="form-input" multiple>
+                        </div>
+
+                        <div class="delivery-modal-buttons">
+                            <button type="submit" class="incoming-action-btn incoming-deliver-btn">Send Delivery</button>
+                            <button type="button" class="incoming-action-btn incoming-secondary-btn" onclick="closeDeliveryModal()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="incoming-orders-empty-state">
+                <h3>Order was not found.</h3>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    function openDeliveryModal() {
+        document.getElementById('deliveryModalOverlay').style.display = 'flex';
+    }
+
+    function closeDeliveryModal(event) {
+        if (event && event.target.id != 'deliveryModalOverlay') {
+            return;
+        }
+        document.getElementById('deliveryModalOverlay').style.display = 'none';
+    }
+</script>

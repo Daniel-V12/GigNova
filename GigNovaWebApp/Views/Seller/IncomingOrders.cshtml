@@ -1,0 +1,76 @@
+﻿@using GigNovaModels.ViewModels
+@using GigNovaModels.Models
+@model List<SelectedOrderViewModel>
+@{
+    ViewData["Title"] = "IncomingOrders";
+    Layout = "~/Views/Shared/MasterSellerPage.cshtml";
+
+    string sellerId = "";
+    if (ViewData["SellerId"] != null)
+    {
+        sellerId = ViewData["SellerId"].ToString();
+    }
+
+    Dictionary<string, string> gigNamesByOrderId = new Dictionary<string, string>();
+    if (ViewData["GigNamesByOrderId"] is Dictionary<string, string> map)
+    {
+        gigNamesByOrderId = map;
+    }
+}
+<link href="~/css/seller_pages/incomingorders_page.css" rel="stylesheet" />
+
+<div class="incoming-orders-container">
+    <div class="incoming-orders-section">
+        <div class="incoming-orders-header">
+            <h2>Incoming Orders</h2>
+            <p>@(Model != null ? Model.Count : 0) notification(s)</p>
+        </div>
+
+        <div class="incoming-orders-list">
+            @if (Model != null && Model.Count > 0)
+            {
+                foreach (SelectedOrderViewModel incoming in Model)
+                {
+                    if (incoming == null || incoming.Order == null)
+                    {
+                        continue;
+                    }
+
+                    string orderId = incoming.Order.Order_id;
+                    string gigName = "Gig";
+                    if (orderId != null && gigNamesByOrderId.ContainsKey(orderId))
+                    {
+                        gigName = gigNamesByOrderId[orderId];
+                    }
+
+                    string buyerDisplayName = "Buyer";
+                    if (incoming.Buyer != null)
+                    {
+                        if (string.IsNullOrWhiteSpace(incoming.Buyer.Buyer_display_name) == false)
+                        {
+                            buyerDisplayName = incoming.Buyer.Buyer_display_name;
+                        }
+                        else if (string.IsNullOrWhiteSpace(incoming.Buyer.Person_id) == false)
+                        {
+                            buyerDisplayName = "Buyer #" + incoming.Buyer.Person_id;
+                        }
+                    }
+
+                    <a class="incoming-order-link" asp-controller="Seller" asp-action="SelectedIncomingOrder" asp-route-order_id="@incoming.Order.Order_id" asp-route-seller_id="@sellerId">
+                        <div class="incoming-order-item">
+                            <div class="incoming-order-title">@buyerDisplayName has purchased your gig @gigName, order number @incoming.Order.Order_id</div>
+                            <div class="incoming-order-meta">Created: @incoming.Order.Order_creation_date</div>
+                        </div>
+                    </a>
+                }
+            }
+            else
+            {
+                <div class="incoming-orders-empty-state">
+                    <h3>No incoming orders yet.</h3>
+                    <p>When buyers purchase your gigs, you'll see notifications here.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

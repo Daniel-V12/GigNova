@@ -70,5 +70,32 @@ namespace GigNovaWS
             this.dbHelperOledb.AddParameter("@seller_id", model.Seller_id);
             return this.dbHelperOledb.Update(sql) > 0;
         }
+
+        public bool UpdatePhotoById(string sellerId, string extension)
+        {
+            string sql = @"Update Sellers set seller_avatar = @seller_avatar where seller_id = @seller_id";
+            this.dbHelperOledb.AddParameter("@seller_avatar", sellerId + "." + extension);
+            this.dbHelperOledb.AddParameter("@seller_id", sellerId);
+            return this.dbHelperOledb.Update(sql) > 0;
+        }
+
+        public string GetPhotoById(string sellerId)
+        {
+            string sql = @"Select seller_avatar from Sellers where seller_id = @seller_id";
+            this.dbHelperOledb.AddParameter("@seller_id", sellerId);
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                if (reader.Read() == false)
+                {
+                    return string.Empty;
+                }
+                if (reader["seller_avatar"] == DBNull.Value)
+                {
+                    return string.Empty;
+                }
+                return reader["seller_avatar"].ToString();
+            }
+        }
+
     }
 }

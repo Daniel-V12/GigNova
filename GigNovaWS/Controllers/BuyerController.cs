@@ -653,7 +653,7 @@ namespace GigNovaWS.Controllers
                 JsonSerializerOptions options = new JsonSerializerOptions();
                 options.PropertyNameCaseInsensitive = true;
                 Seller seller = JsonSerializer.Deserialize<Seller>(modelJson, options);
-                if (seller == null || seller.Seller_id == null || seller.Seller_id == "")
+                if (seller == null || string.IsNullOrWhiteSpace(seller.Seller_id))
                 {
                     return false;
                 }
@@ -668,50 +668,69 @@ namespace GigNovaWS.Controllers
                 }
 
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
+                this.repositoryUOW.DbHelperOledb.OpenTransaction();
+
+                Seller existingSeller = this.repositoryUOW.SellerRepository.GetById(seller.Seller_id);
+                if (existingSeller == null)
+                {
+                    seller.Seller_is_linked = false;
+                    if (this.repositoryUOW.SellerRepository.Create(seller) == false)
+                    {
+                        this.repositoryUOW.DbHelperOledb.RollBack();
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (seller.Seller_avatar == null || seller.Seller_avatar == "")
+                    {
+                        seller.Seller_avatar = existingSeller.Seller_avatar;
+                    }
+                    if (this.repositoryUOW.SellerRepository.Update(seller) == false)
+                    {
+                        this.repositoryUOW.DbHelperOledb.RollBack();
+                        return false;
+                    }
+                }
 
                 if (form.Files != null && form.Files.Count > 0)
                 {
                     IFormFile avatarFile = form.Files[0];
                     if (avatarFile != null && avatarFile.Length > 0)
                     {
-                        string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images");
-                        if (Directory.Exists(uploadsFolder) == false)
+                        string extension = Path.GetExtension(avatarFile.FileName).TrimStart('.').ToLower();
+                        if (string.IsNullOrWhiteSpace(extension) == false)
                         {
-                            Directory.CreateDirectory(uploadsFolder);
+                            bool avatarUpdated = this.repositoryUOW.SellerRepository.UpdatePhotoById(seller.Seller_id, extension);
+                            if (avatarUpdated == false)
+                            {
+                                this.repositoryUOW.DbHelperOledb.RollBack();
+                                return false;
+                            }
+
+                            string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", "Seller", "Seller_avatars");
+                            if (Directory.Exists(uploadsFolder) == false)
+                            {
+                                Directory.CreateDirectory(uploadsFolder);
+                            }
+
+                            string avatarFileName = seller.Seller_id + "." + extension;
+                            string avatarPath = Path.Combine(uploadsFolder, avatarFileName);
+                            using (FileStream stream = new FileStream(avatarPath, FileMode.Create, FileAccess.Write))
+                            {
+                                await avatarFile.CopyToAsync(stream);
+                            }
                         }
-
-                        string extension = Path.GetExtension(avatarFile.FileName);
-                        string avatarFileName = "seller_" + seller.Seller_id + extension;
-                        string avatarPath = Path.Combine(uploadsFolder, avatarFileName);
-
-                        using (FileStream stream = new FileStream(avatarPath, FileMode.Create))
-                        {
-                            await avatarFile.CopyToAsync(stream);
-                        }
-
-                        seller.Seller_avatar = avatarFileName;
                     }
                 }
 
-                Seller existingSeller = this.repositoryUOW.SellerRepository.GetById(seller.Seller_id);
-                if (existingSeller == null)
-                {
-                    seller.Seller_is_linked = false;
-                    return this.repositoryUOW.SellerRepository.Create(seller);
-                }
-
-                seller.Seller_is_linked = existingSeller.Seller_is_linked;
-
-                if (seller.Seller_avatar == null || seller.Seller_avatar == "")
-                {
-                    seller.Seller_avatar = existingSeller.Seller_avatar;
-                }
-
-                return this.repositoryUOW.SellerRepository.Update(seller);
+                this.repositoryUOW.DbHelperOledb.Commit();
+                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
+                this.repositoryUOW.DbHelperOledb.RollBack();
                 return false;
             }
             finally
@@ -719,5 +738,8 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
+
+
     }
 }
+

@@ -17,6 +17,7 @@ namespace GigNovaWS
         OrderFileCreator orderfileCreator;
         LanguageCreator languageCreator;
         DeliveryTimeCreator deliverytimeCreator;
+        DeliveryCreator deliveryCreator;
 
         public GigCreator GigCreator
         {
@@ -82,7 +83,7 @@ namespace GigNovaWS
             {
                 if (this.orderstatusCreator == null)
                     this.orderstatusCreator = new OrderStatusCreator();
-                return this.OrderStatusCreator;
+                return this.orderstatusCreator;
             }
         }
 
@@ -145,6 +146,17 @@ namespace GigNovaWS
                 return this.deliverytimeCreator;
             }
         }
+
+        public DeliveryCreator DeliveryCreator
+        {
+            get
+            {
+                if (this.deliveryCreator == null)
+                    this.deliveryCreator = new DeliveryCreator();
+                return this.deliveryCreator;
+            }
+        }
+
 
     }
 }

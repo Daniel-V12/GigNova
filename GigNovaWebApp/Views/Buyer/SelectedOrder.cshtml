@@ -3,6 +3,11 @@
 @{
     ViewData["Title"] = "SelectedOrder";
     Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+    string actor = Context.Session.GetString("actor");
+    if (actor == "seller")
+    {
+        Layout = "~/Views/Shared/MasterSellerPage.cshtml";
+    }
 }
 <link href="~/css/buyer_pages/orders_page.css" rel="stylesheet" />
 

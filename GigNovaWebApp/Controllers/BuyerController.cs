@@ -82,16 +82,10 @@ namespace GigNovaWebApp.Controllers
             client.AddParameter("page", page.ToString());
             client.AddParameter("pageSize", pageSize.ToString());
 
-            try
+            List<CustomizeOrderViewModel> loaded = await client.GetAsync();
+            if (loaded != null)
             {
-                List<CustomizeOrderViewModel> loaded = await client.GetAsync();
-                if (loaded != null)
-                {
-                    pagedOrders = loaded;
-                }
-            }
-            catch
-            {
+                pagedOrders = loaded;
             }
 
             bool hasNextPage = pagedOrders.Count == pageSize;
