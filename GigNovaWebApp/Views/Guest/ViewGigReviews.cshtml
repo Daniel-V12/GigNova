@@ -1,13 +1,20 @@
-﻿@using Microsoft.AspNetCore.Http
-@using GigNovaModels.Models
+﻿@using GigNovaModels.Models
 @model List<Review>
 @{
     ViewData["Title"] = "ViewGigReviews";
     Layout = "~/Views/Shared/MasterGuestPage.cshtml";
     string personId = Context.Session.GetString("person_id");
+    string actor = Context.Session.GetString("actor");
     if (personId != null)
     {
-        Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+        if (actor == "seller")
+        {
+            Layout = "~/Views/Shared/MasterSellerPage.cshtml";
+        }
+        else
+        {
+            Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+        }
     }
 
     double averageRating = 0;

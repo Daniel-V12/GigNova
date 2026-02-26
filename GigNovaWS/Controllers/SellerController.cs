@@ -1,6 +1,7 @@
 ﻿using GigNovaModels.Models;
 using GigNovaModels.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace GigNovaWS.Controllers
 {
@@ -112,6 +113,50 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
+
+        [HttpGet]
+        public IActionResult GetPhoto(string seller_id)
+        {
+            if (string.IsNullOrWhiteSpace(seller_id))
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                string photo = this.repositoryUOW.SellerRepository.GetPhotoById(seller_id);
+                if (string.IsNullOrWhiteSpace(photo))
+                {
+                    return NotFound();
+                }
+
+                string extension = Path.GetExtension(photo).TrimStart('.').ToLower();
+                string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", "Seller", "Seller_avatars", photo);
+                if (System.IO.File.Exists(path) == false)
+                {
+                    path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", photo);
+                }
+                if (System.IO.File.Exists(path) == false)
+                {
+                    return NotFound();
+                }
+
+                FileStream stream = System.IO.File.OpenRead(path);
+                return File(stream, $"image/{extension}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return StatusCode(500, "Image Failed To Load");
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+
 
         [HttpGet]
         public OrdersViewModel GetOrdersViewModel(string seller_id)
@@ -318,21 +363,133 @@ namespace GigNovaWS.Controllers
         }
 
         [HttpPost]
-        public bool DeliverGig(string order_id)
+        public async Task<IActionResult> DeliverGig()
         {
-            if (order_id == null)
-            {
-                return false;
-            }
             try
             {
+                IFormCollection form = await Request.ReadFormAsync();
+                string modelJson = form["model"];
+                if (string.IsNullOrWhiteSpace(modelJson))
+                {
+                    return BadRequest();
+                }
+
+                JsonSerializerOptions options = new JsonSerializerOptions();
+                options.PropertyNameCaseInsensitive = true;
+                Delivery delivery = JsonSerializer.Deserialize<Delivery>(modelJson, options);
+                if (delivery == null || string.IsNullOrWhiteSpace(delivery.Order_id))
+                {
+                    return BadRequest();
+                }
+
+                if (delivery.Delivery_text == null)
+                {
+                    delivery.Delivery_text = "";
+                }
+
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
-                return this.repositoryUOW.OrderRepository.UpdateOrderStatus(order_id, 2);
+                this.repositoryUOW.DbHelperOledb.OpenTransaction();
+
+                if (delivery.Delivery_file == null)
+                {
+                    delivery.Delivery_file = "";
+                }
+
+                bool deliveryCreated = this.repositoryUOW.DeliveryRepository.Create(delivery);
+                if (deliveryCreated == false)
+                {
+                    this.repositoryUOW.DbHelperOledb.RollBack();
+                    return BadRequest();
+                }
+
+                string deliveryId = this.repositoryUOW.DeliveryRepository.GetLastInsertedDeliveryId();
+                if (string.IsNullOrWhiteSpace(deliveryId))
+                {
+                    this.repositoryUOW.DbHelperOledb.RollBack();
+                    return BadRequest();
+                }
+
+                List<string> uploadedFileNames = new List<string>();
+                if (form.Files != null && form.Files.Count > 0)
+                {
+                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "DeliveryFiles");
+                    if (Directory.Exists(uploadsFolder) == false)
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    int fileCounter = 1;
+                    foreach (IFormFile file in form.Files)
+                    {
+                        if (file == null || file.Length == 0)
+                        {
+                            continue;
+                        }
+
+                        string extension = Path.GetExtension(file.FileName);
+                        string fileName = deliveryId + "_" + fileCounter + extension;
+                        string filePath = Path.Combine(uploadsFolder, fileName);
+                        using (FileStream stream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+
+                        uploadedFileNames.Add(fileName);
+                        fileCounter++;
+                    }
+                }
+
+                if (uploadedFileNames.Count > 0)
+                {
+                    string deliveryFilesValue = string.Join("|", uploadedFileNames);
+                    bool fileUpdated = this.repositoryUOW.DeliveryRepository.UpdateFileById(deliveryId, deliveryFilesValue);
+                    if (fileUpdated == false)
+                    {
+                        this.repositoryUOW.DbHelperOledb.RollBack();
+                        return BadRequest();
+                    }
+                }
+
+                bool statusUpdated = this.repositoryUOW.OrderRepository.UpdateOrderStatus(delivery.Order_id, 2);
+                if (statusUpdated == false)
+                {
+                    this.repositoryUOW.DbHelperOledb.RollBack();
+                    return BadRequest();
+                }
+
+                this.repositoryUOW.DbHelperOledb.Commit();
+                return Ok();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                return false;
+                this.repositoryUOW.DbHelperOledb.RollBack();
+                return StatusCode(500, "Delivery Failed");
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+
+        [HttpGet]
+        public List<Delivery> GetDeliveriesByOrder(string order_id)
+        {
+            List<Delivery> deliveries = new List<Delivery>();
+            if (string.IsNullOrWhiteSpace(order_id))
+            {
+                return deliveries;
+            }
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                return this.repositoryUOW.DeliveryRepository.GetAllByOrderId(order_id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return deliveries;
             }
             finally
             {

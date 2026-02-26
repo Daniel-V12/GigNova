@@ -15,6 +15,7 @@
         Order_filesRepository order_filesRepository;
         Message_typeRepository message_typeRepository;
         Delivery_timeRepository delivery_timeRepository;
+        DeliveryRepository deliveryRepository;
         DbHelperOledb dbHelperOledb;
         ModelCreators modelCreators;
 
@@ -25,7 +26,7 @@
         }
 
         public DbHelperOledb DbHelperOledb
-        { 
+        {
             get { return this.dbHelperOledb; }
 
         }
@@ -34,8 +35,8 @@
             get
             {
                 if (this.gigRepository == null)
-                    this.gigRepository = new GigRepository(this.dbHelperOledb,this.modelCreators);
-                return this.gigRepository;  
+                    this.gigRepository = new GigRepository(this.dbHelperOledb, this.modelCreators);
+                return this.gigRepository;
             }
         }
 
@@ -151,5 +152,16 @@
                 return this.delivery_timeRepository;
             }
         }
+
+        public DeliveryRepository DeliveryRepository
+        {
+            get
+            {
+                if (this.deliveryRepository == null)
+                    this.deliveryRepository = new DeliveryRepository(this.dbHelperOledb, this.modelCreators);
+                return this.deliveryRepository;
+            }
+        }
+
     }
 }

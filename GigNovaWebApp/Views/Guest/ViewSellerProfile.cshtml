@@ -1,14 +1,21 @@
-﻿@using Microsoft.AspNetCore.Http
-@using GigNovaModels.ViewModels
+﻿@using GigNovaModels.ViewModels
 @using GigNovaModels.Models
 @model SellerPublicProfileViewModel
 @{
     ViewData["Title"] = "ViewSellerProfile";
     Layout = "~/Views/Shared/MasterGuestPage.cshtml";
     string personId = Context.Session.GetString("person_id");
+    string actor = Context.Session.GetString("actor");
     if (personId != null)
     {
-        Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+        if (actor == "seller")
+        {
+            Layout = "~/Views/Shared/MasterSellerPage.cshtml";
+        }
+        else
+        {
+            Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+        }
     }
 }
 <link href="~/css/guest_pages/catalog_page.css" rel="stylesheet" />
@@ -24,7 +31,7 @@
             <div class="gig-card seller-profile-card" style="margin-bottom:20px;">
                 <div class="gig-info">
                     <div style="display:flex;align-items:center;gap:14px;">
-                        <img src="http://localhost:7059/Images/@Model.seller.Seller_avatar" alt="@Model.seller.Seller_display_name" style="width:76px;height:76px;border-radius:50%;object-fit:cover;border:2px solid #4a4f80;" />
+                        <img src="http://localhost:7059/api/Seller/GetPhoto?seller_id=@Model.seller.Seller_id" alt="@Model.seller.Seller_display_name" style="width:76px;height:76px;border-radius:50%;object-fit:cover;border:2px solid #4a4f80;" />
                         <div>
                             <p class="gig-title seller-main-title" style="font-size:22px;">@Model.seller.Seller_display_name</p>
                             <p class="gig-description seller-main-text" style="min-height:auto;">@Model.seller.Seller_description</p>

@@ -2,6 +2,11 @@
 @{
     ViewData["Title"] = "CustomizeOrder";
     Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+    string actor = Context.Session.GetString("actor");
+    if (actor == "seller")
+    {
+        Layout = "~/Views/Shared/MasterSellerPage.cshtml";
+    }
 
     string gigName = "";
     string gigDescription = "";
