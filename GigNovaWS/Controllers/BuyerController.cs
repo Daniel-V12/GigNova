@@ -739,6 +739,31 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        [HttpGet]
+        public List<Delivery> GetDeliveriesByOrder(string order_id)
+        {
+            List<Delivery> deliveries = new List<Delivery>();
+            if (string.IsNullOrWhiteSpace(order_id))
+            {
+                return deliveries;
+            }
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                return this.repositoryUOW.DeliveryRepository.GetAllByOrderId(order_id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return deliveries;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+
 
     }
 }

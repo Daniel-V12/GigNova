@@ -569,5 +569,78 @@ namespace GigNovaWebApp.Controllers
             ViewBag.ErrorMessage = "Could not connect to server. Make sure WS is running on port 7059.";
             return View("BecomeASellerPage", seller);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> DeliveryDetails(string order_id, int delivery_index = 0)
+        {
+            if (string.IsNullOrWhiteSpace(order_id))
+            {
+                return RedirectToAction("ViewOrders");
+            }
+
+            CustomizeOrderViewModel orderDetails = await GetOrderDetails(order_id);
+            if (orderDetails == null)
+            {
+                orderDetails = new CustomizeOrderViewModel();
+            }
+            if (orderDetails.order == null)
+            {
+                orderDetails.order = new Order();
+                orderDetails.order.Order_id = order_id;
+            }
+
+            ApiClient<List<Delivery>> client = new ApiClient<List<Delivery>>();
+            client.Scheme = "https";
+            client.Host = "localhost";
+            client.Port = 7059;
+            client.Path = "api/Buyer/GetDeliveriesByOrder";
+            client.AddParameter("order_id", order_id);
+
+            List<Delivery> deliveries = await client.GetAsync();
+            if (deliveries == null)
+            {
+                deliveries = new List<Delivery>();
+            }
+
+            if (deliveries.Count == 0)
+            {
+                TempData["DeliveryDetailsMessage"] = "No deliveries found for this order yet.";
+                return RedirectToAction("SelectedOrder", new { order_id = order_id });
+            }
+
+            if (delivery_index < 0)
+            {
+                delivery_index = 0;
+            }
+            if (delivery_index >= deliveries.Count)
+            {
+                delivery_index = deliveries.Count - 1;
+            }
+
+            Delivery selectedDelivery = deliveries[delivery_index];
+            List<string> files = new List<string>();
+            if (selectedDelivery != null && string.IsNullOrWhiteSpace(selectedDelivery.Delivery_file) == false)
+            {
+                string[] split = selectedDelivery.Delivery_file.Split('|');
+                foreach (string part in split)
+                {
+                    if (string.IsNullOrWhiteSpace(part) == false)
+                    {
+                        files.Add(part.Trim());
+                    }
+                }
+            }
+
+            ViewData["Actor"] = HttpContext.Session.GetString("actor");
+            ViewData["OrderId"] = order_id;
+            ViewData["DeliveryCount"] = deliveries.Count;
+            ViewData["DeliveryIndex"] = delivery_index;
+            ViewData["SelectedDelivery"] = selectedDelivery;
+            ViewData["DeliveryFiles"] = files;
+            ViewData["Gig"] = orderDetails.gig;
+            return View("~/Views/Buyer/DeliveryDetails.cshtml", orderDetails);
+        }
+
+
     }
 }

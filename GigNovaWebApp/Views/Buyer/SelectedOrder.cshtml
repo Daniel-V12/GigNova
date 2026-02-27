@@ -8,6 +8,7 @@
     {
         Layout = "~/Views/Shared/MasterSellerPage.cshtml";
     }
+    string deliveryController = actor == "seller" ? "Seller" : "Buyer";
 }
 <link href="~/css/buyer_pages/orders_page.css" rel="stylesheet" />
 
@@ -122,9 +123,14 @@
                         <p class="selected-order-description">@(Model.order.Order_requirements == null || Model.order.Order_requirements == "" ? "No requirements provided." : Model.order.Order_requirements)</p>
                     </div>
 
-                    <div class="selected-order-section">
+                    <div class="selected-order-section selected-order-actions-row">
                         <a asp-controller="Buyer" asp-action="MessagingBox" asp-route-order_id="@Model.order.Order_id" class="open-messaging-btn">Open Messaging</a>
+                        @if (Model.order.Order_status_id == 2 || Model.order.Order_status_id == 6)
+                        {
+                            <a asp-controller="@deliveryController" asp-action="DeliveryDetails" asp-route-order_id="@Model.order.Order_id" class="open-messaging-btn secondary-order-btn">See Delivery</a>
+                        }
                     </div>
+
 
                     <div class="selected-order-section">
                         <div class="selected-order-section-title">Uploaded Files</div>

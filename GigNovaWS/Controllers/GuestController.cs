@@ -30,12 +30,15 @@ namespace GigNovaWS.Controllers
                 catalogviewModel.Categories = this.repositoryUOW.CategoryRepository.GetAll();
                 catalogviewModel.Languages = this.repositoryUOW.LanguageRepository.GetAll();
                 catalogviewModel.Delivery_Times = this.repositoryUOW.Delivery_timeRepository.GetAll();
-
+                
                 List<Gig> gigs = GetGigsByCategories(categories);
+                gigs = FilterPublishedGigs(gigs);
                 gigs = FilterByPrice(gigs, min_price, max_price);
                 gigs = FilterByDeliveryTime(gigs, delivery_time_id);
                 gigs = FilterByLanguage(gigs, language_id);
                 gigs = FilterByRating(gigs, min_rating);
+
+
 
                 UpdatePagination(catalogviewModel, gigs.Count, ref page);
                 catalogviewModel.Gigs = gigs.Skip((page - 1) * catalogviewModel.GigsPerPageCount).Take(catalogviewModel.GigsPerPageCount).ToList();
@@ -127,6 +130,26 @@ namespace GigNovaWS.Controllers
             }
             return gigCategoryNames;
         }
+
+        private List<Gig> FilterPublishedGigs(List<Gig> gigs)
+        {
+            List<Gig> filtered = new List<Gig>();
+            if (gigs == null)
+            {
+                return filtered;
+            }
+
+            foreach (Gig gig in gigs)
+            {
+                if (gig != null && gig.Is_publish)
+                {
+                    filtered.Add(gig);
+                }
+            }
+
+            return filtered;
+        }
+
 
         private List<Gig> FilterByPrice(List<Gig> gigs, double min_price, double max_price)
         {
