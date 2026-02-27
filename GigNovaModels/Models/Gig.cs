@@ -75,7 +75,18 @@ namespace GigNovaModels.Models
         public string Gig_photo
         {
             get { return gig_photo; }
-            set { gig_photo = value; ValidateProperty(value, "Gig_photo"); }
+            set { 
+                if (gig_photo == null)
+                {
+                    gig_photo = "none";
+                }
+                   
+                 else
+                {
+                    gig_photo = value;
+                }
+                    
+                ValidateProperty(value, "Gig_photo"); }
         }
 
         //[Required(ErrorMessage = "Gig price is required")]
