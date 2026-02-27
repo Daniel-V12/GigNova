@@ -1,197 +1,116 @@
-﻿@model GigNovaModels.ViewModels.BuyerProfileViewmodel
+﻿@using GigNovaModels.ViewModels
+@model List<CustomizeOrderViewModel>
 @{
-    ViewData["Title"] = "BuyerProfile";
+    ViewData["Title"] = "ViewOrders";
     Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
-
-    string joinDate = "";
-    string buyerDisplayName = "";
-    string buyerBio = "";
-    string username = "";
-    string email = "";
-    string birthdate = "";
-    string personId = "";
-
-    if (Model != null)
+    string actor = Context.Session.GetString("actor");
+    if (actor == "seller")
     {
-        if (Model.buyer != null)
-        {
-            if (Model.buyer.Person_id != null)
-            {
-                personId = Model.buyer.Person_id;
-            }
-            if (Model.buyer.Buyer_display_name != null)
-            {
-                buyerDisplayName = Model.buyer.Buyer_display_name;
-            }
-            if (Model.buyer.Buyer_description != null)
-            {
-                buyerBio = Model.buyer.Buyer_description;
-            }
-            if (Model.buyer.Person_join_date != null && Model.buyer.Person_join_date != "")
-            {
-                joinDate = Model.buyer.Person_join_date;
-            }
-        }
-        if (Model.buyer_person != null)
-        {
-            if (Model.buyer_person.Person_username != null)
-            {
-                username = Model.buyer_person.Person_username;
-            }
-            if (Model.buyer_person.Person_email != null)
-            {
-                email = Model.buyer_person.Person_email;
-            }
-            if (Model.buyer_person.Person_birthdate != null)
-            {
-                birthdate = Model.buyer_person.Person_birthdate;
-            }
-            if (Model.buyer_person.Person_join_date != null && Model.buyer_person.Person_join_date != "")
-            {
-                joinDate = Model.buyer_person.Person_join_date;
-            }
-            if (personId == "" && Model.buyer_person.Person_id != null)
-            {
-                personId = Model.buyer_person.Person_id;
-            }
-        }
-    }
-
-    if (joinDate == "")
-    {
-        joinDate = "Unknown";
+        Layout = "~/Views/Shared/MasterSellerPage.cshtml";
     }
 }
+<link href="~/css/buyer_pages/orders_page.css" rel="stylesheet" />
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GigNova - Buyer Profile</title>
-<link href="~/css/buyer_pages/buyerprofile_page.css" rel="stylesheet" />
-<div class="profile-container">
-    <div class="profile-header">
-        <h1 class="profile-title">Buyer Profile</h1>
-        <p class="join-date">Member since @joinDate</p>
-    </div>
-
-    @if (TempData["BuyerProfileMessage"] != null)
-    {
-        <div class="profile-message">@TempData["BuyerProfileMessage"]</div>
-    }
-
-    <form asp-controller="Buyer" asp-action="BuyerProfile" method="post">
-        <div class="profile-section">
-            <h2 class="section-title">Buyer Information</h2>
-
-            <div class="form-group">
-                <label class="form-label" for="displayName">Display Name</label>
-                <input type="text"
-                       id="displayName"
-                       name="Buyer_display_name"
-                       class="form-input"
-                       value="@buyerDisplayName"
-                       placeholder="Enter your display name">
+<div class="orders-container">
+    <div class="orders-main-content">
+        <section class="orders-section">
+            <div class="orders-header">
+                <h2>My Orders</h2>
+                <p>@(Model != null ? Model.Count : 0) order(s)</p>
             </div>
 
-            <div class="form-group">
-                <label class="form-label" for="bio">Bio</label>
-                <textarea id="bio"
-                          name="Buyer_description"
-                          class="form-textarea"
-                          placeholder="Tell us about yourself..."
-                          maxlength="500">@buyerBio</textarea>
+            <div class="orders-grid">
+                @if (Model != null && Model.Count > 0)
+                {
+                    foreach (CustomizeOrderViewModel thisOrder in Model)
+                    {
+                        if (thisOrder != null && thisOrder.order != null)
+                        {
+                            <div class="order-card">
+                                <a asp-controller="Buyer" asp-action="SelectedOrder" asp-route-order_id="@thisOrder.order.Order_id" class="order-card-link">
+                                    <div class="order-image-wrap">
+                                        @if (thisOrder.gig != null && thisOrder.gig.Gig_photo != null && thisOrder.gig.Gig_photo != "")
+                                        {
+                                            <img class="order-image" src="http://localhost:7059/Images/@thisOrder.gig.Gig_photo" alt="@thisOrder.gig.Gig_name" />
+                                        }
+                                        else
+                                        {
+                                            <div class="order-image empty-image">No image</div>
+                                        }
+                                    </div>
+                                    <div class="order-info">
+                                        <p class="order-title">@((thisOrder.gig != null && thisOrder.gig.Gig_name != null && thisOrder.gig.Gig_name != "") ? thisOrder.gig.Gig_name : ("Order #" + thisOrder.order.Order_id))</p>
+                                        <p class="order-description">@(thisOrder.order.Order_requirements == null || thisOrder.order.Order_requirements == "" ? "No requirements provided." : thisOrder.order.Order_requirements)</p>
+                                        <div class="order-footer">
+                                            <div><strong>Order #</strong> @thisOrder.order.Order_id</div>
+                                            <div><strong>Created:</strong> @thisOrder.order.Order_creation_date</div>
+                                            <div><strong>Delivery:</strong> @((thisOrder.delivery_time != null && thisOrder.delivery_time.Delivery_time_name != null && thisOrder.delivery_time.Delivery_time_name != "") ? thisOrder.delivery_time.Delivery_time_name : "-")</div>
+                                        </div>
+                                    </div>
+                                </a>
+                                <div class="order-card-actions">
+                                    <a asp-controller="Buyer" asp-action="SelectedOrder" asp-route-order_id="@thisOrder.order.Order_id" class="open-messaging-btn">Open Order</a>
+                                    @if (thisOrder.order.Order_status_id == 2 || thisOrder.order.Order_status_id == 6)
+                                    {
+                                        <a asp-controller="Buyer" asp-action="DeliveryDetails" asp-route-order_id="@thisOrder.order.Order_id" class="open-messaging-btn secondary-order-btn">See Delivery</a>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+                else
+                {
+                    <div class="orders-empty-state">
+                        <h3>You do not have any orders yet.</h3>
+                        <p>Browse the catalog and place your first order.</p>
+                    </div>
+                }
             </div>
 
-            <button class="edit-button" type="submit">Save Changes</button>
-        </div>
+            @{
+                int currentPage = 1;
+                int totalPages = 1;
+                string buyerIdForPaging = "";
 
-        <div class="profile-section">
-            <h2 class="section-title">Personal Information</h2>
-
-            <input type="hidden" name="buyer.Person_id" value="@personId" />
-            <input type="hidden" name="buyer_person.Person_id" value="@personId" />
-
-            <div class="form-group">
-                <label class="form-label" for="username">Username</label>
-                <input type="text"
-                       id="username"
-                       name="buyer_person.Person_username"
-                       class="form-input"
-                       value="@username"
-                       readonly>
-                <p class="info-text">Username cannot be changed</p>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="email">Email</label>
-                <input type="email"
-                       id="email"
-                       name="buyer_person.Person_email"
-                       class="form-input"
-                       value="@email"
-                       readonly>
-                <p class="info-text">Email cannot be changed</p>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="passwordDisplay">Password</label>
-                <input type="password"
-                       id="passwordDisplay"
-                       class="form-input"
-                       value="********"
-                       readonly>
-                <p class="info-text">Use the button below to change password</p>
-                <button type="button" class="change-password-button" onclick="openPasswordModal()">Change Password</button>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="birthdate">Birthdate</label>
-                <input type="text"
-                       id="birthdate"
-                       name="buyer_person.Person_birthdate"
-                       class="form-input"
-                       value="@birthdate"
-                       readonly>
-                <p class="info-text">Birthdate cannot be changed</p>
-            </div>
-        </div>
-    </form>
-
-    <form asp-controller="Buyer" asp-action="LogOut" method="post">
-        <button class="logout-button" type="submit">Log Out</button>
-    </form>
-</div>
-
-<div id="passwordModalOverlay" class="password-modal-overlay" onclick="closePasswordModal(event)">
-    <div class="password-modal">
-        <h3>Change Password</h3>
-        <form asp-controller="Buyer" asp-action="ChangePassword" method="post">
-            <div class="form-group">
-                <label class="form-label" for="currentPassword">Current Password</label>
-                <input type="password" id="currentPassword" name="currentPassword" class="form-input" required>
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="newPassword">New Password</label>
-                <input type="password" id="newPassword" name="newPassword" class="form-input" required>
-            </div>
-            <div class="password-modal-buttons">
-                <button type="submit" class="edit-button">Save Password</button>
-                <button type="button" class="cancel-password-button" onclick="closePasswordModal()">Cancel</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-    function openPasswordModal() {
-        document.getElementById("passwordModalOverlay").style.display = "flex";
-    }
-
-    function closePasswordModal(event) {
-        if (event) {
-            if (event.target.id != "passwordModalOverlay") {
-                return;
+                if (ViewData["CurrentPage"] != null)
+                {
+                    currentPage = Convert.ToInt32(ViewData["CurrentPage"]);
+                }
+                if (ViewData["TotalPages"] != null)
+                {
+                    totalPages = Convert.ToInt32(ViewData["TotalPages"]);
+                }
+                if (ViewData["BuyerIdForPaging"] != null)
+                {
+                    buyerIdForPaging = ViewData["BuyerIdForPaging"].ToString();
+                }
             }
-        }
-        document.getElementById("passwordModalOverlay").style.display = "none";
-    }
-</script>
+
+            @if (totalPages > 1)
+            {
+                <div class="orders-pagination">
+                    @if (currentPage > 1)
+                    {
+                        <a class="open-messaging-btn" asp-controller="Buyer" asp-action="ViewOrders" asp-route-buyerId="@buyerIdForPaging" asp-route-page="@(currentPage - 1)">Previous</a>
+                    }
+                    else
+                    {
+                        <span class="open-messaging-btn pagination-disabled">Previous</span>
+                    }
+
+                    <span class="pagination-page-text">Page @currentPage of @totalPages</span>
+
+                    @if (currentPage < totalPages)
+                    {
+                        <a class="open-messaging-btn" asp-controller="Buyer" asp-action="ViewOrders" asp-route-buyerId="@buyerIdForPaging" asp-route-page="@(currentPage + 1)">Next</a>
+                    }
+                    else
+                    {
+                        <span class="open-messaging-btn pagination-disabled">Next</span>
+                    }
+                </div>
+            }
+        </section>
+    </div>
+</div>

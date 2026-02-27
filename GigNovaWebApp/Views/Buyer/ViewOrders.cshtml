@@ -26,8 +26,8 @@
                     {
                         if (thisOrder != null && thisOrder.order != null)
                         {
-                            <a asp-controller="Buyer" asp-action="SelectedOrder" asp-route-order_id="@thisOrder.order.Order_id" class="order-card-link">
-                                <div class="order-card">
+                            <div class="order-card">
+                                <a asp-controller="Buyer" asp-action="SelectedOrder" asp-route-order_id="@thisOrder.order.Order_id" class="order-card-link">
                                     <div class="order-image-wrap">
                                         @if (thisOrder.gig != null && thisOrder.gig.Gig_photo != null && thisOrder.gig.Gig_photo != "")
                                         {
@@ -47,8 +47,8 @@
                                             <div><strong>Delivery:</strong> @((thisOrder.delivery_time != null && thisOrder.delivery_time.Delivery_time_name != null && thisOrder.delivery_time.Delivery_time_name != "") ? thisOrder.delivery_time.Delivery_time_name : "-")</div>
                                         </div>
                                     </div>
-                                </div>
-                            </a>
+                                </a>
+                            </div>
                         }
                     }
                 }

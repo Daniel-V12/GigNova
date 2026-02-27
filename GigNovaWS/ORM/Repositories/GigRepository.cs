@@ -30,15 +30,15 @@ namespace GigNovaWS
 
         public bool CreateBySeller(Gig model)
         {
-            string sql = @$"Insert into Gigs (gig_name, gig_description, gig_date, gig_price, gig_photo, language_id, gig_delivery_time, seller_id, is_publish, has_revisions)
-            values ( @gig_name , @gig_description , @gig_date , @gig_price, @gig_photo, @language_id, @gig_delivery_time, @seller_id, @is_publish, @has_revisions )";
+            string sql = @$"Insert into Gigs (gig_name, gig_description, gig_date, gig_price, gig_photo, language_id, delivery_time_id, seller_id, is_publish, has_revisions)
+    values ( @gig_name , @gig_description , @gig_date , @gig_price, @gig_photo, @language_id, @delivery_time_id, @seller_id, @is_publish, @has_revisions )";
             this.dbHelperOledb.AddParameter("@gig_name", model.Gig_name);
             this.dbHelperOledb.AddParameter("@gig_description", model.Gig_description);
             this.dbHelperOledb.AddParameter("@gig_date", DateTime.Now.ToShortDateString());
             this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price);
             this.dbHelperOledb.AddParameter("@gig_photo", model.Gig_photo);
             this.dbHelperOledb.AddParameter("@language_id", model.Language_id);
-            this.dbHelperOledb.AddParameter("@gig_delivery_time", model.Delivery_time_id);
+            this.dbHelperOledb.AddParameter("@delivery_time_id", model.Delivery_time_id);
             this.dbHelperOledb.AddParameter("@seller_id", model.Seller_id);
             this.dbHelperOledb.AddParameter("@is_publish", false);
             this.dbHelperOledb.AddParameter("@has_revisions", model.Has_revisions);

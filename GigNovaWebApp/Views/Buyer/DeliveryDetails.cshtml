@@ -1,0 +1,74 @@
+﻿@using GigNovaModels.ViewModels
+@using GigNovaModels.Models
+@model CustomizeOrderViewModel
+@{
+    ViewData["Title"] = "DeliveryDetails";
+    Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+    string actor = Context.Session.GetString("actor");
+    if (actor == "seller")
+    {
+        Layout = "~/Views/Shared/MasterSellerPage.cshtml";
+    }
+
+    Delivery selectedDelivery = ViewData["SelectedDelivery"] as Delivery;
+    List<string> deliveryFiles = ViewData["DeliveryFiles"] as List<string>;
+    int deliveryIndex = ViewData["DeliveryIndex"] != null ? Convert.ToInt32(ViewData["DeliveryIndex"]) : 0;
+    int deliveryCount = ViewData["DeliveryCount"] != null ? Convert.ToInt32(ViewData["DeliveryCount"]) : 0;
+    string orderId = ViewData["OrderId"] != null ? ViewData["OrderId"].ToString() : "";
+
+    bool hasPrevious = deliveryIndex < deliveryCount - 1;
+    string deliveryController = actor == "seller" ? "Seller" : "Buyer";
+
+    string deliveryTitle = "Delivered";
+    if (deliveryIndex == 0 && deliveryCount > 1)
+    {
+        deliveryTitle = "Revised Delivery";
+    }
+    else if (deliveryIndex > 0)
+    {
+        deliveryTitle = "Initial Delivery";
+    }
+}
+<link href="~/css/buyer_pages/deliverydetails_page.css" rel="stylesheet" />
+
+<div class="delivery-details-container">
+    <div class="delivery-details-header">
+        <h2>Order #@orderId - @deliveryTitle</h2>
+        <div class="delivery-nav-buttons">
+            @if (hasPrevious)
+            {
+                <a asp-controller="@deliveryController" asp-action="DeliveryDetails" asp-route-order_id="@orderId" asp-route-delivery_index="@(deliveryIndex + 1)" class="delivery-btn">Previous Delivery</a>
+            }
+            else
+            {
+                <a asp-controller="Buyer" asp-action="SelectedOrder" asp-route-order_id="@orderId" class="delivery-btn">Back to Order</a>
+            }
+        </div>
+    </div>
+
+    <div class="delivery-card">
+        <div class="delivery-section">
+            <h3>Delivery Text</h3>
+            <p>@(selectedDelivery != null && string.IsNullOrWhiteSpace(selectedDelivery.Delivery_text) == false ? selectedDelivery.Delivery_text : "No delivery text was provided.")</p>
+        </div>
+
+        <div class="delivery-section">
+            <h3>Delivery Files</h3>
+            @if (deliveryFiles != null && deliveryFiles.Count > 0)
+            {
+                <ul class="delivery-files-list">
+                    @foreach (string fileName in deliveryFiles)
+                    {
+                        <li>
+                            <a href="http://localhost:7059/DeliveryFiles/@fileName" target="_blank">@fileName</a>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>No files attached to this delivery.</p>
+            }
+        </div>
+    </div>
+</div>

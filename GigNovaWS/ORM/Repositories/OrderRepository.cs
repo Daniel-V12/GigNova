@@ -26,7 +26,7 @@ namespace GigNovaWS
 
         public string GetLastInsertedOrderId()
         {
-            string sql = "Select @@IDENTITY as new_id";
+            string sql = "Select @IDENTITY as new_id";
             using (IDataReader reader = this.dbHelperOledb.Select(sql))
             {
                 if (reader.Read() == true)

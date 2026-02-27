@@ -257,3 +257,20 @@
     opacity: 0.55;
     pointer-events: none;
 }
+
+.secondary-order-btn {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.35);
+}
+
+    .secondary-order-btn:hover {
+        background: rgba(255,255,255,0.2);
+    }
+
+.selected-order-actions-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+

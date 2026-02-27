@@ -1,0 +1,190 @@
+﻿@using GigNovaModels.Models
+@using System.Linq
+@using GigNovaModels.ViewModels
+@model ManageGigsViewModel
+@{
+    ViewData["Title"] = "ManageGigs";
+    Layout = "~/Views/Shared/MasterSellerPage.cshtml";
+
+    string sellerId = "";
+    if (ViewData["SellerId"] != null)
+    {
+        sellerId = ViewData["SellerId"].ToString();
+    }
+
+    List<Gig> gigs = new List<Gig>();
+    if (Model != null && Model.Gigs != null)
+    {
+        gigs = Model.Gigs.Where(x => x != null).ToList();
+    }
+
+    Gig selectedGig = new Gig();
+    if (Model != null && Model.SelectedGig != null)
+    {
+        selectedGig = Model.SelectedGig;
+    }
+
+    List<Delivery_time> deliveryTimes = new List<Delivery_time>();
+    if (Model != null && Model.DeliveryTimes != null)
+    {
+        deliveryTimes = Model.DeliveryTimes.Where(x => x != null).ToList();
+    }
+
+    Dictionary<string, string> deliveryNameById = new Dictionary<string, string>();
+    foreach (Delivery_time deliveryTime in deliveryTimes)
+    {
+        if (deliveryTime != null && string.IsNullOrWhiteSpace(deliveryTime.Delivery_time_id) == false)
+        {
+            deliveryNameById[deliveryTime.Delivery_time_id] = deliveryTime.Delivery_time_name;
+        }
+    }
+
+    bool isDraftGig = selectedGig != null && selectedGig.Gig_id == "__new";
+    bool isEditing = string.IsNullOrWhiteSpace(selectedGig.Gig_id) == false && isDraftGig == false;
+    string selectedPhoto = selectedGig.Gig_photo ?? "";
+}
+
+
+<link href="~/css/seller_pages/managegigs_page.css" rel="stylesheet" />
+
+<div class="manage-gigs-container">
+    @if (TempData["ManageGigMessage"] != null)
+    {
+        <div class="manage-gig-message">@TempData["ManageGigMessage"]</div>
+    }
+
+    <section class="manage-gigs-list-panel">
+        <div class="panel-header-row">
+            <h2>Manage Gigs</h2>
+            <form asp-controller="Seller" asp-action="ManageGigs" method="get">
+                <input type="hidden" name="seller_id" value="@sellerId" />
+                <input type="hidden" name="create_new" value="true" />
+                <button type="submit" class="outline-btn">Create New Gig</button>
+            </form>
+        </div>
+
+        <div class="gig-list">
+            @if (gigs.Count == 0)
+            {
+                <div class="empty-state">No gigs yet. Create your first gig.</div>
+            }
+            else
+            {
+                foreach (Gig gig in gigs)
+                {
+                    <a class="gig-row @(gig.Gig_id == selectedGig.Gig_id ? "active" : "")"
+                       asp-controller="Seller"
+                       asp-action="ManageGigs"
+                       asp-route-seller_id="@sellerId"
+                       asp-route-gig_id="@gig.Gig_id">
+                        <div class="gig-main">
+                            <p class="gig-title">@gig.Gig_name</p>
+                            <p class="gig-meta">
+                                $@gig.Gig_price ·
+                                @if (deliveryNameById.ContainsKey(gig.Delivery_time_id.ToString()))
+                                {
+                                    @deliveryNameById[gig.Delivery_time_id.ToString()]
+                                }
+                                else
+                                {
+                                    @:Delivery ID @gig.Delivery_time_id
+                                }
+                            </p>
+                        </div>
+                        @if (gig.Gig_id == "__new")
+                        {
+                            <span class="gig-status draft">Draft</span>
+                        }
+                        else
+                        {
+                            <span class="gig-status @(gig.Is_publish ? "published" : "unpublished")">
+                                @(gig.Is_publish ? "Published" : "Unpublished")
+                            </span>
+                        }
+                    </a>
+                }
+            }
+        </div>
+    </section>
+
+    <section class="manage-gigs-editor-panel">
+        <h2>@(isEditing ? "Edit Gig" : "Create Gig Draft")</h2>
+
+        <form asp-controller="Seller" asp-action="@(isEditing ? "EditGig" : "AddGig")" method="post" enctype="multipart/form-data" class="gig-editor-form">
+            <input type="hidden" name="Gig_id" value="@(isDraftGig ? "" : selectedGig.Gig_id)" />
+            <input type="hidden" name="Seller_id" value="@sellerId" />
+            <input type="hidden" name="Gig_photo" value="@selectedPhoto" />
+            <input type="hidden" name="Language_id" value="@(selectedGig.Language_id > 0 ? selectedGig.Language_id : 1)" />
+            <input type="hidden" name="Has_revisions" value="@selectedGig.Has_revisions.ToString().ToLower()" />
+
+            <label class="field-label" for="Gig_name">Title</label>
+            <input class="field-input" id="Gig_name" name="Gig_name" value="@selectedGig.Gig_name" maxlength="100" required />
+
+            <div class="field-row-two">
+                <div>
+                    <label class="field-label" for="Gig_price">Price ($)</label>
+                    <input class="field-input" id="Gig_price" name="Gig_price" type="number" min="1" step="0.01" value="@(selectedGig.Gig_price > 0 ? selectedGig.Gig_price : 5)" required />
+                </div>
+                <div>
+                    <label class="field-label" for="Delivery_time_id">Delivery Time</label>
+                    <select class="field-input" id="Delivery_time_id" name="Delivery_time_id" required>
+                        <option value="">Select delivery time</option>
+                        @if (deliveryTimes.Count == 0)
+                        {
+                            <option value="1">1 Day</option>
+                            <option value="3">3 Days</option>
+                            <option value="7">7 Days</option>
+                        }
+                        else
+                        {
+                            foreach (Delivery_time delivery in deliveryTimes)
+                            {
+                                if (selectedGig.Delivery_time_id.ToString() == delivery.Delivery_time_id)
+                                {
+                                    <option value="@delivery.Delivery_time_id" selected>@delivery.Delivery_time_name</option>
+                                }
+                                else
+                                {
+                                    <option value="@delivery.Delivery_time_id">@delivery.Delivery_time_name</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <label class="field-label" for="Gig_description">Description</label>
+            <textarea class="field-textarea" id="Gig_description" name="Gig_description" maxlength="2000" required>@selectedGig.Gig_description</textarea>
+
+            <label class="field-label" for="gigPhotoFile">Gig Photo (image only)</label>
+            <input class="field-file" id="gigPhotoFile" name="gigPhotoFile" type="file" accept="image/*" />
+
+            @if (string.IsNullOrWhiteSpace(selectedPhoto) == false)
+            {
+                <p class="photo-label">Current photo:</p>
+                <img class="gig-photo-preview" src="http://localhost:7059/Images/@selectedPhoto" alt="Gig photo" />
+            }
+
+            <div class="editor-buttons">
+                <button type="submit" class="primary-btn">@(isEditing ? "Save Changes" : "Create This Gig")</button>
+            </div>
+        </form>
+
+        @if (isEditing)
+        {
+            <div class="editor-buttons split">
+                <form asp-controller="Seller" asp-action="@(selectedGig.Is_publish ? "UnpublishGig" : "PublishGig")" method="post">
+                    <input type="hidden" name="seller_id" value="@sellerId" />
+                    <input type="hidden" name="gig_id" value="@selectedGig.Gig_id" />
+                    <button type="submit" class="outline-btn wide">@(selectedGig.Is_publish ? "Unpublish Gig" : "Publish Gig")</button>
+                </form>
+
+                <form asp-controller="Seller" asp-action="DeleteGig" method="post" onsubmit="return confirm('Delete this gig?');">
+                    <input type="hidden" name="seller_id" value="@sellerId" />
+                    <input type="hidden" name="gig_id" value="@selectedGig.Gig_id" />
+                    <button type="submit" class="danger-btn wide">Delete Gig</button>
+                </form>
+            </div>
+        }
+    </section>
+</div>

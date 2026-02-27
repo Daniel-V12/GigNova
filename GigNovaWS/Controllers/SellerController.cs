@@ -1,4 +1,5 @@
 ﻿using GigNovaModels.Models;
+using System.Linq;
 using GigNovaModels.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -19,6 +20,9 @@ namespace GigNovaWS.Controllers
         public ManageGigsViewModel GetManageGigsViewModel(string seller_id, int page = 0)
         {
             ManageGigsViewModel manageGigsViewModel = new ManageGigsViewModel();
+            manageGigsViewModel.Gigs = new List<Gig>();
+            manageGigsViewModel.DeliveryTimes = new List<Delivery_time>();
+
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
@@ -30,12 +34,14 @@ namespace GigNovaWS.Controllers
                 {
                     manageGigsViewModel.Gigs = this.repositoryUOW.GigRepository.GetGigsBySellerByPage(seller_id, page);
                 }
+
+                manageGigsViewModel.DeliveryTimes = this.repositoryUOW.Delivery_timeRepository.GetAll();
                 return manageGigsViewModel;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                return null;
+                return manageGigsViewModel;
             }
             finally
             {
@@ -121,7 +127,6 @@ namespace GigNovaWS.Controllers
             {
                 return NotFound();
             }
-
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
@@ -141,7 +146,6 @@ namespace GigNovaWS.Controllers
                 {
                     return NotFound();
                 }
-
                 FileStream stream = System.IO.File.OpenRead(path);
                 return File(stream, $"image/{extension}");
             }
@@ -188,15 +192,27 @@ namespace GigNovaWS.Controllers
         }
 
         [HttpPost]
-        public bool AddGig(Gig gig)
+        public async Task<bool> AddGig()
         {
-            if (gig == null)
-            {
-                return false;
-            }
             try
             {
+                (Gig gig, IFormFile gigPhotoFile) = await this.ReadGigFromRequestAsync();
+                if (gig == null || gig.Seller_id == 0)
+                {
+                    return false;
+                }
+
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
+                if (gigPhotoFile != null)
+                {
+                    string uploadedPhotoName = await this.SaveGigPhotoAsync(gigPhotoFile);
+                    if (string.IsNullOrWhiteSpace(uploadedPhotoName))
+                    {
+                        return false;
+                    }
+                    gig.Gig_photo = uploadedPhotoName;
+                }
+
                 return this.repositoryUOW.GigRepository.CreateBySeller(gig);
             }
             catch (Exception ex)
@@ -211,15 +227,37 @@ namespace GigNovaWS.Controllers
         }
 
         [HttpPost]
-        public bool EditGig(Gig gig)
+        public async Task<bool> EditGig()
         {
-            if (gig == null)
-            {
-                return false;
-            }
             try
             {
+                (Gig gig, IFormFile gigPhotoFile) = await this.ReadGigFromRequestAsync();
+                if (gig == null || gig.Seller_id == 0 || string.IsNullOrWhiteSpace(gig.Gig_id))
+                {
+                    return false;
+                }
+
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
+                Gig existingGig = this.repositoryUOW.GigRepository.GetById(gig.Gig_id);
+                if (existingGig == null || existingGig.Seller_id != gig.Seller_id)
+                {
+                    return false;
+                }
+
+                if (gigPhotoFile != null)
+                {
+                    string uploadedPhotoName = await this.SaveGigPhotoAsync(gigPhotoFile);
+                    if (string.IsNullOrWhiteSpace(uploadedPhotoName))
+                    {
+                        return false;
+                    }
+                    gig.Gig_photo = uploadedPhotoName;
+                }
+                else if (string.IsNullOrWhiteSpace(gig.Gig_photo))
+                {
+                    gig.Gig_photo = existingGig.Gig_photo;
+                }
+
                 return this.repositoryUOW.GigRepository.UpdateBySeller(gig);
             }
             catch (Exception ex)
@@ -301,6 +339,66 @@ namespace GigNovaWS.Controllers
             {
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
+        }
+
+        private async Task<(Gig, IFormFile)> ReadGigFromRequestAsync()
+        {
+            if (Request.HasFormContentType)
+            {
+                IFormCollection form = await Request.ReadFormAsync();
+                string modelJson = form["model"];
+                if (string.IsNullOrWhiteSpace(modelJson))
+                {
+                    return (null, null);
+                }
+
+                JsonSerializerOptions options = new JsonSerializerOptions();
+                options.PropertyNameCaseInsensitive = true;
+                Gig formGig = JsonSerializer.Deserialize<Gig>(modelJson, options);
+                IFormFile gigPhotoFile = null;
+                if (form.Files != null && form.Files.Count > 0)
+                {
+                    gigPhotoFile = form.Files[0];
+                }
+                return (formGig, gigPhotoFile);
+            }
+
+            Gig jsonGig = await Request.ReadFromJsonAsync<Gig>();
+            return (jsonGig, null);
+        }
+
+        private async Task<string> SaveGigPhotoAsync(IFormFile gigPhotoFile)
+        {
+            if (gigPhotoFile == null || gigPhotoFile.Length <= 0)
+            {
+                return null;
+            }
+
+            string extension = Path.GetExtension(gigPhotoFile.FileName).TrimStart('.').ToLower();
+            if (string.IsNullOrWhiteSpace(extension))
+            {
+                return null;
+            }
+
+            string[] allowedExtensions = new string[] { "jpg", "jpeg", "png", "gif", "webp", "bmp" };
+            if (allowedExtensions.Contains(extension) == false)
+            {
+                return null;
+            }
+
+            string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", "Gigs");
+            if (Directory.Exists(uploadsFolder) == false)
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            string photoFileName = "gig_" + Guid.NewGuid().ToString("N") + "." + extension;
+            string photoPath = Path.Combine(uploadsFolder, photoFileName);
+            using (FileStream stream = new FileStream(photoPath, FileMode.Create, FileAccess.Write))
+            {
+                await gigPhotoFile.CopyToAsync(stream);
+            }
+            return Path.Combine("Gigs", photoFileName).Replace("\\", "/");
         }
 
         [HttpGet]

@@ -11,5 +11,8 @@ namespace GigNovaModels.ViewModels
     {
         public List<Gig> Gigs { get; set; }
 
+        public Gig SelectedGig { get; set; }
+
+        public List<Delivery_time> DeliveryTimes { get; set; }
     }
 }
