@@ -17,14 +17,18 @@ namespace GigNovaWS
         {
             //string sql = @$"Insert into Gigs (gig_name, gig_description, gig_date, gig_price)
             //values ( '{model.Gig_name}' , '{model.Gig_description}', '{model.Gig_date}', '{model.Gig_price}' )";
-            string sql = @$"Insert into Gigs (gig_name, gig_description, gig_date, gig_price , is_publish, has_revisions)
-            values ( @gig_name , @gig_description , @gig_date , @gig_price, @is_publish, @has_revisions )";
+            string sql = @$"Insert into Gigs (gig_name, gig_description, language_id, gig_date, gig_photo, gig_price , seller_id, is_publish, has_revisions , delivery_time_id)
+            values ( @gig_name , @gig_description ,@language_id, @gig_date , @gig_photo, @gig_price, @seller_id , @is_publish, @has_revisions, @delivery_time_id )";
             this.dbHelperOledb.AddParameter("@gig_name", model.Gig_name);
             this.dbHelperOledb.AddParameter("@gig_description", model.Gig_description);
+            this.dbHelperOledb.AddParameter("@language_id", model.Language_id);
             this.dbHelperOledb.AddParameter("@gig_date", DateTime.Now.ToShortDateString());
+            this.dbHelperOledb.AddParameter("@gig_photo", model.Gig_photo);
             this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price);
+            this.dbHelperOledb.AddParameter("@seller_id", model.Seller_id);
             this.dbHelperOledb.AddParameter("@is_publish", false);
             this.dbHelperOledb.AddParameter("@has_revisions", false);
+            this.dbHelperOledb.AddParameter("@delivery_time_id", model.Delivery_time_id);
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
@@ -286,6 +290,15 @@ namespace GigNovaWS
             return gigs.Skip(gigsperpage * (page - 1)).Take(gigsperpage).ToList();
         }
 
+
+        public bool UpdateGigPhoto(string FileName,string gig_id)
+        {
+            string sql = "UPDATE Gigs set gig_photo = @gig_photo where gig_id = @gig_id";
+            this.dbHelperOledb.AddParameter("@gig_photo", FileName);
+            this.dbHelperOledb.AddParameter("@gig_id", gig_id);
+            return this.dbHelperOledb.Update(sql) > 0;
+
+        }
         //public int GetGigCount()
         //{
         //    string sql = "Select Count(gig_id) as GigCount from Gigs";

@@ -99,7 +99,7 @@ namespace GigNovaWSClient
             }
         }
 
-        public async Task<bool> PostAsync(T model, Stream file)
+        public async Task<bool> PostAsync(T model, Stream file,string fileName)
         {
             using (HttpRequestMessage httpRequest = new HttpRequestMessage())
             {
@@ -110,7 +110,7 @@ namespace GigNovaWSClient
                 StringContent model_content = new StringContent(json);
                 multipartFormDataContent.Add(model_content, "model");
                 StreamContent streamContent = new StreamContent(file);
-                multipartFormDataContent.Add(streamContent, "file", "file");
+                multipartFormDataContent.Add(streamContent, "file", fileName);
                 httpRequest.Content = multipartFormDataContent;
                 using (HttpResponseMessage responseMessage = await this.httpClient.SendAsync(httpRequest))
                 {
