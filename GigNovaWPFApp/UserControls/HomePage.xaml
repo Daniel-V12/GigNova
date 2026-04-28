@@ -1,12 +1,142 @@
 ﻿<UserControl x:Class="GigNovaWPFApp.UserControls.HomePage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:GigNovaWPFApp.UserControls"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
-    </Grid>
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="700"
+             d:DesignWidth="1000">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Background="#0F0F0F">
+        <StackPanel Margin="35">
+
+            <!-- Hero Section -->
+            <Border Background="#171717" CornerRadius="12" Padding="26" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="Welcome Admin !"
+                               FontSize="36"
+                               FontWeight="Bold"
+                               Foreground="White"/>
+                    <TextBlock Margin="0,10,0,0"
+                               FontSize="16"
+                               Foreground="#D0D0D0"
+                               TextWrapping="Wrap"
+                               Text="A platform connecting freelancers with clients. Start your journey as a seller or find the services you need."/>
+
+                    <UniformGrid Columns="3" Margin="0,24,0,0">
+                        <Border Background="#1F1F1F" CornerRadius="10" Padding="18" Margin="0,0,14,0">
+                            <StackPanel>
+                                <TextBlock Text="🎨" Foreground="#C8C8C8" FontSize="24"/>
+                                <TextBlock Text="Browse Services" FontSize="20" Foreground="#C8C8C8" FontWeight="SemiBold" Margin="0,10,0,0"/>
+                                <TextBlock Text="Explore gigs across multiple categories and connect with freelancers who can help with your project."
+                                           TextWrapping="Wrap"
+                                           Foreground="#C8C8C8"
+                                           Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#1F1F1F" CornerRadius="10" Padding="18" Margin="0,0,14,0">
+                            <StackPanel>
+                                <TextBlock Text="💼" Foreground="#C8C8C8" FontSize="24"/>
+                                <TextBlock Text="Manage Orders &amp; Gigs" FontSize="20" Foreground="#C8C8C8" FontWeight="SemiBold" Margin="0,10,0,0"/>
+                                <TextBlock Text="Stay in control of services and sales. Edit gigs, monitor incoming orders, and manage workflow easily."
+                                           TextWrapping="Wrap"
+                                           Foreground="#C8C8C8"
+                                           Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#1F1F1F" CornerRadius="10" Padding="18">
+                            <StackPanel>
+                                <TextBlock Text="⚡" Foreground="#C8C8C8" FontSize="24"/>
+                                <TextBlock Text="Simple &amp; Direct" FontSize="20" Foreground="#C8C8C8" FontWeight="SemiBold" Margin="0,10,0,0"/>
+                                <TextBlock Text="Easy to use platform designed for straightforward freelance transactions."
+                                           TextWrapping="Wrap"
+                                           Foreground="#C8C8C8"
+                                           Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- Features Section -->
+            <Border Background="#171717" CornerRadius="12" Padding="26" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="How It Works"
+                               FontSize="30"
+                               FontWeight="Bold"
+                               Foreground="#E94560"/>
+
+                    <UniformGrid Columns="2" Margin="0,20,0,0">
+                        <Border Background="#1F1F1F" CornerRadius="10" Padding="16" Margin="0,0,14,14">
+                            <StackPanel>
+                                <TextBlock Text="📋  Multiple Categories" FontWeight="SemiBold" Foreground="#C8C8C8" FontSize="18"/>
+                                <TextBlock Text="Find or offer services across design, development, writing, and more."
+                                           TextWrapping="Wrap" Foreground="#C8C8C8" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#1F1F1F" CornerRadius="10" Padding="16" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="💰  Set Your Own Prices" FontWeight="SemiBold" Foreground="#C8C8C8" FontSize="18"/>
+                                <TextBlock Text="Freelancers control rates. Buyers can filter by budget to find what fits."
+                                           TextWrapping="Wrap" Foreground="#C8C8C8" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#1F1F1F" CornerRadius="10" Padding="16" Margin="0,0,14,0">
+                            <StackPanel>
+                                <TextBlock Text="⭐  Rating System" FontWeight="SemiBold" Foreground="#C8C8C8" FontSize="18"/>
+                                <TextBlock Text="Build reputation through client reviews and ratings on completed projects."
+                                           TextWrapping="Wrap" Foreground="#C8C8C8" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#1F1F1F" CornerRadius="10" Padding="16">
+                            <StackPanel>
+                                <TextBlock Text="🚀  Easy to Get Started" FontWeight="SemiBold" Foreground="#C8C8C8" FontSize="18"/>
+                                <TextBlock Text="Create an account, set up a profile, and start offering or purchasing services."
+                                           TextWrapping="Wrap" Foreground="#C8C8C8" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- About Section -->
+            <Border Background="#171717" CornerRadius="12" Padding="26">
+                <StackPanel>
+                    <TextBlock Text="About GigNova"
+                               FontSize="30"
+                               FontWeight="Bold"
+                               Foreground="#E94560"/>
+
+                    <TextBlock Margin="0,14,0,0"
+                               TextWrapping="Wrap"
+                               Foreground="#D0D0D0"
+                               FontSize="15"
+                               Text="GigNova is a freelance marketplace built to connect talented individuals with clients looking for specific services. Whether you're looking to kickstart your freelance career or hire someone for a project, our platform provides the tools to make it happen."/>
+
+                    <TextBlock Margin="0,12,0,0"
+                               TextWrapping="Wrap"
+                               Foreground="#D0D0D0"
+                               FontSize="15"
+                               Text="To become a seller on GigNova, users must first create an account and register as a buyer. Then they can apply through a separate seller registration process. All users must be 18 years of age or older."/>
+
+                    <TextBlock Margin="0,12,0,0"
+                               TextWrapping="Wrap"
+                               Foreground="#D0D0D0"
+                               FontSize="15"
+                               Text="Order cancellations are only permitted within the first 72 hours after an order has been placed."/>
+
+                    <TextBlock Margin="0,12,0,0"
+                               TextWrapping="Wrap"
+                               Foreground="#D0D0D0"
+                               FontSize="15"
+                               Text="Join our growing community of freelancers and clients today."/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

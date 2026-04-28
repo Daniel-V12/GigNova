@@ -3,15 +3,69 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:GigNovaWPFApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="1080" Width="1920" ResizeMode ="NoResize">
+        Title="GigNova - Admin Mode"
+        Height="820"
+        Width="1400"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F5F5">
+
     <Grid>
         <Grid.RowDefinitions>
-           
+            <RowDefinition Height="80"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#0F0F0F" BorderBrush="#E94560" BorderThickness="0,0,0,3">
+            <Grid Margin="40,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="GigNova"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="White"
+                            FontSize="38"
+                            FontWeight="Bold"
+                            Cursor="Hand"
+                            Padding="0"
+                            Click="HomeButton_Click"/>
+
+                    <Border Background="#E94560"
+                            CornerRadius="6"
+                            Margin="15,0,0,0"
+                            Padding="12,5"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="Admin Mode"
+                                   Foreground="White"
+                                   FontSize="13"
+                                   FontWeight="Bold"/>
+                    </Border>
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        Content="View Catalog"
+                        Height="42"
+                        Padding="24,0"
+                        VerticalAlignment="Center"
+                        Foreground="White"
+                        Background="Transparent"
+                        BorderBrush="#66FFFFFF"
+                        BorderThickness="2"
+                        FontWeight="SemiBold"
+                        Cursor="Hand"
+                        Click="ViewCatalogButton_Click"/>
+            </Grid>
+        </Border>
+
+        <!-- Dashboard Content -->
+        <Frame x:Name="MainFrame"
+               Grid.Row="1"
+               NavigationUIVisibility="Hidden"
+               Background="Transparent"/>
     </Grid>
-    <Frame x:Name="Main_frame"> 
-        
-    </Frame>
 </Window>
