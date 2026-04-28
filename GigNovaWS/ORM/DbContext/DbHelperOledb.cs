@@ -59,6 +59,7 @@ namespace GigNovaWS
         public void OpenTransaction()
         {
             this.dbTransaction = this.oLeDbConnection.BeginTransaction();
+            this.dbCommand.Transaction = this.dbTransaction;
         }
 
         public void RollBack()
@@ -87,6 +88,11 @@ namespace GigNovaWS
         public void AddParameter(string name, object value)
         {
             this.dbCommand.Parameters.Add(new OleDbParameter(name, value));
+        }
+        public string GetLastId(string sql)
+        {
+            this.dbCommand.CommandText = sql;
+            return this.dbCommand.ExecuteScalar().ToString();
         }
     }
 }
