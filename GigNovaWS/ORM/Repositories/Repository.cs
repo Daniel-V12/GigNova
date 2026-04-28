@@ -9,5 +9,11 @@
             this.dbHelperOledb = dbHelperOled;
             this.modelCreators = modelCreators;
         }
+        public string GetLastId()
+        {
+            string sql = "Select @@Identity";
+            return this.dbHelperOledb.GetLastId(sql);
+            
+        }
     }
 }

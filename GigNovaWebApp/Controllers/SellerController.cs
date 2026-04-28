@@ -382,6 +382,7 @@ namespace GigNovaWebApp.Controllers
             {
                 gig.Language_id = 1;
             }
+            gig.Language_id = 1; // Delete later test code
 
             ApiClient<Gig> client = new ApiClient<Gig>();
             client.Scheme = "https";
@@ -396,7 +397,8 @@ namespace GigNovaWebApp.Controllers
                 if (gigPhotoFile != null && gigPhotoFile.Length > 0)
                 {
                     photoStream = gigPhotoFile.OpenReadStream();
-                    response = await client.PostAsync(gig, photoStream);
+                    //gig.Gig_photo = Path.GetExtension(gigPhotoFile.FileName).TrimStart('.').ToLower();
+                    response = await client.PostAsync(gig, photoStream,gigPhotoFile.FileName);
                 }
                 else
                 {
@@ -459,7 +461,7 @@ namespace GigNovaWebApp.Controllers
                 if (gigPhotoFile != null && gigPhotoFile.Length > 0)
                 {
                     photoStream = gigPhotoFile.OpenReadStream();
-                    response = await client.PostAsync(gig, photoStream);
+                    response = await client.PostAsync(gig, photoStream,gigPhotoFile.FileName);
                 }
                 else
                 {
