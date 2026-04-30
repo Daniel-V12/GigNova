@@ -146,7 +146,6 @@ namespace GigNovaWS.Controllers
                     filtered.Add(gig);
                 }
             }
-
             return filtered;
         }
 

@@ -10,13 +10,46 @@
         WindowStartupLocation="CenterScreen"
         Background="#F5F5F5">
 
+    <Window.Resources>
+        <Style x:Key="HeaderButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="#66FFFFFF"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#22FFFFFF"/>
+                                <Setter Property="BorderBrush" Value="#AAFFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#33E94560"/>
+                                <Setter Property="BorderBrush" Value="#E94560"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="LogoButtonStyle" TargetType="Button" BasedOn="{StaticResource HeaderButtonStyle}">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="80"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
         <Border Grid.Row="0" Background="#0F0F0F" BorderBrush="#E94560" BorderThickness="0,0,0,3">
             <Grid Margin="40,0">
                 <Grid.ColumnDefinitions>
@@ -25,47 +58,16 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="GigNova"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Foreground="White"
-                            FontSize="38"
-                            FontWeight="Bold"
-                            Cursor="Hand"
-                            Padding="0"
-                            Click="HomeButton_Click"/>
-
-                    <Border Background="#E94560"
-                            CornerRadius="6"
-                            Margin="15,0,0,0"
-                            Padding="12,5"
-                            VerticalAlignment="Center">
-                        <TextBlock Text="Admin Mode"
-                                   Foreground="White"
-                                   FontSize="13"
-                                   FontWeight="Bold"/>
+                    <Button Content="GigNova" Style="{StaticResource LogoButtonStyle}" Foreground="White" FontSize="38" FontWeight="Bold" Click="HomeButton_Click"/>
+                    <Border Background="#E94560" CornerRadius="6" Margin="15,0,0,0" Padding="12,5" VerticalAlignment="Center">
+                        <TextBlock Text="Admin Mode" Foreground="White" FontSize="13" FontWeight="Bold"/>
                     </Border>
                 </StackPanel>
 
-                <Button Grid.Column="1"
-                        Content="View Catalog"
-                        Height="42"
-                        Padding="24,0"
-                        VerticalAlignment="Center"
-                        Foreground="White"
-                        Background="Transparent"
-                        BorderBrush="#66FFFFFF"
-                        BorderThickness="2"
-                        FontWeight="SemiBold"
-                        Cursor="Hand"
-                        Click="ViewCatalogButton_Click"/>
+                <Button Grid.Column="1" Style="{StaticResource HeaderButtonStyle}" Content="View Catalog" Height="42" Padding="24,0" VerticalAlignment="Center" FontWeight="SemiBold" Click="ViewCatalogButton_Click"/>
             </Grid>
         </Border>
 
-        <!-- Dashboard Content -->
-        <Frame x:Name="MainFrame"
-               Grid.Row="1"
-               NavigationUIVisibility="Hidden"
-               Background="Transparent"/>
+        <Frame x:Name="MainFrame" Grid.Row="1" NavigationUIVisibility="Hidden" Background="Transparent"/>
     </Grid>
 </Window>
