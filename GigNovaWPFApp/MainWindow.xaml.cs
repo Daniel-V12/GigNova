@@ -18,7 +18,15 @@ namespace GigNovaWPFApp
 
         private void ViewCatalogButton_Click(object sender, RoutedEventArgs e)
         {
-            MainFrame.Content = new CatalogPage();
+            CatalogPage page = new CatalogPage();
+            page.GigSelected += OpenSelectedGig;
+            MainFrame.Content = page;
+        }
+
+        public void OpenSelectedGig(string gigId)
+        {
+            SelectedGigPage page = new SelectedGigPage(gigId);
+            MainFrame.Content = page;
         }
     }
 }

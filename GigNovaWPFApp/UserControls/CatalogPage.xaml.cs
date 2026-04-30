@@ -1,100 +1,186 @@
-﻿using System;
+﻿using GigNovaModels.Models;
+using GigNovaModels.ViewModels;
+using GigNovaWSClient;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using GigNovaModels.Models;
 
 namespace GigNovaWPFApp.UserControls
 {
     public partial class CatalogPage : UserControl
     {
-        private readonly List<Category> categories = new();
-        private readonly List<Delivery_time> deliveryTimes = new();
-        private readonly List<Language> languages = new();
-        private readonly List<CatalogGigItem> allGigs = new();
-        private readonly HashSet<string> selectedCategoryIds = new();
+        public event Action<string> GigSelected;
 
-        private int currentPage = 1;
-        private const int gigsPerPage = 6;
+        CatalogViewModel catalogViewModel;
+        List<string> selectedCategoryIds;
 
         public CatalogPage()
         {
             InitializeComponent();
-            SeedData();
-            BuildCategoryButtons();
-            SetupFilters();
-            RefreshCatalog();
+            selectedCategoryIds = new List<string>();
+            MinPriceTextBox.Text = "Min $";
+            MaxPriceTextBox.Text = "Max $";
+            MinPriceTextBox.GotFocus += PriceBox_GotFocus;
+            MaxPriceTextBox.GotFocus += PriceBox_GotFocus;
+            MinPriceTextBox.LostFocus += PriceBox_LostFocus;
+            MaxPriceTextBox.LostFocus += PriceBox_LostFocus;
+            LoadCatalog(1);
         }
 
-        private void SeedData()
+        private void PriceBox_GotFocus(object sender, RoutedEventArgs e)
         {
-            categories.Add(new Category { Category_id = "1", Category_name = "Design" });
-            categories.Add(new Category { Category_id = "2", Category_name = "Development" });
-            categories.Add(new Category { Category_id = "3", Category_name = "Writing" });
-            categories.Add(new Category { Category_id = "4", Category_name = "Marketing" });
-
-            deliveryTimes.Add(new Delivery_time { Delivery_time_id = "1", Delivery_time_name = "1 day" });
-            deliveryTimes.Add(new Delivery_time { Delivery_time_id = "2", Delivery_time_name = "3 days" });
-            deliveryTimes.Add(new Delivery_time { Delivery_time_id = "3", Delivery_time_name = "7 days" });
-
-            languages.Add(new Language { Language_id = "1", Language_name = "English" });
-            languages.Add(new Language { Language_id = "2", Language_name = "Spanish" });
-            languages.Add(new Language { Language_id = "3", Language_name = "French" });
-
-            allGigs.Add(new CatalogGigItem("1", "Logo Design", "I will create a modern logo for your brand.", 45, "1", "1", 5));
-            allGigs.Add(new CatalogGigItem("2", "Landing Page", "I will build a responsive landing page.", 120, "2", "1", 5));
-            allGigs.Add(new CatalogGigItem("3", "SEO Article", "I will write a high-quality SEO article.", 30, "3", "2", 4));
-            allGigs.Add(new CatalogGigItem("4", "Social Media Kit", "I will design social media templates.", 60, "4", "1", 4));
-            allGigs.Add(new CatalogGigItem("5", "API Integration", "I will integrate API endpoints into your app.", 150, "2", "1", 5));
-            allGigs.Add(new CatalogGigItem("6", "Brand Guide", "I will prepare a complete brand style guide.", 95, "1", "3", 5));
-            allGigs.Add(new CatalogGigItem("7", "Product Description", "I will write product descriptions for your store.", 28, "3", "1", 4));
-            allGigs.Add(new CatalogGigItem("8", "Ad Campaign", "I will set up and optimize ad campaigns.", 140, "4", "2", 5));
+            TextBox box = sender as TextBox;
+            if (box.Text == "Min $" || box.Text == "Max $")
+            {
+                box.Text = "";
+            }
         }
 
-        private void BuildCategoryButtons()
+        private void PriceBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            TextBox box = sender as TextBox;
+            if (box.Text.Trim() == "")
+            {
+                if (box == MinPriceTextBox) box.Text = "Min $";
+                if (box == MaxPriceTextBox) box.Text = "Max $";
+            }
+        }
+
+        private void CollectSelectedCategoriesFromUI()
+        {
+            selectedCategoryIds.Clear();
+            foreach (object child in CategoryWrapPanel.Children)
+            {
+                CheckBox checkBox = child as CheckBox;
+                if (checkBox != null && checkBox.IsChecked == true && checkBox.Tag != null)
+                {
+                    selectedCategoryIds.Add(checkBox.Tag.ToString());
+                }
+            }
+        }
+
+        private async void LoadCatalog(int page)
+        {
+            try
+            {
+                ApiClient<CatalogViewModel> client = new ApiClient<CatalogViewModel>();
+                client.Scheme = "https";
+                client.Host = "localhost";
+                client.Port = 7059;
+                client.Path = "api/Guest/GetCatalogViewModel";
+
+                string categories = "";
+                for (int i = 0; i < selectedCategoryIds.Count; i++)
+                {
+                    if (i > 0) categories += ",";
+                    categories += selectedCategoryIds[i];
+                }
+
+                if (categories != "") client.AddParameter("categories", categories);
+
+                client.AddParameter("page", page.ToString());
+
+                double minPrice = ParseDouble(MinPriceTextBox.Text);
+                double maxPrice = ParseDouble(MaxPriceTextBox.Text);
+                int deliveryTimeId = ParseInt(GetComboTag(DeliveryComboBox));
+                int languageId = ParseInt(GetComboTag(LanguageComboBox));
+                int minRating = ParseInt(GetComboTag(RatingComboBox));
+
+                if (minPrice > 0) client.AddParameter("min_price", minPrice.ToString(CultureInfo.InvariantCulture));
+                if (maxPrice > 0) client.AddParameter("max_price", maxPrice.ToString(CultureInfo.InvariantCulture));
+                if (deliveryTimeId > 0) client.AddParameter("delivery_time_id", deliveryTimeId.ToString());
+                if (languageId > 0) client.AddParameter("language_id", languageId.ToString());
+                if (minRating > 0) client.AddParameter("min_rating", minRating.ToString());
+
+                catalogViewModel = await client.GetAsync();
+                if (catalogViewModel == null)
+                {
+                    MessageBox.Show("Could not load catalog data from server.", "GigNova");
+                    return;
+                }
+
+                SyncSelectedCategories();
+                FillCategoryFilters();
+                FillDropDownFilters();
+                ShowGigs();
+                ShowPagination();
+            }
+            catch
+            {
+                MessageBox.Show("Error loading catalog data from server.", "GigNova");
+            }
+        }
+
+        private void SyncSelectedCategories()
+        {
+            selectedCategoryIds.Clear();
+            if (catalogViewModel.GigCategories == null || catalogViewModel.GigCategories.Trim() == "") return;
+            string[] split = catalogViewModel.GigCategories.Split(',');
+            for (int i = 0; i < split.Length; i++)
+            {
+                string id = split[i].Trim();
+                if (id != "") selectedCategoryIds.Add(id);
+            }
+        }
+
+        private void FillCategoryFilters()
         {
             CategoryWrapPanel.Children.Clear();
+            if (catalogViewModel.Categories == null) return;
 
-            foreach (Category category in categories)
+            foreach (Category category in catalogViewModel.Categories)
             {
-                CheckBox checkBox = new CheckBox
+                bool isSelected = false;
+                foreach (string id in selectedCategoryIds)
                 {
-                    Content = category.Category_name,
-                    Tag = category.Category_id,
-                    Margin = new Thickness(0, 0, 10, 10),
-                    Padding = new Thickness(10, 6, 10, 6),
-                    Foreground = Brushes.White,
-                    Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2A2A")),
-                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560")),
-                    BorderThickness = new Thickness(1)
-                };
+                    if (id == category.Category_id) isSelected = true;
+                }
 
-                checkBox.Checked += CategoryChanged;
-                checkBox.Unchecked += CategoryChanged;
+                CheckBox checkBox = new CheckBox();
+                checkBox.Content = category.Category_name;
+                checkBox.Tag = category.Category_id;
+                checkBox.Margin = new Thickness(0, 0, 10, 10);
+                checkBox.Padding = new Thickness(10, 6, 10, 6);
+                checkBox.Foreground = Brushes.White;
+                checkBox.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2A2A"));
+                checkBox.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
+                checkBox.BorderThickness = new Thickness(1);
+                checkBox.IsChecked = isSelected;
                 CategoryWrapPanel.Children.Add(checkBox);
             }
         }
 
-        private void SetupFilters()
+        private void FillDropDownFilters()
         {
+            if (catalogViewModel == null) return;
+
+            if (catalogViewModel.min_price > 0) MinPriceTextBox.Text = catalogViewModel.min_price.ToString(CultureInfo.InvariantCulture);
+            if (catalogViewModel.max_price > 0) MaxPriceTextBox.Text = catalogViewModel.max_price.ToString(CultureInfo.InvariantCulture);
+
             DeliveryComboBox.Items.Clear();
             DeliveryComboBox.Items.Add(new ComboBoxItem { Content = "Any Time", Tag = "0" });
-            foreach (Delivery_time delivery in deliveryTimes)
+            if (catalogViewModel.Delivery_Times != null)
             {
-                DeliveryComboBox.Items.Add(new ComboBoxItem { Content = delivery.Delivery_time_name, Tag = delivery.Delivery_time_id });
+                foreach (Delivery_time delivery in catalogViewModel.Delivery_Times)
+                {
+                    DeliveryComboBox.Items.Add(new ComboBoxItem { Content = delivery.Delivery_time_name, Tag = delivery.Delivery_time_id });
+                }
             }
-            DeliveryComboBox.SelectedIndex = 0;
+            SelectComboByTag(DeliveryComboBox, catalogViewModel.delivery_time_id.ToString());
 
             LanguageComboBox.Items.Clear();
             LanguageComboBox.Items.Add(new ComboBoxItem { Content = "All Languages", Tag = "0" });
-            foreach (Language language in languages)
+            if (catalogViewModel.Languages != null)
             {
-                LanguageComboBox.Items.Add(new ComboBoxItem { Content = language.Language_name, Tag = language.Language_id });
+                foreach (Language language in catalogViewModel.Languages)
+                {
+                    LanguageComboBox.Items.Add(new ComboBoxItem { Content = language.Language_name, Tag = language.Language_id });
+                }
             }
-            LanguageComboBox.SelectedIndex = 0;
+            SelectComboByTag(LanguageComboBox, catalogViewModel.language_id.ToString());
 
             RatingComboBox.Items.Clear();
             RatingComboBox.Items.Add(new ComboBoxItem { Content = "All Ratings", Tag = "0" });
@@ -103,292 +189,221 @@ namespace GigNovaWPFApp.UserControls
             RatingComboBox.Items.Add(new ComboBoxItem { Content = "3 stars & up", Tag = "3" });
             RatingComboBox.Items.Add(new ComboBoxItem { Content = "2 stars & up", Tag = "2" });
             RatingComboBox.Items.Add(new ComboBoxItem { Content = "1 star & up", Tag = "1" });
-            RatingComboBox.SelectedIndex = 0;
-
-            MinPriceTextBox.Text = "";
-            MaxPriceTextBox.Text = "";
+            SelectComboByTag(RatingComboBox, ((int)catalogViewModel.min_rating).ToString());
         }
 
-        private void CategoryChanged(object sender, RoutedEventArgs e)
+        private void SelectComboByTag(ComboBox comboBox, string tagValue)
         {
-            selectedCategoryIds.Clear();
-            foreach (object child in CategoryWrapPanel.Children)
+            for (int i = 0; i < comboBox.Items.Count; i++)
             {
-                if (child is CheckBox checkBox && checkBox.IsChecked == true && checkBox.Tag != null)
+                ComboBoxItem item = comboBox.Items[i] as ComboBoxItem;
+                if (item != null)
                 {
-                    selectedCategoryIds.Add(checkBox.Tag.ToString() ?? "");
+                    string tag = item.Tag == null ? "0" : item.Tag.ToString();
+                    if (tag == tagValue) { comboBox.SelectedIndex = i; return; }
                 }
             }
+            comboBox.SelectedIndex = 0;
         }
 
-        private void ApplyFilters_Click(object sender, RoutedEventArgs e)
-        {
-            currentPage = 1;
-            RefreshCatalog();
-        }
-
-        private void ClearFilters_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (object child in CategoryWrapPanel.Children)
-            {
-                if (child is CheckBox checkBox)
-                {
-                    checkBox.IsChecked = false;
-                }
-            }
-
-            selectedCategoryIds.Clear();
-            SetupFilters();
-            currentPage = 1;
-            RefreshCatalog();
-        }
-
-        private void RefreshCatalog()
-        {
-            List<CatalogGigItem> filtered = ApplyFilters(allGigs);
-            int totalPages = Math.Max(1, (int)Math.Ceiling((double)filtered.Count / gigsPerPage));
-            if (currentPage > totalPages)
-            {
-                currentPage = totalPages;
-            }
-
-            List<CatalogGigItem> pageItems = filtered
-                .Skip((currentPage - 1) * gigsPerPage)
-                .Take(gigsPerPage)
-                .ToList();
-
-            ResultsTextBlock.Text = $"Available Gigs ({pageItems.Count} on this page)";
-            RenderGigCards(pageItems);
-            RenderPagination(totalPages);
-        }
-
-        private List<CatalogGigItem> ApplyFilters(List<CatalogGigItem> source)
-        {
-            double minPrice = ParseDouble(MinPriceTextBox.Text);
-            double maxPrice = ParseDouble(MaxPriceTextBox.Text);
-            string selectedDelivery = GetComboTag(DeliveryComboBox);
-            string selectedLanguage = GetComboTag(LanguageComboBox);
-            int minRating = (int)ParseDouble(GetComboTag(RatingComboBox));
-
-            IEnumerable<CatalogGigItem> query = source;
-
-            if (selectedCategoryIds.Count > 0)
-            {
-                query = query.Where(g => selectedCategoryIds.Contains(g.CategoryId));
-            }
-
-            if (minPrice > 0)
-            {
-                query = query.Where(g => g.Price >= minPrice);
-            }
-
-            if (maxPrice > 0)
-            {
-                query = query.Where(g => g.Price <= maxPrice);
-            }
-
-            if (selectedDelivery != "0")
-            {
-                query = query.Where(g => g.DeliveryTimeId == selectedDelivery);
-            }
-
-            if (selectedLanguage != "0")
-            {
-                query = query.Where(g => g.LanguageId == selectedLanguage);
-            }
-
-            if (minRating > 0)
-            {
-                query = query.Where(g => g.Rating >= minRating);
-            }
-
-            return query.ToList();
-        }
-
-        private void RenderGigCards(List<CatalogGigItem> gigs)
+        private void ShowGigs()
         {
             GigsWrapPanel.Children.Clear();
+            int count = catalogViewModel.Gigs == null ? 0 : catalogViewModel.Gigs.Count;
+            ResultsTextBlock.Text = "Available Gigs (" + count + " on this page)";
 
-            if (gigs.Count == 0)
+            if (catalogViewModel.Gigs == null || catalogViewModel.Gigs.Count == 0)
             {
-                Border emptyState = new Border
-                {
-                    Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#111111")),
-                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560")),
-                    BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(10),
-                    Padding = new Thickness(20),
-                    Width = 860,
-                    Child = new TextBlock
-                    {
-                        Text = "No gigs match your filters.",
-                        Foreground = Brushes.White,
-                        FontSize = 24,
-                        FontWeight = FontWeights.Bold,
-                        HorizontalAlignment = HorizontalAlignment.Center
-                    }
-                };
-
+                Border emptyState = new Border();
+                emptyState.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#111111"));
+                emptyState.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
+                emptyState.BorderThickness = new Thickness(1);
+                emptyState.CornerRadius = new CornerRadius(10);
+                emptyState.Padding = new Thickness(20);
+                emptyState.Width = 860;
+                TextBlock txt = new TextBlock();
+                txt.Text = "No gigs match your filters.";
+                txt.Foreground = Brushes.White;
+                txt.FontSize = 24;
+                txt.FontWeight = FontWeights.Bold;
+                txt.HorizontalAlignment = HorizontalAlignment.Center;
+                emptyState.Child = txt;
                 GigsWrapPanel.Children.Add(emptyState);
                 return;
             }
 
-            foreach (CatalogGigItem gig in gigs)
+            for (int i = 0; i < catalogViewModel.Gigs.Count; i++)
             {
-                Border card = new Border
+                Gig gig = catalogViewModel.Gigs[i];
+                string categoryNamesText = "";
+                if (catalogViewModel.GigCategoryNames != null && catalogViewModel.GigCategoryNames.Count > i)
                 {
-                    Width = 260,
-                    Margin = new Thickness(0, 0, 16, 16),
-                    Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#111111")),
-                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560")),
-                    BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(10),
-                    Padding = new Thickness(12)
-                };
-
-                StackPanel panel = new StackPanel();
-                panel.Children.Add(new TextBlock
-                {
-                    Text = "🖼️ Preview",
-                    Foreground = Brushes.White,
-                    FontSize = 16,
-                    Margin = new Thickness(0, 0, 0, 8)
-                });
-                panel.Children.Add(new TextBlock
-                {
-                    Text = gig.Title,
-                    Foreground = Brushes.White,
-                    FontSize = 22,
-                    FontWeight = FontWeights.Bold,
-                    TextWrapping = TextWrapping.Wrap
-                });
-                panel.Children.Add(new TextBlock
-                {
-                    Text = gig.Description,
-                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D3D3D3")),
-                    FontSize = 15,
-                    TextWrapping = TextWrapping.Wrap,
-                    Margin = new Thickness(0, 8, 0, 8)
-                });
-
-                panel.Children.Add(new TextBlock
-                {
-                    Text = "Starting at",
-                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#BFBFBF")),
-                    FontSize = 13,
-                    FontWeight = FontWeights.Bold
-                });
-                panel.Children.Add(new TextBlock
-                {
-                    Text = "$" + gig.Price.ToString("0", CultureInfo.InvariantCulture),
-                    Foreground = Brushes.White,
-                    FontSize = 28,
-                    FontWeight = FontWeights.Bold
-                });
-
-                card.Child = panel;
-                GigsWrapPanel.Children.Add(card);
-            }
-        }
-
-        private void RenderPagination(int totalPages)
-        {
-            PaginationPanel.Children.Clear();
-            if (totalPages <= 1)
-            {
-                return;
-            }
-
-            PaginationPanel.Children.Add(CreatePageButton("Previous", currentPage > 1, () =>
-            {
-                currentPage--;
-                RefreshCatalog();
-            }));
-
-            for (int i = 1; i <= totalPages; i++)
-            {
-                int pageNumber = i;
-                Button pageButton = CreatePageButton(i.ToString(), true, () =>
-                {
-                    currentPage = pageNumber;
-                    RefreshCatalog();
-                });
-
-                if (pageNumber == currentPage)
-                {
-                    pageButton.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
-                    pageButton.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
+                    categoryNamesText = catalogViewModel.GigCategoryNames[i];
                 }
 
-                PaginationPanel.Children.Add(pageButton);
-            }
+                Button cardButton = new Button();
+                cardButton.Width = 260;
+                cardButton.Margin = new Thickness(0, 0, 16, 16);
+                cardButton.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#111111"));
+                cardButton.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
+                cardButton.BorderThickness = new Thickness(1);
+                cardButton.Padding = new Thickness(0);
+                cardButton.Cursor = System.Windows.Input.Cursors.Hand;
+                cardButton.ToolTip = "Open gig";
+                string gigId = gig.Gig_id;
+                cardButton.Click += (s, e) => { if (GigSelected != null) GigSelected(gigId); };
 
-            PaginationPanel.Children.Add(CreatePageButton("Next", currentPage < totalPages, () =>
-            {
-                currentPage++;
-                RefreshCatalog();
-            }));
+                Border inner = new Border();
+                inner.CornerRadius = new CornerRadius(10);
+                inner.Padding = new Thickness(12);
+                inner.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#111111"));
+
+                StackPanel panel = new StackPanel();
+                TextBlock title = new TextBlock();
+                title.Text = gig.Gig_name;
+                title.Foreground = Brushes.White;
+                title.FontSize = 22;
+                title.FontWeight = FontWeights.Bold;
+                title.TextWrapping = TextWrapping.Wrap;
+                panel.Children.Add(title);
+
+                TextBlock description = new TextBlock();
+                description.Text = gig.Gig_description;
+                description.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D3D3D3"));
+                description.FontSize = 15;
+                description.TextWrapping = TextWrapping.Wrap;
+                description.Margin = new Thickness(0, 8, 0, 8);
+                panel.Children.Add(description);
+
+                if (categoryNamesText != null && categoryNamesText.Trim() != "")
+                {
+                    WrapPanel chipWrap = new WrapPanel();
+                    chipWrap.Margin = new Thickness(0, 0, 0, 8);
+                    string[] categoryParts = categoryNamesText.Split(',');
+                    foreach (string part in categoryParts)
+                    {
+                        string trimmed = part.Trim();
+                        if (trimmed != "")
+                        {
+                            Border chip = new Border();
+                            chip.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2A2A"));
+                            chip.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
+                            chip.BorderThickness = new Thickness(1);
+                            chip.CornerRadius = new CornerRadius(8);
+                            chip.Padding = new Thickness(6, 3, 6, 3);
+                            chip.Margin = new Thickness(0, 0, 6, 6);
+                            TextBlock chipText = new TextBlock();
+                            chipText.Text = trimmed;
+                            chipText.Foreground = Brushes.White;
+                            chipText.FontSize = 12;
+                            chipText.FontWeight = FontWeights.Bold;
+                            chip.Child = chipText;
+                            chipWrap.Children.Add(chip);
+                        }
+                    }
+                    panel.Children.Add(chipWrap);
+                }
+
+                TextBlock priceLabel = new TextBlock();
+                priceLabel.Text = "Starting at";
+                priceLabel.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#BFBFBF"));
+                priceLabel.FontSize = 13;
+                priceLabel.FontWeight = FontWeights.Bold;
+                panel.Children.Add(priceLabel);
+
+                TextBlock priceValue = new TextBlock();
+                priceValue.Text = "$" + gig.Gig_price.ToString("0", CultureInfo.InvariantCulture);
+                priceValue.Foreground = Brushes.White;
+                priceValue.FontSize = 28;
+                priceValue.FontWeight = FontWeights.Bold;
+                panel.Children.Add(priceValue);
+
+                inner.Child = panel;
+                cardButton.Content = inner;
+                GigsWrapPanel.Children.Add(cardButton);
+            }
         }
 
-        private Button CreatePageButton(string text, bool isEnabled, Action onClick)
+        private void ShowPagination()
         {
-            Button button = new Button
-            {
-                Content = text,
-                Margin = new Thickness(4, 0, 4, 0),
-                Padding = new Thickness(12, 6, 12, 6),
-                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2A2A")),
-                Foreground = Brushes.White,
-                BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560")),
-                BorderThickness = new Thickness(1),
-                IsEnabled = isEnabled,
-                Opacity = isEnabled ? 1.0 : 0.5
-            };
+            PaginationPanel.Children.Clear();
+            if (catalogViewModel == null || catalogViewModel.TotalPages <= 1) return;
 
-            button.Click += (_, _) => onClick();
+            Button prev = CreatePageButton("Previous", catalogViewModel.Page > 1);
+            prev.Click += (s, e) => LoadCatalog(catalogViewModel.Page - 1);
+            PaginationPanel.Children.Add(prev);
+
+            for (int i = 1; i <= catalogViewModel.TotalPages; i++)
+            {
+                int pageNumber = i;
+                Button pageBtn = CreatePageButton(pageNumber.ToString(), true);
+                if (catalogViewModel.Page == pageNumber)
+                {
+                    pageBtn.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
+                    pageBtn.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
+                }
+                pageBtn.Click += (s, e) => LoadCatalog(pageNumber);
+                PaginationPanel.Children.Add(pageBtn);
+            }
+
+            Button next = CreatePageButton("Next", catalogViewModel.Page < catalogViewModel.TotalPages);
+            next.Click += (s, e) => LoadCatalog(catalogViewModel.Page + 1);
+            PaginationPanel.Children.Add(next);
+        }
+
+        private Button CreatePageButton(string text, bool isEnabled)
+        {
+            Button button = new Button();
+            button.Content = text;
+            button.Margin = new Thickness(4, 0, 4, 0);
+            button.Padding = new Thickness(12, 6, 12, 6);
+            button.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3A3A3A"));
+            button.Foreground = Brushes.White;
+            button.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
+            button.BorderThickness = new Thickness(1);
+            button.IsEnabled = isEnabled;
+            button.Opacity = isEnabled ? 1.0 : 0.5;
+            button.Cursor = System.Windows.Input.Cursors.Hand;
             return button;
         }
 
-        private static double ParseDouble(string? text)
+        private void ApplyFilters_Click(object sender, RoutedEventArgs e)
         {
-            if (double.TryParse(text, out double value))
-            {
-                return value;
-            }
-
-            return 0;
+            CollectSelectedCategoriesFromUI();
+            LoadCatalog(1);
         }
 
-        private static string GetComboTag(ComboBox comboBox)
+        private void ClearFilters_Click(object sender, RoutedEventArgs e)
         {
-            if (comboBox.SelectedItem is ComboBoxItem item && item.Tag != null)
-            {
-                return item.Tag.ToString() ?? "0";
-            }
+            selectedCategoryIds.Clear();
+            MinPriceTextBox.Text = "Min $";
+            MaxPriceTextBox.Text = "Max $";
+            DeliveryComboBox.SelectedIndex = 0;
+            LanguageComboBox.SelectedIndex = 0;
+            RatingComboBox.SelectedIndex = 0;
+            LoadCatalog(1);
+        }
 
+        private double ParseDouble(string text)
+        {
+            if (text == "Min $" || text == "Max $") return 0;
+            double value;
+            bool ok = double.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out value);
+            return ok ? value : 0;
+        }
+
+        private int ParseInt(string text)
+        {
+            int value;
+            bool ok = int.TryParse(text, out value);
+            return ok ? value : 0;
+        }
+
+        private string GetComboTag(ComboBox comboBox)
+        {
+            ComboBoxItem item = comboBox.SelectedItem as ComboBoxItem;
+            if (item != null && item.Tag != null) return item.Tag.ToString();
             return "0";
         }
-    }
-
-    public class CatalogGigItem
-    {
-        public CatalogGigItem(string categoryId, string title, string description, double price, string deliveryTimeId, string languageId, int rating)
-        {
-            CategoryId = categoryId;
-            Title = title;
-            Description = description;
-            Price = price;
-            DeliveryTimeId = deliveryTimeId;
-            LanguageId = languageId;
-            Rating = rating;
-        }
-
-        public string CategoryId { get; }
-        public string Title { get; }
-        public string Description { get; }
-        public double Price { get; }
-        public string DeliveryTimeId { get; }
-        public string LanguageId { get; }
-        public int Rating { get; }
     }
 }
