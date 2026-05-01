@@ -18,6 +18,7 @@
     }
 
     double averageRating = 0;
+    string gigId = Convert.ToString(ViewData["GigId"]);
     if (Model != null && Model.Count > 0)
     {
         double sum = 0;
@@ -32,9 +33,14 @@
 
 <div class="catalog-container">
     <div class="gigs-section">
-        <div class="gigs-header">
-            <h2>Gig Reviews (@(Model == null ? 0 : Model.Count))</h2>
-            <p class="price-label review-average-text" style="margin-top:6px;">Overall average rating: @averageRating</p>
+        <div class="gigs-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+            <div>
+                <h2>Gig Reviews (@(Model == null ? 0 : Model.Count))</h2>
+                <p class="price-label review-average-text" style="margin-top:6px;">Overall average rating: @averageRating</p>
+            </div>
+            <button type="button" class="action-btn" style="background:#19a64b; color:white; max-width:260px; min-width:190px;" onclick="openReviewPopup()">
+                Upload a gig review
+            </button>
         </div>
 
         @if (Model != null && Model.Count > 0)
@@ -58,3 +64,56 @@
         }
     </div>
 </div>
+
+<div id="reviewPopup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:2000;">
+    <div style="max-width:520px; margin:8% auto; background:#1f244e; border:1px solid #3f477f; border-radius:10px; padding:22px;">
+        <h3 style="margin-top:0;">Upload Gig Review</h3>
+        <label style="display:block; margin-bottom:6px;">Rating (1 to 5)</label>
+        <select id="reviewRating" style="width:100%; margin-bottom:14px; padding:8px;">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5" selected>5</option>
+        </select>
+        <label style="display:block; margin-bottom:6px;">Comment</label>
+        <textarea id="reviewComment" style="width:100%; min-height:140px; padding:8px;" placeholder="Write your review..."></textarea>
+        <div style="display:flex; gap:10px; margin-top:14px;">
+            <button type="button" class="action-btn" onclick="submitReview()">Submit</button>
+            <button type="button" class="action-btn clear-btn" onclick="closeReviewPopup()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openReviewPopup() {
+        var actor = '@(actor ?? "")';
+        if (!actor) {
+            window.location.href = '/Guest/SignUpPage';
+            return;
+        }
+        document.getElementById('reviewPopup').style.display = 'block';
+    }
+    function closeReviewPopup() {
+        document.getElementById('reviewPopup').style.display = 'none';
+    }
+    async function submitReview() {
+        const rating = parseInt(document.getElementById('reviewRating').value);
+        const comment = document.getElementById('reviewComment').value;
+        const gigId = '@gigId';
+        const response = await fetch('/Buyer/UploadGigReview', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+            body: new URLSearchParams({
+                Review_rating: rating,
+                Review_comment: comment,
+                Gig_id: gigId
+            })
+        });
+        const result = await response.json();
+        alert(result.message);
+        if (result.success) {
+            window.location.reload();
+        }
+    }
+</script>

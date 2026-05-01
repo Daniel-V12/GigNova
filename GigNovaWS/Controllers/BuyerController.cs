@@ -595,13 +595,43 @@ namespace GigNovaWS.Controllers
         [HttpPost]
         public bool UploadGigReview(Review review)
         {
-            if (review == null)
+            if (review == null || review.Buyer_id <= 0 || review.Gig_id <= 0 || review.Review_rating < 1 || review.Review_rating > 5)
             {
                 return false;
             }
             try
             {
-                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                this.repositoryUOW.DbHelperOledb.OpenConnection(); 
+                Gig gig = this.repositoryUOW.GigRepository.GetById(review.Gig_id.ToString());
+                if (gig == null)
+                {
+                    return false;
+                }
+
+                // Gig creator cannot review own gig.
+                if (gig.Seller_id.ToString() == review.Buyer_id.ToString())
+                {
+                    return false;
+                }
+
+                List<Order> buyerOrders = this.repositoryUOW.OrderRepository.GetOrderByBuyerId(review.Buyer_id.ToString());
+                bool canReview = false;
+                foreach (Order order in buyerOrders)
+                {
+                    if (order.Gig_id == review.Gig_id && order.Order_status_id == 3)
+                    {
+                        canReview = true;
+                        break;
+                    }
+                }
+
+                if (canReview == false)
+                {
+                    return false;
+                }
+
+                review.Seller_id = Convert.ToInt32(gig.Seller_id);
+                review.Review_creation_date = DateTime.Now.ToShortDateString();
                 return this.repositoryUOW.ReviewRepository.Create(review);
             }
             catch (Exception ex)
