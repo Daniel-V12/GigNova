@@ -358,35 +358,35 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CustomizeOrder(CustomizeOrderViewModel viewModel, List<IFormFile> orderFiles)
+        public async Task<IActionResult> CustomizeOrder([FromForm] CustomizeOrderModel model)
         {
-            string buyerId = HttpContext.Session.GetString("person_id");
-            if (buyerId == null)
+            model.Buyer_id = HttpContext.Session.GetString("person_id");
+
+            if (model.Buyer_id == null)
             {
                 return RedirectToAction("HomePage", "Guest");
             }
 
-            if (viewModel == null || viewModel.order == null)
+            if (model == null || model.Gig_id <= 0)
             {
                 return CustomizeOrderFailed("HomePage", null);
             }
 
-            viewModel.order.Buyer_id = Convert.ToInt32(buyerId);
-            viewModel.order.Is_payment = true;
-            if (viewModel.order.Order_requirements == null)
+            if (model.requirements == null)
             {
-                viewModel.order.Order_requirements = "";
+                model.requirements = "";
             }
 
-            List<Stream> filesToSend = BuildFileStreams(orderFiles);
-            bool response = await PostCustomizeOrder(viewModel, filesToSend);
+            List<Stream> filesToSend = BuildFileStreams(model.Files);
+
+            bool response = await PostCustomizeOrder(model, filesToSend);
+
             DisposeStreams(filesToSend);
 
             if (response == false)
             {
-                return CustomizeOrderFailed("CustomizeOrder", viewModel.order.Gig_id);
+                return CustomizeOrderFailed("CustomizeOrder", model.Gig_id);
             }
-
             return RedirectToAction("HomePage");
         }
 
@@ -401,7 +401,7 @@ namespace GigNovaWebApp.Controllers
         }
 
         private List<Stream> BuildFileStreams(List<IFormFile> orderFiles)
-        {
+        { 
             List<Stream> filesToSend = new List<Stream>();
             if (orderFiles != null)
             {
@@ -424,14 +424,14 @@ namespace GigNovaWebApp.Controllers
             }
         }
 
-        private async Task<bool> PostCustomizeOrder(CustomizeOrderViewModel viewModel, List<Stream> filesToSend)
+        private async Task<bool> PostCustomizeOrder(CustomizeOrderModel model, List<Stream> filesToSend)
         {
-            ApiClient<CustomizeOrderViewModel> client = new ApiClient<CustomizeOrderViewModel>();
+            ApiClient<CustomizeOrderModel> client = new ApiClient<CustomizeOrderModel>();
             client.Scheme = "https";
             client.Host = "localhost";
             client.Port = 7059;
             client.Path = "api/Buyer/CreateOrderAndPayWithFiles";
-            return await client.PostAsync(viewModel, filesToSend);
+            return await client.PostAsync(model, filesToSend);
         }
 
         [HttpGet]
@@ -484,9 +484,35 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpPost]
-        public IActionResult UploadGigReview(Review review)
+        public async Task<IActionResult> UploadGigReview(Review review)
         {
-            return View(review);
+            string buyerId = HttpContext.Session.GetString("person_id");
+            if (buyerId == null || buyerId == "")
+            {
+                return Json(new { success = false, message = "Please log in first." });
+            }
+
+            if (review == null)
+            {
+                return Json(new { success = false, message = "Invalid review data." });
+            }
+
+            review.Buyer_id = Convert.ToInt32(buyerId);
+            review.Review_creation_date = DateTime.Now.ToShortDateString();
+
+            ApiClient<Review> client = new ApiClient<Review>();
+            client.Scheme = "https";
+            client.Host = "localhost";
+            client.Port = 7059;
+            client.Path = "api/Buyer/UploadGigReview";
+
+            bool response = await client.PostAsync(review);
+            if (response == false)
+            {
+                return Json(new { success = false, message = "You can review only completed orders, and you cannot review your own gig." });
+            }
+
+            return Json(new { success = true, message = "Review uploaded successfully." });
         }
 
         [HttpPost]
@@ -513,7 +539,7 @@ namespace GigNovaWebApp.Controllers
             {
                 return RedirectToAction("HomePage", "Guest");
             }
-
+            
             if (seller == null)
             {
                 seller = new Seller();

@@ -98,6 +98,7 @@ namespace GigNovaWebApp.Controllers
                 client.AddParameter("gig_id", gig_id);
             }
             List<Review> reviews = await client.GetAsync();
+            ViewData["GigId"] = gig_id;
             return View(reviews);
         }
 
