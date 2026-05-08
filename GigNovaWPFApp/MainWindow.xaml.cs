@@ -25,8 +25,12 @@ namespace GigNovaWPFApp
 
         public void OpenSelectedGig(string gigId)
         {
-            SelectedGigPage page = new SelectedGigPage(gigId);
-            MainFrame.Content = page;
+            MainFrame.Content = new SelectedGigPage(gigId);
+        }
+
+        public void OpenGigReviews(string gigId)
+        {
+            MainFrame.Content = new GigReviewsPage(gigId);
         }
     }
 }

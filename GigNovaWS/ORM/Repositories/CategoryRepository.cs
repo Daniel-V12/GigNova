@@ -13,9 +13,8 @@ namespace GigNovaWS
         }
         public bool Create(Category model)
         {
-            string sql = "Insert into Categories (category_name, category_photo) values ( @category_name ,  @category_photo)";
+            string sql = "Insert into Categories (category_name) values ( @category_name )";
             this.dbHelperOledb.AddParameter("@category_name", model.Category_name);
-            this.dbHelperOledb.AddParameter("@category_photo", model.Category_photo);
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
@@ -54,8 +53,7 @@ namespace GigNovaWS
         public bool Update(Category model)
         {
             string sql = @"Update Categories set 
-            category_name = @category_name ,
-            category_photo = @category_photo
+            category_name = @category_name
             where category_id = @category_id";
             this.dbHelperOledb.AddParameter("@category_name", model.Category_name);
             this.dbHelperOledb.AddParameter("@category_id", model.Category_id);

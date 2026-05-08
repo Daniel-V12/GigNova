@@ -222,7 +222,7 @@ namespace GigNovaWS
 
         public List<Category> GetCategoriesByGigId(string gigId)
         {
-            string sql = @"SELECT Categories.category_id, Categories.category_name, Categories.category_photo
+            string sql = @"SELECT Categories.category_id, Categories.category_name
                            FROM Categories INNER JOIN [Gigs - Categories]
                            ON Categories.category_id = [Gigs - Categories].category_id
                            WHERE [Gigs - Categories].gig_id = @gig_id";
@@ -291,7 +291,7 @@ namespace GigNovaWS
         }
 
 
-        public bool UpdateGigPhoto(string FileName,string gig_id)
+        public bool UpdateGigPhoto(string FileName, string gig_id)
         {
             string sql = "UPDATE Gigs set gig_photo = @gig_photo where gig_id = @gig_id";
             this.dbHelperOledb.AddParameter("@gig_photo", FileName);

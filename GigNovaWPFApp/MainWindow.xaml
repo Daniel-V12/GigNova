@@ -8,7 +8,7 @@
         Height="820"
         Width="1400"
         WindowStartupLocation="CenterScreen"
-        Background="#F5F5F5">
+        Background="#1B1B1B">
 
     <Window.Resources>
         <Style x:Key="HeaderButtonStyle" TargetType="Button">
@@ -64,7 +64,7 @@
                     </Border>
                 </StackPanel>
 
-                <Button Grid.Column="1" Style="{StaticResource HeaderButtonStyle}" Content="View Catalog" Height="42" Padding="24,0" VerticalAlignment="Center" FontWeight="SemiBold" Click="ViewCatalogButton_Click"/>
+                <Button Grid.Column="1" Style="{StaticResource HeaderButtonStyle}" Content="View Catalog" Height="52" Padding="36,0" VerticalAlignment="Center" FontSize="23" FontWeight="Bold" Click="ViewCatalogButton_Click"/>
             </Grid>
         </Border>
 
