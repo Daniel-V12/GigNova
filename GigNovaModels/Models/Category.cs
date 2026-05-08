@@ -8,12 +8,11 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Category:Model
+    public class Category : Model
     {
 
         string category_id;
         string category_name;
-        string category_photo;
 
         public Category()
         {
@@ -32,11 +31,6 @@ namespace GigNovaModels.Models
         {
             get { return category_name; }
             set { category_name = value; }
-        }
-        public string Category_photo
-        {
-            get { return category_photo; }
-            set { category_photo = value; }
         }
     }
 }

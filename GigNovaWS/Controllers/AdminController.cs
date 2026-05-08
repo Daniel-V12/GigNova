@@ -53,14 +53,13 @@ namespace GigNovaWS.Controllers
         }
 
         [HttpPost]
-        public bool AddCategory(string category_name, string category_photo)
+        public bool AddCategory(string category_name)
         {
             try
             {
                 Category category = new Category
                 {
-                    Category_name = category_name,
-                    Category_photo = category_photo
+                    Category_name = category_name
                 };
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
                 return this.repositoryUOW.CategoryRepository.Create(category);
@@ -96,8 +95,7 @@ namespace GigNovaWS.Controllers
         }
 
         [HttpPost]
-        [HttpPost]
-        public bool UpdateCategory(string category_id, string category_name, string category_photo)
+        public bool UpdateCategory(string category_id, string category_name)
         {
             if (category_id == null)
             {
@@ -108,8 +106,7 @@ namespace GigNovaWS.Controllers
                 Category category = new Category
                 {
                     Category_id = category_id,
-                    Category_name = category_name,
-                    Category_photo = category_photo
+                    Category_name = category_name
                 };
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
                 return this.repositoryUOW.CategoryRepository.Update(category);

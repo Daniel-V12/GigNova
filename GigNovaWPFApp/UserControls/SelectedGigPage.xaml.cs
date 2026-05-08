@@ -1,13 +1,16 @@
 ﻿using GigNovaModels.ViewModels;
 using GigNovaWSClient;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace GigNovaWPFApp.UserControls
 {
     public partial class SelectedGigPage : UserControl
     {
+        private const string ImagesBaseUrl = "http://localhost:7059/Images/";
         private string gigId;
 
         public SelectedGigPage(string gigId)
@@ -33,10 +36,10 @@ namespace GigNovaWPFApp.UserControls
                 return;
             }
 
-            GigNameTitle.Text = model.gig.Gig_name;
             GigNameText.Text = model.gig.Gig_name;
             GigDescriptionText.Text = model.gig.Gig_description;
-            GigPriceText.Text = "Starting at $" + model.gig.Gig_price.ToString("0");
+            GigPriceText.Text = "$" + model.gig.Gig_price.ToString("0");
+            GigImageBorder.Background = MakeImageBrush(model.gig.Gig_photo);
 
             CategoriesWrap.Children.Clear();
             if (model.gig.Category_id != null && model.gig.Category_id.Trim() != "")
@@ -45,30 +48,50 @@ namespace GigNovaWPFApp.UserControls
                 foreach (string part in parts)
                 {
                     string t = part.Trim();
-                    if (t != "")
-                    {
-                        Border chip = new Border();
-                        chip.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2A2A"));
-                        chip.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
-                        chip.BorderThickness = new Thickness(1);
-                        chip.CornerRadius = new CornerRadius(8);
-                        chip.Padding = new Thickness(8, 4, 8, 4);
-                        chip.Margin = new Thickness(0, 0, 8, 8);
-                        TextBlock txt = new TextBlock();
-                        txt.Text = t;
-                        txt.Foreground = Brushes.White;
-                        txt.FontWeight = FontWeights.Bold;
-                        chip.Child = txt;
-                        CategoriesWrap.Children.Add(chip);
-                    }
+                    if (t != "") CategoriesWrap.Children.Add(MakeChip(t));
                 }
             }
 
             if (model.seller != null)
             {
                 SellerNameText.Text = model.seller.Seller_display_name;
-                SellerRatingText.Text = "Rating: " + model.Review.ToString("0.0");
+                SellerAvatar.Fill = MakeImageBrush(model.seller.Seller_avatar);
             }
+        }
+
+        private void ReviewsButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainWindow main = (MainWindow)Window.GetWindow(this);
+            main.OpenGigReviews(this.gigId);
+        }
+
+        private ImageBrush MakeImageBrush(string fileName)
+        {
+            if (fileName == null || fileName.Trim() == "") return null;
+            BitmapImage bmp = new BitmapImage(new Uri(ImagesBaseUrl + fileName, UriKind.Absolute));
+            ImageBrush brush = new ImageBrush(bmp);
+            brush.Stretch = Stretch.UniformToFill;
+            return brush;
+        }
+
+        private Border MakeChip(string text)
+        {
+            Border chip = new Border();
+            chip.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2A2A"));
+            chip.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#B83C5A"));
+            chip.BorderThickness = new Thickness(1);
+            chip.CornerRadius = new CornerRadius(10);
+            chip.Padding = new Thickness(10, 4, 10, 4);
+            chip.Margin = new Thickness(0, 0, 6, 6);
+
+            TextBlock txt = new TextBlock();
+            txt.Text = text;
+            txt.Foreground = Brushes.White;
+            txt.FontSize = 12;
+            txt.FontWeight = FontWeights.Bold;
+
+            chip.Child = txt;
+            return chip;
         }
     }
 }

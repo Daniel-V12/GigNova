@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace GigNovaWPFApp.UserControls
@@ -16,6 +17,7 @@ namespace GigNovaWPFApp.UserControls
 
         CatalogViewModel catalogViewModel;
         List<string> selectedCategoryIds;
+        bool isEditMode;
 
         public CatalogPage()
         {
@@ -28,6 +30,57 @@ namespace GigNovaWPFApp.UserControls
             MinPriceTextBox.LostFocus += PriceBox_LostFocus;
             MaxPriceTextBox.LostFocus += PriceBox_LostFocus;
             LoadCatalog(1);
+        }
+
+        private void EditModeButton_Click(object sender, RoutedEventArgs e)
+        {
+            isEditMode = !isEditMode;
+            if (isEditMode)
+            {
+                EditModeButton.Content = "Exit Edit Mode";
+                EditModeButton.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
+                AddCategoryButton.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                EditModeButton.Content = "Edit Mode";
+                EditModeButton.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3A3A3A"));
+                AddCategoryButton.Visibility = Visibility.Collapsed;
+            }
+            UpdateGigStyles();
+            UpdateCategoryStyles();
+        }
+
+        private void UpdateGigStyles()
+        {
+            Style s;
+            if (isEditMode) s = (Style)FindResource("GigCardEditStyle");
+            else s = (Style)FindResource("GigCardStyle");
+            foreach (object child in GigsWrapPanel.Children)
+            {
+                Button btn = child as Button;
+                if (btn != null) btn.Style = s;
+            }
+        }
+
+        private void UpdateCategoryStyles()
+        {
+            Style s;
+            if (isEditMode) s = (Style)FindResource("CategoryChipEditStyle");
+            else s = (Style)FindResource("CategoryChipStyle");
+            foreach (object child in CategoryWrapPanel.Children)
+            {
+                CheckBox cb = child as CheckBox;
+                if (cb != null) cb.Style = s;
+            }
+        }
+
+        private void AddCategoryButton_Click(object sender, RoutedEventArgs e)
+        {
+            CategoryDialog dialog = new CategoryDialog();
+            dialog.Owner = Window.GetWindow(this);
+            bool? result = dialog.ShowDialog();
+            if (result == true) LoadCatalog(1);
         }
 
         private void PriceBox_GotFocus(object sender, RoutedEventArgs e)
@@ -131,6 +184,10 @@ namespace GigNovaWPFApp.UserControls
             CategoryWrapPanel.Children.Clear();
             if (catalogViewModel.Categories == null) return;
 
+            Style chipStyle;
+            if (isEditMode) chipStyle = (Style)FindResource("CategoryChipEditStyle");
+            else chipStyle = (Style)FindResource("CategoryChipStyle");
+
             foreach (Category category in catalogViewModel.Categories)
             {
                 bool isSelected = false;
@@ -140,16 +197,60 @@ namespace GigNovaWPFApp.UserControls
                 }
 
                 CheckBox checkBox = new CheckBox();
+                checkBox.Style = chipStyle;
                 checkBox.Content = category.Category_name;
                 checkBox.Tag = category.Category_id;
-                checkBox.Margin = new Thickness(0, 0, 10, 10);
-                checkBox.Padding = new Thickness(10, 6, 10, 6);
-                checkBox.Foreground = Brushes.White;
-                checkBox.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2A2A"));
-                checkBox.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
-                checkBox.BorderThickness = new Thickness(1);
                 checkBox.IsChecked = isSelected;
+                checkBox.PreviewMouseLeftButtonDown += Category_PreviewMouseLeftButtonDown;
                 CategoryWrapPanel.Children.Add(checkBox);
+            }
+        }
+
+        private async void Category_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!isEditMode) return;
+            e.Handled = true;
+
+            CheckBox cb = sender as CheckBox;
+            string id = cb.Tag.ToString();
+            string name = cb.Content.ToString();
+
+            MessageBoxResult choice = MessageBox.Show(
+                "Category '" + name + "'\n\nYes  =  Edit name\nNo  =  Delete category\nCancel  =  Cancel",
+                "Edit or Delete",
+                MessageBoxButton.YesNoCancel);
+
+            if (choice == MessageBoxResult.Yes)
+            {
+                CategoryDialog dialog = new CategoryDialog(id, name);
+                dialog.Owner = Window.GetWindow(this);
+                bool? result = dialog.ShowDialog();
+                if (result == true) LoadCatalog(1);
+                return;
+            }
+
+            if (choice == MessageBoxResult.No)
+            {
+                MessageBoxResult confirm = MessageBox.Show(
+                    "Are you sure you want to delete the category '" + name + "'?",
+                    "Confirm Delete",
+                    MessageBoxButton.YesNo);
+                if (confirm != MessageBoxResult.Yes) return;
+
+                ApiClient<bool> client = new ApiClient<bool>();
+                client.Scheme = "https";
+                client.Host = "localhost";
+                client.Port = 7059;
+                client.Path = "api/Admin/RemoveCategory";
+                client.AddParameter("category_id", id);
+
+                bool ok = await client.PostAsync(false);
+                if (!ok)
+                {
+                    MessageBox.Show("Failed to delete category.", "GigNova");
+                    return;
+                }
+                LoadCatalog(1);
             }
         }
 
@@ -199,7 +300,9 @@ namespace GigNovaWPFApp.UserControls
                 ComboBoxItem item = comboBox.Items[i] as ComboBoxItem;
                 if (item != null)
                 {
-                    string tag = item.Tag == null ? "0" : item.Tag.ToString();
+                    string tag;
+                    if (item.Tag == null) tag = "0";
+                    else tag = item.Tag.ToString();
                     if (tag == tagValue) { comboBox.SelectedIndex = i; return; }
                 }
             }
@@ -209,7 +312,8 @@ namespace GigNovaWPFApp.UserControls
         private void ShowGigs()
         {
             GigsWrapPanel.Children.Clear();
-            int count = catalogViewModel.Gigs == null ? 0 : catalogViewModel.Gigs.Count;
+            int count = 0;
+            if (catalogViewModel.Gigs != null) count = catalogViewModel.Gigs.Count;
             ResultsTextBlock.Text = "Available Gigs (" + count + " on this page)";
 
             if (catalogViewModel.Gigs == null || catalogViewModel.Gigs.Count == 0)
@@ -232,6 +336,10 @@ namespace GigNovaWPFApp.UserControls
                 return;
             }
 
+            Style cardStyle;
+            if (isEditMode) cardStyle = (Style)FindResource("GigCardEditStyle");
+            else cardStyle = (Style)FindResource("GigCardStyle");
+
             for (int i = 0; i < catalogViewModel.Gigs.Count; i++)
             {
                 Gig gig = catalogViewModel.Gigs[i];
@@ -242,21 +350,16 @@ namespace GigNovaWPFApp.UserControls
                 }
 
                 Button cardButton = new Button();
+                cardButton.Style = cardStyle;
                 cardButton.Width = 260;
                 cardButton.Margin = new Thickness(0, 0, 16, 16);
-                cardButton.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#111111"));
-                cardButton.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
-                cardButton.BorderThickness = new Thickness(1);
-                cardButton.Padding = new Thickness(0);
-                cardButton.Cursor = System.Windows.Input.Cursors.Hand;
                 cardButton.ToolTip = "Open gig";
-                string gigId = gig.Gig_id;
-                cardButton.Click += (s, e) => { if (GigSelected != null) GigSelected(gigId); };
+                cardButton.Tag = gig.Gig_id;
+                cardButton.Click += GigCard_Click;
 
                 Border inner = new Border();
                 inner.CornerRadius = new CornerRadius(10);
                 inner.Padding = new Thickness(12);
-                inner.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#111111"));
 
                 StackPanel panel = new StackPanel();
                 TextBlock title = new TextBlock();
@@ -324,6 +427,40 @@ namespace GigNovaWPFApp.UserControls
             }
         }
 
+        private async void GigCard_Click(object sender, RoutedEventArgs e)
+        {
+            Button btn = sender as Button;
+            string gigId = btn.Tag.ToString();
+
+            if (isEditMode)
+            {
+                MessageBoxResult result = MessageBox.Show(
+                    "Are you sure you want to delete this gig?",
+                    "Confirm Delete",
+                    MessageBoxButton.YesNo);
+                if (result != MessageBoxResult.Yes) return;
+
+                ApiClient<bool> client = new ApiClient<bool>();
+                client.Scheme = "https";
+                client.Host = "localhost";
+                client.Port = 7059;
+                client.Path = "api/Admin/RemoveGig";
+                client.AddParameter("gig_id", gigId);
+
+                bool ok = await client.PostAsync(false);
+                if (!ok)
+                {
+                    MessageBox.Show("Failed to delete gig.", "GigNova");
+                    return;
+                }
+                LoadCatalog(catalogViewModel.Page);
+            }
+            else
+            {
+                if (GigSelected != null) GigSelected(gigId);
+            }
+        }
+
         private void ShowPagination()
         {
             PaginationPanel.Children.Clear();
@@ -354,16 +491,12 @@ namespace GigNovaWPFApp.UserControls
         private Button CreatePageButton(string text, bool isEnabled)
         {
             Button button = new Button();
+            button.Style = (Style)FindResource("PageButtonStyle");
             button.Content = text;
             button.Margin = new Thickness(4, 0, 4, 0);
-            button.Padding = new Thickness(12, 6, 12, 6);
-            button.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3A3A3A"));
-            button.Foreground = Brushes.White;
-            button.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
-            button.BorderThickness = new Thickness(1);
             button.IsEnabled = isEnabled;
-            button.Opacity = isEnabled ? 1.0 : 0.5;
-            button.Cursor = System.Windows.Input.Cursors.Hand;
+            if (isEnabled) button.Opacity = 1.0;
+            else button.Opacity = 0.5;
             return button;
         }
 
@@ -389,14 +522,16 @@ namespace GigNovaWPFApp.UserControls
             if (text == "Min $" || text == "Max $") return 0;
             double value;
             bool ok = double.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out value);
-            return ok ? value : 0;
+            if (ok) return value;
+            return 0;
         }
 
         private int ParseInt(string text)
         {
             int value;
             bool ok = int.TryParse(text, out value);
-            return ok ? value : 0;
+            if (ok) return value;
+            return 0;
         }
 
         private string GetComboTag(ComboBox comboBox)

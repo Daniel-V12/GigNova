@@ -23,7 +23,7 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddCategory(string category_name, string category_photo)
+        public IActionResult AddCategory(string category_name)
         {
             return View();
         }
@@ -35,7 +35,7 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdateCategory(string category_id, string category_name, string category_photo)
+        public IActionResult UpdateCategory(string category_id, string category_name)
         {
             return View();
         }
