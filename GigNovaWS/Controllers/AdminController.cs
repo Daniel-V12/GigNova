@@ -134,7 +134,7 @@ namespace GigNovaWS.Controllers
         }
 
         [HttpGet]
-        public BlockedListViewModel GetBlockedListViewModel(string type, string search, int page)
+        public BlockedListViewModel GetBlockedListViewModel(string type = "gig", string search = "", int page = 1)
         {
             BlockedListViewModel viewModel = new BlockedListViewModel();
             if (search == null) search = "";
