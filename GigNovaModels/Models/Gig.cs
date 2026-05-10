@@ -19,10 +19,10 @@ namespace GigNovaModels.Models
         string gig_date;
         string gig_photo;
         double gig_price;
-        int gig_rating;
         int seller_id;
         bool is_publish;
         bool has_revisions;
+        bool is_blocked;
         string category_id;
 
         public Gig()
@@ -75,18 +75,20 @@ namespace GigNovaModels.Models
         public string Gig_photo
         {
             get { return gig_photo; }
-            set { 
+            set
+            {
                 if (gig_photo == null)
                 {
                     gig_photo = "none";
                 }
-                   
-                 else
+
+                else
                 {
                     gig_photo = value;
                 }
-                    
-                ValidateProperty(value, "Gig_photo"); }
+
+                ValidateProperty(value, "Gig_photo");
+            }
         }
 
         //[Required(ErrorMessage = "Gig price is required")]
@@ -111,6 +113,12 @@ namespace GigNovaModels.Models
         {
             get { return has_revisions; }
             set { has_revisions = value; }
+        }
+
+        public bool Is_blocked
+        {
+            get { return is_blocked; }
+            set { is_blocked = value; }
         }
 
         public string Category_id

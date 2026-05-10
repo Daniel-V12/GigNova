@@ -40,15 +40,25 @@ namespace GigNovaWPFApp.UserControls
                 EditModeButton.Content = "Exit Edit Mode";
                 EditModeButton.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
                 AddCategoryButton.Visibility = Visibility.Visible;
+                ViewBlockedButton.Visibility = Visibility.Visible;
             }
             else
             {
                 EditModeButton.Content = "Edit Mode";
                 EditModeButton.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3A3A3A"));
                 AddCategoryButton.Visibility = Visibility.Collapsed;
+                ViewBlockedButton.Visibility = Visibility.Collapsed;
             }
             UpdateGigStyles();
             UpdateCategoryStyles();
+        }
+
+        private void ViewBlockedButton_Click(object sender, RoutedEventArgs e)
+        {
+            BlockedListDialog dialog = new BlockedListDialog();
+            dialog.Owner = Window.GetWindow(this);
+            dialog.ShowDialog();
+            if (dialog.DidChange) LoadCatalog(1);
         }
 
         private void UpdateGigStyles()
@@ -216,8 +226,8 @@ namespace GigNovaWPFApp.UserControls
             string name = cb.Content.ToString();
 
             MessageBoxResult choice = MessageBox.Show(
-                "Category '" + name + "'\n\nYes  =  Edit name\nNo  =  Delete category\nCancel  =  Cancel",
-                "Edit or Delete",
+                "Category '" + name + "'\n\nYes  =  Edit name\nNo  =  Block category\nCancel  =  Cancel",
+                "Edit or Block",
                 MessageBoxButton.YesNoCancel);
 
             if (choice == MessageBoxResult.Yes)
@@ -232,8 +242,8 @@ namespace GigNovaWPFApp.UserControls
             if (choice == MessageBoxResult.No)
             {
                 MessageBoxResult confirm = MessageBox.Show(
-                    "Are you sure you want to delete the category '" + name + "'?",
-                    "Confirm Delete",
+                    "Are you sure you want to block the category '" + name + "'?",
+                    "Confirm Block",
                     MessageBoxButton.YesNo);
                 if (confirm != MessageBoxResult.Yes) return;
 
@@ -241,13 +251,13 @@ namespace GigNovaWPFApp.UserControls
                 client.Scheme = "https";
                 client.Host = "localhost";
                 client.Port = 7059;
-                client.Path = "api/Admin/RemoveCategory";
+                client.Path = "api/Admin/BlockCategory";
                 client.AddParameter("category_id", id);
 
                 bool ok = await client.PostAsync(false);
                 if (!ok)
                 {
-                    MessageBox.Show("Failed to delete category.", "GigNova");
+                    MessageBox.Show("Failed to block category.", "GigNova");
                     return;
                 }
                 LoadCatalog(1);
@@ -435,8 +445,8 @@ namespace GigNovaWPFApp.UserControls
             if (isEditMode)
             {
                 MessageBoxResult result = MessageBox.Show(
-                    "Are you sure you want to delete this gig?",
-                    "Confirm Delete",
+                    "Are you sure you want to block this gig?",
+                    "Confirm Block",
                     MessageBoxButton.YesNo);
                 if (result != MessageBoxResult.Yes) return;
 
@@ -444,13 +454,13 @@ namespace GigNovaWPFApp.UserControls
                 client.Scheme = "https";
                 client.Host = "localhost";
                 client.Port = 7059;
-                client.Path = "api/Admin/RemoveGig";
+                client.Path = "api/Admin/BlockGig";
                 client.AddParameter("gig_id", gigId);
 
                 bool ok = await client.PostAsync(false);
                 if (!ok)
                 {
-                    MessageBox.Show("Failed to delete gig.", "GigNova");
+                    MessageBox.Show("Failed to block gig.", "GigNova");
                     return;
                 }
                 LoadCatalog(catalogViewModel.Page);

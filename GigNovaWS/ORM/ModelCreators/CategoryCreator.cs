@@ -10,6 +10,7 @@ namespace GigNovaWS
             Category category = new Category();
             category.Category_id = Convert.ToString(dataReader["category_id"]);
             category.Category_name = Convert.ToString(dataReader["category_name"]);
+            category.Is_blocked = Convert.ToBoolean(dataReader["is_blocked"]);
 
             return category;
         }
