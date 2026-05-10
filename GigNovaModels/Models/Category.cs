@@ -13,6 +13,7 @@ namespace GigNovaModels.Models
 
         string category_id;
         string category_name;
+        bool is_blocked;
 
         public Category()
         {
@@ -31,6 +32,12 @@ namespace GigNovaModels.Models
         {
             get { return category_name; }
             set { category_name = value; }
+        }
+
+        public bool Is_blocked
+        {
+            get { return is_blocked; }
+            set { is_blocked = value; }
         }
     }
 }

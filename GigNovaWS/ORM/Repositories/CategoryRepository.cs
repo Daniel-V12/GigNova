@@ -13,8 +13,9 @@ namespace GigNovaWS
         }
         public bool Create(Category model)
         {
-            string sql = "Insert into Categories (category_name) values ( @category_name )";
+            string sql = "Insert into Categories (category_name, is_blocked) values ( @category_name, @is_blocked )";
             this.dbHelperOledb.AddParameter("@category_name", model.Category_name);
+            this.dbHelperOledb.AddParameter("@is_blocked", false);
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
@@ -52,12 +53,46 @@ namespace GigNovaWS
 
         public bool Update(Category model)
         {
-            string sql = @"Update Categories set 
+            string sql = @"Update Categories set
             category_name = @category_name
             where category_id = @category_id";
             this.dbHelperOledb.AddParameter("@category_name", model.Category_name);
             this.dbHelperOledb.AddParameter("@category_id", model.Category_id);
             return this.dbHelperOledb.Update(sql) > 0;
+        }
+
+        public bool Block(string id)
+        {
+            string sql = @"Update Categories set
+            is_blocked = @is_blocked
+            where category_id = @category_id";
+            this.dbHelperOledb.AddParameter("@is_blocked", true);
+            this.dbHelperOledb.AddParameter("@category_id", id);
+            return this.dbHelperOledb.Update(sql) > 0;
+        }
+
+        public bool Unblock(string id)
+        {
+            string sql = @"Update Categories set
+            is_blocked = @is_blocked
+            where category_id = @category_id";
+            this.dbHelperOledb.AddParameter("@is_blocked", false);
+            this.dbHelperOledb.AddParameter("@category_id", id);
+            return this.dbHelperOledb.Update(sql) > 0;
+        }
+
+        public List<Category> GetBlocked()
+        {
+            string sql = "Select * from Categories where is_blocked = True";
+            List<Category> categories = new List<Category>();
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                while (reader.Read())
+                {
+                    categories.Add(this.modelCreators.CategoryCreator.CreateModel(reader));
+                }
+            }
+            return categories;
         }
     }
 }

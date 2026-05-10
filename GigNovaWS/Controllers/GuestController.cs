@@ -27,12 +27,13 @@ namespace GigNovaWS.Controllers
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
-                catalogviewModel.Categories = this.repositoryUOW.CategoryRepository.GetAll();
+                catalogviewModel.Categories = FilterUnblockedCategories(this.repositoryUOW.CategoryRepository.GetAll());
                 catalogviewModel.Languages = this.repositoryUOW.LanguageRepository.GetAll();
                 catalogviewModel.Delivery_Times = this.repositoryUOW.Delivery_timeRepository.GetAll();
-                
+
                 List<Gig> gigs = GetGigsByCategories(categories);
                 gigs = FilterPublishedGigs(gigs);
+                gigs = FilterUnblockedGigs(gigs);
                 gigs = FilterByPrice(gigs, min_price, max_price);
                 gigs = FilterByDeliveryTime(gigs, delivery_time_id);
                 gigs = FilterByLanguage(gigs, language_id);
@@ -144,6 +145,42 @@ namespace GigNovaWS.Controllers
                 if (gig != null && gig.Is_publish)
                 {
                     filtered.Add(gig);
+                }
+            }
+            return filtered;
+        }
+
+        private List<Gig> FilterUnblockedGigs(List<Gig> gigs)
+        {
+            List<Gig> filtered = new List<Gig>();
+            if (gigs == null)
+            {
+                return filtered;
+            }
+
+            foreach (Gig gig in gigs)
+            {
+                if (gig != null && gig.Is_blocked == false)
+                {
+                    filtered.Add(gig);
+                }
+            }
+            return filtered;
+        }
+
+        private List<Category> FilterUnblockedCategories(List<Category> categories)
+        {
+            List<Category> filtered = new List<Category>();
+            if (categories == null)
+            {
+                return filtered;
+            }
+
+            foreach (Category category in categories)
+            {
+                if (category != null && category.Is_blocked == false)
+                {
+                    filtered.Add(category);
                 }
             }
             return filtered;
@@ -392,7 +429,6 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
-
         [HttpPost]
         public int LogIn(LoginRequestViewModel loginRequest)
         {

@@ -15,10 +15,8 @@ namespace GigNovaWS
 
         public bool Create(Gig model)
         {
-            //string sql = @$"Insert into Gigs (gig_name, gig_description, gig_date, gig_price)
-            //values ( '{model.Gig_name}' , '{model.Gig_description}', '{model.Gig_date}', '{model.Gig_price}' )";
-            string sql = @$"Insert into Gigs (gig_name, gig_description, language_id, gig_date, gig_photo, gig_price , seller_id, is_publish, has_revisions , delivery_time_id)
-            values ( @gig_name , @gig_description ,@language_id, @gig_date , @gig_photo, @gig_price, @seller_id , @is_publish, @has_revisions, @delivery_time_id )";
+            string sql = @$"Insert into Gigs (gig_name, gig_description, language_id, gig_date, gig_photo, gig_price , seller_id, is_publish, has_revisions , delivery_time_id, is_blocked)
+            values ( @gig_name , @gig_description ,@language_id, @gig_date , @gig_photo, @gig_price, @seller_id , @is_publish, @has_revisions, @delivery_time_id, @is_blocked )";
             this.dbHelperOledb.AddParameter("@gig_name", model.Gig_name);
             this.dbHelperOledb.AddParameter("@gig_description", model.Gig_description);
             this.dbHelperOledb.AddParameter("@language_id", model.Language_id);
@@ -29,13 +27,14 @@ namespace GigNovaWS
             this.dbHelperOledb.AddParameter("@is_publish", false);
             this.dbHelperOledb.AddParameter("@has_revisions", false);
             this.dbHelperOledb.AddParameter("@delivery_time_id", model.Delivery_time_id);
+            this.dbHelperOledb.AddParameter("@is_blocked", false);
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
         public bool CreateBySeller(Gig model)
         {
-            string sql = @$"Insert into Gigs (gig_name, gig_description, gig_date, gig_price, gig_photo, language_id, delivery_time_id, seller_id, is_publish, has_revisions)
-    values ( @gig_name , @gig_description , @gig_date , @gig_price, @gig_photo, @language_id, @delivery_time_id, @seller_id, @is_publish, @has_revisions )";
+            string sql = @$"Insert into Gigs (gig_name, gig_description, gig_date, gig_price, gig_photo, language_id, delivery_time_id, seller_id, is_publish, has_revisions, is_blocked)
+    values ( @gig_name , @gig_description , @gig_date , @gig_price, @gig_photo, @language_id, @delivery_time_id, @seller_id, @is_publish, @has_revisions, @is_blocked )";
             this.dbHelperOledb.AddParameter("@gig_name", model.Gig_name);
             this.dbHelperOledb.AddParameter("@gig_description", model.Gig_description);
             this.dbHelperOledb.AddParameter("@gig_date", DateTime.Now.ToShortDateString());
@@ -46,6 +45,7 @@ namespace GigNovaWS
             this.dbHelperOledb.AddParameter("@seller_id", model.Seller_id);
             this.dbHelperOledb.AddParameter("@is_publish", false);
             this.dbHelperOledb.AddParameter("@has_revisions", model.Has_revisions);
+            this.dbHelperOledb.AddParameter("@is_blocked", false);
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
@@ -135,13 +135,47 @@ namespace GigNovaWS
 
         public bool SetPublishStatus(string gigId, string sellerId, bool isPublish)
         {
-            string sql = @"Update Gigs set 
+            string sql = @"Update Gigs set
             is_publish = @is_publish
             where gig_id = @gig_id and seller_id = @seller_id";
             this.dbHelperOledb.AddParameter("@is_publish", isPublish);
             this.dbHelperOledb.AddParameter("@gig_id", gigId);
             this.dbHelperOledb.AddParameter("@seller_id", sellerId);
             return this.dbHelperOledb.Update(sql) > 0;
+        }
+
+        public bool Block(string id)
+        {
+            string sql = @"Update Gigs set
+            is_blocked = @is_blocked
+            where gig_id = @gig_id";
+            this.dbHelperOledb.AddParameter("@is_blocked", true);
+            this.dbHelperOledb.AddParameter("@gig_id", id);
+            return this.dbHelperOledb.Update(sql) > 0;
+        }
+
+        public bool Unblock(string id)
+        {
+            string sql = @"Update Gigs set
+            is_blocked = @is_blocked
+            where gig_id = @gig_id";
+            this.dbHelperOledb.AddParameter("@is_blocked", false);
+            this.dbHelperOledb.AddParameter("@gig_id", id);
+            return this.dbHelperOledb.Update(sql) > 0;
+        }
+
+        public List<Gig> GetBlocked()
+        {
+            string sql = "Select * from Gigs where is_blocked = True";
+            List<Gig> gigs = new List<Gig>();
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                while (reader.Read())
+                {
+                    gigs.Add(this.modelCreators.GigCreator.CreateModel(reader));
+                }
+            }
+            return gigs;
         }
 
         public List<Gig> GetGigByPrice(double price)
@@ -172,10 +206,10 @@ namespace GigNovaWS
         public List<Gig> GetGigByCategories(string[] categories)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(@"SELECT Gigs.gig_id, Gigs.gig_name, Gigs.gig_description, Gigs.delivery_time_id, 
-                          Gigs.language_id, Gigs.gig_date, Gigs.gig_photo, Gigs.gig_price, Gigs.seller_id, 
-                          Gigs.is_publish, Gigs.has_revisions, [Gigs - Categories].category_id
-                          FROM Gigs 
+            sb.Append(@"SELECT Gigs.gig_id, Gigs.gig_name, Gigs.gig_description, Gigs.delivery_time_id,
+                          Gigs.language_id, Gigs.gig_date, Gigs.gig_photo, Gigs.gig_price, Gigs.seller_id,
+                          Gigs.is_publish, Gigs.has_revisions, Gigs.is_blocked, [Gigs - Categories].category_id
+                          FROM Gigs
                           INNER JOIN [Gigs - Categories] ON Gigs.gig_id = [Gigs - Categories].gig_id");
             if (categories != null && categories.Length > 0)
             {
@@ -222,7 +256,7 @@ namespace GigNovaWS
 
         public List<Category> GetCategoriesByGigId(string gigId)
         {
-            string sql = @"SELECT Categories.category_id, Categories.category_name
+            string sql = @"SELECT Categories.category_id, Categories.category_name, Categories.is_blocked
                            FROM Categories INNER JOIN [Gigs - Categories]
                            ON Categories.category_id = [Gigs - Categories].category_id
                            WHERE [Gigs - Categories].gig_id = @gig_id";
@@ -299,30 +333,5 @@ namespace GigNovaWS
             return this.dbHelperOledb.Update(sql) > 0;
 
         }
-        //public int GetGigCount()
-        //{
-        //    string sql = "Select Count(gig_id) as GigCount from Gigs";
-        //    using (IDataReader reader = this.dbHelperOledb.Select(sql))
-        //    {
-        //        reader.Read();
-        //        return Convert.ToInt32(reader["GigCount"]);
-        //    }
-        //}
-
-
-        //public List<Gig> GetGigsByRating(string rating)
-        //{
-        //    string sql = @"Select * from Gigs where review_rating = @review_rating ";
-        //    this.dbHelperOledb.AddParameter("@review_rating", review_rating);
-        //    List<Gig> gigs = new List<Gig>();
-        //    using (IDataReader reader = this.dbHelperOledb.Select(sql))
-        //    {
-        //        while (reader.Read())
-        //        {
-        //            gigs.Add(this.modelCreators.GigCreator.CreateModel(reader));
-        //        }
-        //    }
-        //    return gigs;
-        //}
     }
 }
