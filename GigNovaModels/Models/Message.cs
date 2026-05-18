@@ -7,14 +7,13 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Message:Model
+    public class Message : Model
     {
 
         string message_id;
         int sender_id;
         int reciever_id;
         string message_text;
-        int message_type_id;
         string message_date;
         int order_id;
 
@@ -39,18 +38,13 @@ namespace GigNovaModels.Models
         }
 
         [Required(ErrorMessage = "Message text is required")]
+        [StringLength(1000, MinimumLength = 1, ErrorMessage = "Message must be between 1 and 1000 characters")]
         public string Message_text
         {
-            get { return message_text;}
+            get { return message_text; }
             set { message_text = value; }
         }
 
-        [Required(ErrorMessage = "Message type is required")]
-        public int Message_type_id
-        {
-            get { return message_type_id; }
-            set { message_type_id = value; }
-        }
         public string Message_date
         {
             get { return message_date; }

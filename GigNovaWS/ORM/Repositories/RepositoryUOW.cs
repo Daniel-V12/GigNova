@@ -13,7 +13,6 @@
         LanguageRepository languageRepository;
         Order_statusRepository order_statusRepository;
         Order_filesRepository order_filesRepository;
-        Message_typeRepository message_typeRepository;
         Delivery_timeRepository delivery_timeRepository;
         DeliveryRepository deliveryRepository;
         DbHelperOledb dbHelperOledb;
@@ -131,15 +130,6 @@
                 if (this.order_filesRepository == null)
                     this.order_filesRepository = new Order_filesRepository(this.dbHelperOledb, this.modelCreators);
                 return this.order_filesRepository;
-            }
-        }
-        public Message_typeRepository Message_typeRepository
-        {
-            get
-            {
-                if (this.message_typeRepository == null)
-                    this.message_typeRepository = new Message_typeRepository(this.dbHelperOledb, this.modelCreators);
-                return this.message_typeRepository;
             }
         }
 

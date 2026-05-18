@@ -11,6 +11,5 @@ namespace GigNovaModels.ViewModels
     {
         public Message message { get; set; }
         public Order order { get; set; }
-        public Message_type message_type { get; set; }
     }
 }

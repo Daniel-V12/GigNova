@@ -30,6 +30,12 @@
         deliveryTimes = Model.DeliveryTimes.Where(x => x != null).ToList();
     }
 
+    List<Category> allCategories = new List<Category>();
+    if (Model != null && Model.AllCategories != null)
+    {
+        allCategories = Model.AllCategories.Where(x => x != null).ToList();
+    }
+
     Dictionary<string, string> deliveryNameById = new Dictionary<string, string>();
     foreach (Delivery_time deliveryTime in deliveryTimes)
     {
@@ -42,6 +48,22 @@
     bool isDraftGig = selectedGig != null && selectedGig.Gig_id == "__new";
     bool isEditing = string.IsNullOrWhiteSpace(selectedGig.Gig_id) == false && isDraftGig == false;
     string selectedPhoto = selectedGig.Gig_photo ?? "";
+
+    List<string> selectedCategoryIds = new List<string>();
+    if (selectedGig.Category_ids != null && selectedGig.Category_ids.Count > 0)
+    {
+        foreach (string categoryId in selectedGig.Category_ids)
+        {
+            if (string.IsNullOrWhiteSpace(categoryId) == false)
+            {
+                selectedCategoryIds.Add(categoryId);
+            }
+        }
+    }
+    if (selectedCategoryIds.Count == 0)
+    {
+        selectedCategoryIds.Add("");
+    }
 }
 
 
@@ -153,16 +175,42 @@
                 </div>
             </div>
 
+            <label class="field-label">Categories</label>
+            <div class="category-picker" id="categoryPicker">
+                @for (int i = 0; i < selectedCategoryIds.Count; i++)
+                {
+                    string currentValue = selectedCategoryIds[i];
+                    <div class="category-row">
+                        <select class="field-input category-select" name="Category_ids">
+                            <option value="">Select category</option>
+                            @foreach (Category category in allCategories)
+                            {
+                                if (category.Category_id == currentValue)
+                                {
+                                    <option value="@category.Category_id" selected>@category.Category_name</option>
+                                }
+                                else
+                                {
+                                    <option value="@category.Category_id">@category.Category_name</option>
+                                }
+                            }
+                        </select>
+                        <button type="button" class="category-remove-btn" onclick="removeCategoryRow(this)">x</button>
+                    </div>
+                }
+            </div>
+            <button type="button" class="outline-btn category-add-btn" onclick="addCategoryRow()">+ Add another category</button>
+
             <label class="field-label" for="Gig_description">Description</label>
             <textarea class="field-textarea" id="Gig_description" name="Gig_description" maxlength="2000" required>@selectedGig.Gig_description</textarea>
 
             <label class="field-label" for="gigPhotoFile">Gig Photo (image only)</label>
             <input class="field-file" id="gigPhotoFile" name="gigPhotoFile" type="file" accept="image/*" />
 
-            @if (string.IsNullOrWhiteSpace(selectedPhoto) == false)
+            @if (string.IsNullOrWhiteSpace(selectedPhoto) == false && selectedPhoto != "none")
             {
                 <p class="photo-label">Current photo:</p>
-                <img class="gig-photo-preview" src="http://localhost:7059/Images/@selectedPhoto" alt="Gig photo" />
+                <img class="gig-photo-preview" src="https://localhost:7059/Images/@selectedPhoto" alt="Gig photo" />
             }
 
             <div class="editor-buttons">
@@ -188,3 +236,44 @@
         }
     </section>
 </div>
+
+<script>
+    function buildCategoryOptionsHtml() {
+        var picker = document.getElementById('categoryPicker');
+        var firstSelect = picker.querySelector('select.category-select');
+        if (firstSelect == null) {
+            return '<option value="">Select category</option>';
+        }
+        var optionsHtml = '';
+        for (var i = 0; i < firstSelect.options.length; i++) {
+            var option = firstSelect.options[i];
+            optionsHtml += '<option value="' + option.value + '">' + option.text + '</option>';
+        }
+        return optionsHtml;
+    }
+
+    function addCategoryRow() {
+        var picker = document.getElementById('categoryPicker');
+        var row = document.createElement('div');
+        row.className = 'category-row';
+        row.innerHTML =
+            '<select class="field-input category-select" name="Category_ids">' +
+            buildCategoryOptionsHtml() +
+            '</select>' +
+            '<button type="button" class="category-remove-btn" onclick="removeCategoryRow(this)">x</button>';
+        picker.appendChild(row);
+    }
+
+    function removeCategoryRow(button) {
+        var picker = document.getElementById('categoryPicker');
+        var rows = picker.querySelectorAll('.category-row');
+        if (rows.length <= 1) {
+            var select = rows[0].querySelector('select.category-select');
+            if (select != null) {
+                select.value = '';
+            }
+            return;
+        }
+        button.parentElement.remove();
+    }
+</script>

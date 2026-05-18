@@ -25,9 +25,9 @@ namespace GigNovaModels.Models
             set { category_id = value; }
         }
 
-        [FirstLetterCaps(ErrorMessage = "Category must start with a capital letter")]
-        [Required(ErrorMessage = "category is required")]
-        [StringLength(20, MinimumLength = 2, ErrorMessage = "Category must be no longer than 20 characters and no less than 2")]
+        [Required(ErrorMessage = "Category name is required")]
+        [FirstLetterCaps(ErrorMessage = "Each word in category name must start with a capital letter")]
+        [StringLength(30, MinimumLength = 2, ErrorMessage = "Category name must be between 2 and 30 characters")]
         public string Category_name
         {
             get { return category_name; }
