@@ -179,15 +179,21 @@ namespace GigNovaWebApp.Controllers
             }
 
             sellerToUpdate.Seller_id = sellerId;
-            if (sellerToUpdate.Seller_display_name == null || sellerToUpdate.Seller_display_name.Trim() == "")
-            {
-                TempData["SellerProfileMessage"] = "Display name is required.";
-                return RedirectToAction("SellerProfile", new { seller_id = sellerId });
-            }
 
-            if (sellerToUpdate.Seller_description == null)
+            sellerToUpdate.Validate();
+            if (sellerToUpdate.HasErrors)
             {
-                sellerToUpdate.Seller_description = "";
+                string firstError = "Please fix the highlighted fields.";
+                foreach (KeyValuePair<string, List<string>> entry in sellerToUpdate.AllErrors())
+                {
+                    if (entry.Value != null && entry.Value.Count > 0)
+                    {
+                        firstError = entry.Value[0];
+                        break;
+                    }
+                }
+                TempData["SellerProfileMessage"] = firstError;
+                return RedirectToAction("SellerProfile", new { seller_id = sellerId });
             }
 
             List<Stream> avatarFiles = new List<Stream>();
@@ -358,6 +364,7 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpPost]
+        [HttpPost]
         public async Task<IActionResult> AddGig(Gig gig, IFormFile gigPhotoFile, List<string> Category_ids)
         {
             string sellerId = HttpContext.Session.GetString("person_id");
@@ -372,17 +379,39 @@ namespace GigNovaWebApp.Controllers
             }
 
             gig.Seller_id = int.TryParse(sellerId, out int sellerIdValue) ? sellerIdValue : 0;
-            if (string.IsNullOrWhiteSpace(gig.Gig_name) || string.IsNullOrWhiteSpace(gig.Gig_description) || gig.Gig_price <= 0 || gig.Delivery_time_id <= 0)
-            {
-                TempData["ManageGigMessage"] = "Please fill title, description, delivery time and price.";
-                return RedirectToAction("ManageGigs", new { seller_id = sellerId });
-            }
 
             if (gig.Language_id <= 0)
             {
                 gig.Language_id = 1;
             }
             gig.Language_id = 1; // Delete later test code
+
+            if (ModelState.IsValid == false)
+            {
+                string firstError = "Please fill required fields.";
+                foreach (var entry in ModelState.Values)
+                {
+                    if (entry.Errors.Count > 0)
+                    {
+                        firstError = entry.Errors[0].ErrorMessage;
+                        break;
+                    }
+                }
+                TempData["ManageGigMessage"] = firstError;
+                return RedirectToAction("ManageGigs", new { seller_id = sellerId });
+            }
+
+            gig.Category_ids = new List<string>();
+            if (Category_ids != null)
+            {
+                foreach (string categoryId in Category_ids)
+                {
+                    if (string.IsNullOrWhiteSpace(categoryId) == false && gig.Category_ids.Contains(categoryId) == false)
+                    {
+                        gig.Category_ids.Add(categoryId);
+                    }
+                }
+            }
 
             ApiClient<Gig> client = new ApiClient<Gig>();
             client.Scheme = "https";
@@ -397,8 +426,7 @@ namespace GigNovaWebApp.Controllers
                 if (gigPhotoFile != null && gigPhotoFile.Length > 0)
                 {
                     photoStream = gigPhotoFile.OpenReadStream();
-                    //gig.Gig_photo = Path.GetExtension(gigPhotoFile.FileName).TrimStart('.').ToLower();
-                    response = await client.PostAsync(gig, photoStream,gigPhotoFile.FileName);
+                    response = await client.PostAsync(gig, photoStream, gigPhotoFile.FileName);
                 }
                 else
                 {
@@ -437,15 +465,37 @@ namespace GigNovaWebApp.Controllers
             }
 
             gig.Seller_id = int.TryParse(sellerId, out int sellerIdValue) ? sellerIdValue : 0;
-            if (string.IsNullOrWhiteSpace(gig.Gig_name) || string.IsNullOrWhiteSpace(gig.Gig_description) || gig.Gig_price <= 0 || gig.Delivery_time_id <= 0)
-            {
-                TempData["ManageGigMessage"] = "Please fill title, description, delivery time and price.";
-                return RedirectToAction("ManageGigs", new { seller_id = sellerId, gig_id = gig.Gig_id });
-            }
 
             if (gig.Language_id <= 0)
             {
                 gig.Language_id = 1;
+            }
+
+            if (ModelState.IsValid == false)
+            {
+                string firstError = "Please fill required fields.";
+                foreach (var entry in ModelState.Values)
+                {
+                    if (entry.Errors.Count > 0)
+                    {
+                        firstError = entry.Errors[0].ErrorMessage;
+                        break;
+                    }
+                }
+                TempData["ManageGigMessage"] = firstError;
+                return RedirectToAction("ManageGigs", new { seller_id = sellerId, gig_id = gig.Gig_id });
+            }
+
+            gig.Category_ids = new List<string>();
+            if (Category_ids != null)
+            {
+                foreach (string categoryId in Category_ids)
+                {
+                    if (string.IsNullOrWhiteSpace(categoryId) == false && gig.Category_ids.Contains(categoryId) == false)
+                    {
+                        gig.Category_ids.Add(categoryId);
+                    }
+                }
             }
 
             ApiClient<Gig> client = new ApiClient<Gig>();
@@ -461,7 +511,7 @@ namespace GigNovaWebApp.Controllers
                 if (gigPhotoFile != null && gigPhotoFile.Length > 0)
                 {
                     photoStream = gigPhotoFile.OpenReadStream();
-                    response = await client.PostAsync(gig, photoStream,gigPhotoFile.FileName);
+                    response = await client.PostAsync(gig, photoStream, gigPhotoFile.FileName);
                 }
                 else
                 {

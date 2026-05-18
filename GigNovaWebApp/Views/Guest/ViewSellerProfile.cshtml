@@ -31,7 +31,7 @@
             <div class="gig-card seller-profile-card" style="margin-bottom:20px;">
                 <div class="gig-info">
                     <div style="display:flex;align-items:center;gap:14px;">
-                        <img src="http://localhost:7059/api/Seller/GetPhoto?seller_id=@Model.seller.Seller_id" alt="@Model.seller.Seller_display_name" style="width:76px;height:76px;border-radius:50%;object-fit:cover;border:2px solid #4a4f80;" />
+                        <img src="https://localhost:7059/api/Seller/GetPhoto?seller_id=@Model.seller.Seller_id" alt="@Model.seller.Seller_display_name" style="width:76px;height:76px;border-radius:50%;object-fit:cover;border:2px solid #4a4f80;" />
                         <div>
                             <p class="gig-title seller-main-title" style="font-size:22px;">@Model.seller.Seller_display_name</p>
                             <p class="gig-description seller-main-text" style="min-height:auto;">@Model.seller.Seller_description</p>
@@ -54,7 +54,7 @@
                     {
                         <a class="gig-card" asp-controller="Guest" asp-action="ViewSelectedGig" asp-route-gig_id="@gig.Gig_id">
                             <div class="gig-image-wrap">
-                                <img class="gig-image" src="http://localhost:7059/Images/@gig.Gig_photo" alt="@gig.Gig_name" />
+                                <img class="gig-image" src="https://localhost:7059/Images/@gig.Gig_photo" alt="@gig.Gig_name" />
                             </div>
                             <div class="gig-info">
                                 <p class="gig-title">@gig.Gig_name</p>

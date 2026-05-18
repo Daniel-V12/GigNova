@@ -55,7 +55,7 @@
     string avatarUrl = "";
     if (Model != null && Model.seller != null && string.IsNullOrWhiteSpace(Model.seller.Seller_id) == false && string.IsNullOrWhiteSpace(sellerAvatar) == false)
     {
-        avatarUrl = "http://localhost:7059/api/Seller/GetPhoto?seller_id=" + Model.seller.Seller_id;
+        avatarUrl = "https://localhost:7059/api/Seller/GetPhoto?seller_id=" + Model.seller.Seller_id;
     }
 
 }

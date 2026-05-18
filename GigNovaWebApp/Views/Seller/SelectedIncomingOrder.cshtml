@@ -94,7 +94,7 @@
                 <div class="selected-incoming-image-wrap">
                     @if (string.IsNullOrWhiteSpace(gigPhoto) == false)
                     {
-                        <img class="selected-incoming-image" src="http://localhost:7059/Images/@gigPhoto" alt="@gigName" />
+                        <img class="selected-incoming-image" src="https://localhost:7059/Images/@gigPhoto" alt="@gigName" />
                     }
                     else
                     {
@@ -137,7 +137,7 @@
                                             <strong>Files:</strong>
                                             @foreach (string fileName in delivery.Delivery_file.Split('|', StringSplitOptions.RemoveEmptyEntries))
                                             {
-                                                <a href="http://localhost:7059/DeliveryFiles/@fileName" target="_blank">@fileName</a>
+                                                <a href="https://localhost:7059/DeliveryFiles/@fileName" target="_blank">@fileName</a>
                                             }
                                         </div>
                                     }

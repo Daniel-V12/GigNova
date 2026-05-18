@@ -377,6 +377,21 @@ namespace GigNovaWebApp.Controllers
                 model.requirements = "";
             }
 
+            if (ModelState.IsValid == false)
+            {
+                string firstError = "Please fill required fields.";
+                foreach (var entry in ModelState.Values)
+                {
+                    if (entry.Errors.Count > 0)
+                    {
+                        firstError = entry.Errors[0].ErrorMessage;
+                        break;
+                    }
+                }
+                TempData["CustomizeOrderMessage"] = firstError;
+                return RedirectToAction("CustomizeOrder", new { gig_id = model.Gig_id });
+            }
+
             List<Stream> filesToSend = BuildFileStreams(model.Files);
 
             bool response = await PostCustomizeOrder(model, filesToSend);
@@ -500,6 +515,21 @@ namespace GigNovaWebApp.Controllers
             review.Buyer_id = Convert.ToInt32(buyerId);
             review.Review_creation_date = DateTime.Now.ToShortDateString();
 
+            review.Validate();
+            if (review.HasErrors)
+            {
+                string firstError = "Invalid review.";
+                foreach (KeyValuePair<string, List<string>> entry in review.AllErrors())
+                {
+                    if (entry.Value != null && entry.Value.Count > 0)
+                    {
+                        firstError = entry.Value[0];
+                        break;
+                    }
+                }
+                return Json(new { success = false, message = firstError });
+            }
+
             ApiClient<Review> client = new ApiClient<Review>();
             client.Scheme = "https";
             client.Host = "localhost";
@@ -539,7 +569,7 @@ namespace GigNovaWebApp.Controllers
             {
                 return RedirectToAction("HomePage", "Guest");
             }
-            
+
             if (seller == null)
             {
                 seller = new Seller();
@@ -547,15 +577,18 @@ namespace GigNovaWebApp.Controllers
 
             seller.Seller_id = personId;
 
-            if (seller.Seller_display_name == null || seller.Seller_display_name.Trim() == "")
+            if (ModelState.IsValid == false)
             {
-                ViewBag.ErrorMessage = "Seller display name is required.";
-                return View("BecomeASellerPage", seller);
-            }
-
-            if (seller.Seller_description == null || seller.Seller_description.Trim() == "")
-            {
-                ViewBag.ErrorMessage = "Seller description is required.";
+                string firstError = "Please fill required fields.";
+                foreach (var entry in ModelState.Values)
+                {
+                    if (entry.Errors.Count > 0)
+                    {
+                        firstError = entry.Errors[0].ErrorMessage;
+                        break;
+                    }
+                }
+                ViewBag.ErrorMessage = firstError;
                 return View("BecomeASellerPage", seller);
             }
 
