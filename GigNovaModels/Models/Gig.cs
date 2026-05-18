@@ -24,6 +24,7 @@ namespace GigNovaModels.Models
         bool has_revisions;
         bool is_blocked;
         string category_id;
+        List<string> category_ids = new List<string>();
 
         public Gig()
         {
@@ -35,9 +36,9 @@ namespace GigNovaModels.Models
             set { gig_id = value; }
         }
 
-        //[FirstLetterCaps(ErrorMessage = "Gig title must start with a capital letter")]
-        //[Required(ErrorMessage = "Gig title is required")]
-        //[StringLength(20, MinimumLength = 2, ErrorMessage = "Gig title must be no longer than 20 characters and no less than 2")]
+        [Required(ErrorMessage = "Gig title is required")]
+        [FirstLetterCaps(ErrorMessage = "Each word in gig title must start with a capital letter")]
+        [StringLength(50, MinimumLength = 5, ErrorMessage = "Gig title must be between 5 and 50 characters")]
         public string Gig_name
         {
             get { return gig_name; }
@@ -47,14 +48,15 @@ namespace GigNovaModels.Models
                 ValidateProperty(value, "Gig_name");
             }
         }
-        //[Required(ErrorMessage = "Gig description is required")]
-        //[StringLength(20, MinimumLength = 2, ErrorMessage = "Gig description must be no longer than 250 characters and no less than 2")]
+        [Required(ErrorMessage = "Gig description is required")]
+        [StringLength(500, MinimumLength = 20, ErrorMessage = "Gig description must be between 20 and 500 characters")]
         public string Gig_description
         {
             get { return gig_description; }
             set { gig_description = value; ValidateProperty(value, "Gig_description"); }
         }
-        //[Required(ErrorMessage = "Gig delivery time is required")]
+        [Required(ErrorMessage = "Gig delivery time is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please choose a delivery time")]
         public int Delivery_time_id
         {
             get { return delivery_time_id; }
@@ -65,7 +67,8 @@ namespace GigNovaModels.Models
             get { return gig_date; }
             set { gig_date = value; ValidateProperty(value, "Gig_date"); }
         }
-        //[Required(ErrorMessage = "Language is required")]
+        [Required(ErrorMessage = "Language is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please choose a language")]
         public int Language_id
         {
             get { return language_id; }
@@ -77,11 +80,10 @@ namespace GigNovaModels.Models
             get { return gig_photo; }
             set
             {
-                if (gig_photo == null)
+                if (value == null)
                 {
                     gig_photo = "none";
                 }
-
                 else
                 {
                     gig_photo = value;
@@ -91,8 +93,8 @@ namespace GigNovaModels.Models
             }
         }
 
-        //[Required(ErrorMessage = "Gig price is required")]
-        //[IsDigits(ErrorMessage = "Must be a number only")]
+        [Required(ErrorMessage = "Gig price is required")]
+        [Range(1, 10000, ErrorMessage = "Price must be between 1 and 10000")]
         public double Gig_price
         {
             get { return gig_price; }
@@ -125,6 +127,18 @@ namespace GigNovaModels.Models
         {
             get { return category_id; }
             set { category_id = value; }
+        }
+
+        public List<string> Category_ids
+        {
+            get { return category_ids; }
+            set
+            {
+                if (value == null)
+                    category_ids = new List<string>();
+                else
+                    category_ids = value;
+            }
         }
     }
 }

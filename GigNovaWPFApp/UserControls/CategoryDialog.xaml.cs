@@ -1,6 +1,7 @@
-﻿using GigNovaWSClient;
+﻿using GigNovaModels.Models;
+using GigNovaWSClient;
+using System.Collections.Generic;
 using System.Windows;
-
 namespace GigNovaWPFApp.UserControls
 {
     public partial class CategoryDialog : Window
@@ -30,9 +31,30 @@ namespace GigNovaWPFApp.UserControls
         private async void Create_Click(object sender, RoutedEventArgs e)
         {
             string name = NameTextBox.Text.Trim();
-            if (name == "")
+
+            Category category = new Category();
+            category.Category_name = name;
+            category.Validate();
+
+            if (category.HasErrors)
             {
-                MessageBox.Show("Please enter a category name.", "GigNova");
+                string errorMessage = "";
+                foreach (KeyValuePair<string, List<string>> entry in category.AllErrors())
+                {
+                    if (entry.Value == null)
+                    {
+                        continue;
+                    }
+                    foreach (string message in entry.Value)
+                    {
+                        if (errorMessage != "")
+                        {
+                            errorMessage += "\n";
+                        }
+                        errorMessage += message;
+                    }
+                }
+                MessageBox.Show(errorMessage, "GigNova");
                 return;
             }
 

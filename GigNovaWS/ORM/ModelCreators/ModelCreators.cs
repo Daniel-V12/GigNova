@@ -12,7 +12,6 @@ namespace GigNovaWS
         ReviewCreator reviewCreator;
         OrderStatusCreator orderstatusCreator;
         MessageCreator messageCreator;
-        MessageTypeCreator messagetypeCreator;
         PersonCreator personCreator;
         OrderFileCreator orderfileCreator;
         LanguageCreator languageCreator;
@@ -94,16 +93,6 @@ namespace GigNovaWS
                 if (this.messageCreator == null)
                     this.messageCreator = new MessageCreator();
                 return this.messageCreator;
-            }
-        }
-
-        public MessageTypeCreator MessageTypeCreator
-        {
-            get
-            {
-                if (this.messagetypeCreator == null)
-                    this.messagetypeCreator = new MessageTypeCreator();
-                return this.messagetypeCreator;
             }
         }
 

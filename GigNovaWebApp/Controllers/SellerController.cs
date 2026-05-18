@@ -358,7 +358,7 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddGig(Gig gig, IFormFile gigPhotoFile)
+        public async Task<IActionResult> AddGig(Gig gig, IFormFile gigPhotoFile, List<string> Category_ids)
         {
             string sellerId = HttpContext.Session.GetString("person_id");
             if (string.IsNullOrWhiteSpace(sellerId))
@@ -422,7 +422,7 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditGig(Gig gig, IFormFile gigPhotoFile)
+        public async Task<IActionResult> EditGig(Gig gig, IFormFile gigPhotoFile, List<string> Category_ids)
         {
             string sellerId = HttpContext.Session.GetString("person_id");
             if (string.IsNullOrWhiteSpace(sellerId))
@@ -523,8 +523,15 @@ namespace GigNovaWebApp.Controllers
             client.AddParameter("seller_id", sellerId);
             client.AddParameter("gig_id", gig_id);
 
-            bool response = await client.PostAsyncReturn<string, bool>("");
-            TempData["ManageGigMessage"] = response ? "Gig published to catalog." : "Failed to publish gig.";
+            string response = await client.PostAsyncReturn<string, string>("");
+            if (string.IsNullOrWhiteSpace(response))
+            {
+                TempData["ManageGigMessage"] = "Gig published to catalog.";
+            }
+            else
+            {
+                TempData["ManageGigMessage"] = "Cannot publish: " + response;
+            }
             return RedirectToAction("ManageGigs", new { seller_id = sellerId, gig_id = gig_id });
         }
 

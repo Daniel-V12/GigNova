@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Review:Model
+    public class Review : Model
     {
         string review_id;
         int review_rating;
@@ -27,14 +27,15 @@ namespace GigNovaModels.Models
             get { return review_id; }
             set { review_id = value; }
         }
-        //[Required(ErrorMessage = "Review rating is required")]
-        //[IsDigits(ErrorMessage = "Must be a number only")]
+        [Required(ErrorMessage = "Review rating is required")]
+        [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5")]
         public int Review_rating
         {
             get { return review_rating; }
             set { review_rating = value; }
         }
-        //[Required(ErrorMessage = "Review comment is required")]
+        [Required(ErrorMessage = "Review comment is required")]
+        [StringLength(300, MinimumLength = 5, ErrorMessage = "Review comment must be between 5 and 300 characters")]
         public string Review_comment
         {
             get { return review_comment; }

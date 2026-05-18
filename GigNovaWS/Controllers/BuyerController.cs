@@ -554,7 +554,6 @@ namespace GigNovaWS.Controllers
                 if (viewModel.message != null)
                 {
                     viewModel.order = this.repositoryUOW.OrderRepository.GetById(viewModel.message.Order_id.ToString());
-                    viewModel.message_type = this.repositoryUOW.Message_typeRepository.GetById(viewModel.message.Message_type_id.ToString());
                 }
                 return viewModel;
             }

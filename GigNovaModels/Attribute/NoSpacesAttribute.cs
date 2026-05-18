@@ -9,13 +9,18 @@ namespace GigNovaModels.Attribute
 {
     public class NoSpacesAttribute : ValidationAttribute
     {
-        public override bool IsValid(object? value)
+        public override bool IsValid(object value)
         {
             if (value == null)
                 return true;
 
             string str = value.ToString();
-            return !str.Contains(" ");
+            for (int i = 0; i < str.Length; i++)
+            {
+                if (str[i] == ' ')
+                    return false;
+            }
+            return true;
         }
     }
 }

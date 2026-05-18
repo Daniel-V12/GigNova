@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Person:Model
+    public class Person : Model
     {
         string person_id = "";
         string person_username;
@@ -16,7 +16,7 @@ namespace GigNovaModels.Models
         string person_birthdate;
         string person_join_date = "";
         string person_email;
-        
+
 
         public Person()
         {
@@ -36,8 +36,10 @@ namespace GigNovaModels.Models
                     person_id = value;
             }
         }
-        [NoSpaces(ErrorMessage = "Username cannot contain spaces.")]
         [Required(ErrorMessage = "Username is required")]
+        [NoSpaces(ErrorMessage = "Username cannot contain spaces.")]
+        [LettersAndDigits(ErrorMessage = "Username can only contain letters and digits")]
+        [StringLength(20, MinimumLength = 3, ErrorMessage = "Username must be between 3 and 20 characters")]
         public string Person_username
         {
             get { return person_username; }
@@ -45,11 +47,13 @@ namespace GigNovaModels.Models
         }
         [Required(ErrorMessage = "Password is required")]
         [NoSpaces(ErrorMessage = "Password cannot contain spaces.")]
+        [StringLength(50, MinimumLength = 6, ErrorMessage = "Password must be between 6 and 50 characters")]
         public string Person_password
         {
             get { return person_password; }
             set { person_password = value; }
         }
+        [Required(ErrorMessage = "Birthdate is required")]
         public string Person_birthdate
         {
             get { return person_birthdate; }
@@ -67,9 +71,9 @@ namespace GigNovaModels.Models
             set { person_join_date = value; }
         }
 
-        [EmailAddress(ErrorMessage = "Invalid email format")]
         [Required(ErrorMessage = "Email is required")]
         [NoSpaces(ErrorMessage = "Email cannot contain spaces.")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
         public string Person_email
         {
             get { return person_email; }

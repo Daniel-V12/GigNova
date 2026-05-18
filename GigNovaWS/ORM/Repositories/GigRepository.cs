@@ -333,5 +333,20 @@ namespace GigNovaWS
             return this.dbHelperOledb.Update(sql) > 0;
 
         }
+
+        public bool AddGigCategory(string gigId, string categoryId)
+        {
+            string sql = "Insert into [Gigs - Categories] (gig_id, category_id) values (@gig_id, @category_id)";
+            this.dbHelperOledb.AddParameter("@gig_id", gigId);
+            this.dbHelperOledb.AddParameter("@category_id", categoryId);
+            return this.dbHelperOledb.Insert(sql) > 0;
+        }
+
+        public bool DeleteGigCategories(string gigId)
+        {
+            string sql = "Delete from [Gigs - Categories] where gig_id = @gig_id";
+            this.dbHelperOledb.AddParameter("@gig_id", gigId);
+            return this.dbHelperOledb.Delete(sql) >= 0;
+        }
     }
 }
