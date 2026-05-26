@@ -26,7 +26,7 @@ namespace GigNovaWS
 
         public string GetLastInsertedOrderId()
         {
-            string sql = "Select @IDENTITY as new_id";
+            string sql = "Select @@IDENTITY as new_id";
             using (IDataReader reader = this.dbHelperOledb.Select(sql))
             {
                 if (reader.Read() == true)
@@ -35,6 +35,21 @@ namespace GigNovaWS
                 }
             }
             return "";
+        }
+
+        public bool HasOrdersForGig(string gigId)
+        {
+            string sql = "Select Count(*) as order_count from Orders where gig_id = @gig_id";
+            this.dbHelperOledb.AddParameter("@gig_id", gigId);
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                if (reader.Read() == true)
+                {
+                    int count = Convert.ToInt32(reader["order_count"]);
+                    return count > 0;
+                }
+            }
+            return false;
         }
 
         public string GetLatestOrderIdByBuyer(string buyerId)

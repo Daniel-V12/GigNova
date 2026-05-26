@@ -55,7 +55,7 @@
                     {
                         <div style="margin-top:20px; border-top:1px solid #3d4270; padding-top:16px;">
                             <a asp-controller="Guest" asp-action="ViewSellerProfile" asp-route-seller_id="@Model.seller.Seller_id" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:12px;">
-                                <img src="https://localhost:7059/Images/@Model.seller.Seller_avatar" alt="@Model.seller.Seller_display_name" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #4a4f80;" />
+                                <img src="https://localhost:7059/api/Seller/GetPhoto?seller_id=@Model.seller.Seller_id" alt="@Model.seller.Seller_display_name" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #4a4f80;" />
                                 <div>
                                     <div style="color:#aeb3db;font-size:12px;">Seller</div>
                                     <div style="color:white;font-weight:700;">@Model.seller.Seller_display_name</div>

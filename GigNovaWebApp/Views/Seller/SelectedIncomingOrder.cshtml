@@ -4,24 +4,22 @@
 @{
     ViewData["Title"] = "SelectedIncomingOrder";
     Layout = "~/Views/Shared/MasterSellerPage.cshtml";
-
     CustomizeOrderViewModel orderDetails = null;
     if (ViewData["OrderDetails"] is CustomizeOrderViewModel details)
     {
         orderDetails = details;
     }
-
     List<Delivery> deliveries = new List<Delivery>();
     if (ViewData["Deliveries"] is List<Delivery> list)
     {
         deliveries = list;
     }
-
-    string sellerId = "";
-    if (ViewData["SellerId"] != null)
+    List<Order_file> buyerFiles = new List<Order_file>();
+    if (orderDetails != null && orderDetails.order_files != null)
     {
-        sellerId = ViewData["SellerId"].ToString();
+        buyerFiles = orderDetails.order_files;
     }
+    string sellerId = "";
 
     string gigName = "Gig";
     string gigPhoto = "";
@@ -116,20 +114,43 @@
                         <div><strong>Created:</strong> @Model.Order.Order_creation_date</div>
                         <div><strong>Status:</strong> @statusName</div>
                     </div>
-
                     <div class="selected-incoming-section">
                         <div class="selected-incoming-section-title">Requirements</div>
                         <p class="selected-incoming-description">@(string.IsNullOrWhiteSpace(requirements) ? "No requirements provided." : requirements)</p>
                     </div>
 
                     <div class="selected-incoming-section">
+                        <div class="selected-incoming-section-title">Buyer Files</div>
+                        @if (buyerFiles != null && buyerFiles.Count > 0)
+                        {
+                            int buyerFileNumber = 1;
+                            foreach (Order_file buyerFile in buyerFiles)
+                            {
+                                if (buyerFile != null && string.IsNullOrWhiteSpace(buyerFile.Order_file_name) == false)
+                                {
+                                    <div class="delivery-history-files">
+                                        <a href="https://localhost:7059/OrderFiles/@buyerFile.Order_file_name" target="_blank">File #@buyerFileNumber (@buyerFile.Order_file_name)</a>
+                                    </div>
+
+                                    buyerFileNumber++;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <p class="selected-incoming-description">The buyer did not upload any files.</p>
+                        }
+                    </div>
+
+                    <div class="selected-incoming-section">
                         <div class="selected-incoming-section-title">Delivery History</div>
                         @if (deliveries != null && deliveries.Count > 0)
                         {
+                            int deliveryNumber = 1;
                             foreach (Delivery delivery in deliveries)
                             {
                                 <div class="delivery-history-item">
-                                    <div class="delivery-history-title">Delivery #@delivery.Delivery_id</div>
+                                    <div class="delivery-history-title">Delivery #@deliveryNumber</div>
                                     <div class="delivery-history-text">@(string.IsNullOrWhiteSpace(delivery.Delivery_text) ? "No delivery text" : delivery.Delivery_text)</div>
                                     @if (string.IsNullOrWhiteSpace(delivery.Delivery_file) == false)
                                     {
@@ -142,6 +163,8 @@
                                         </div>
                                     }
                                 </div>
+
+                                deliveryNumber++;
                             }
                         }
                         else

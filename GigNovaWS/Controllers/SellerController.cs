@@ -146,6 +146,42 @@ namespace GigNovaWS.Controllers
 
 
         [HttpGet]
+        public IActionResult GetPhoto(string seller_id)
+        {
+            if (string.IsNullOrWhiteSpace(seller_id))
+            {
+                return NotFound();
+            }
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                string photo = this.repositoryUOW.SellerRepository.GetPhotoById(seller_id);
+                if (string.IsNullOrWhiteSpace(photo))
+                {
+                    return NotFound();
+                }
+
+                string extension = Path.GetExtension(photo).TrimStart('.').ToLower();
+                string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", "SellerAvatars", photo);
+                if (System.IO.File.Exists(path) == false)
+                {
+                    return NotFound();
+                }
+                FileStream stream = System.IO.File.OpenRead(path);
+                return File(stream, "image/" + extension);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return StatusCode(500, "Image Failed To Load");
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+        [HttpGet]
         public OrdersViewModel GetOrdersViewModel(string seller_id)
         {
             OrdersViewModel ordersViewModel = new OrdersViewModel
@@ -298,23 +334,35 @@ namespace GigNovaWS.Controllers
             }
         }
 
-
         [HttpPost]
-        public bool DeleteGig(string seller_id, string gig_id)
+        public IActionResult DeleteGig(string seller_id, string gig_id)
         {
             if (seller_id == null || gig_id == null)
             {
-                return false;
+                return new JsonResult("Missing seller or gig.");
             }
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
-                return this.repositoryUOW.GigRepository.DeleteBySeller(gig_id, seller_id);
+
+                bool hasOrders = this.repositoryUOW.OrderRepository.HasOrdersForGig(gig_id);
+                if (hasOrders)
+                {
+                    return new JsonResult("Cannot delete this gig because it already has orders. You can unpublish it instead.");
+                }
+
+                this.repositoryUOW.GigRepository.DeleteGigCategories(gig_id);
+                bool deleted = this.repositoryUOW.GigRepository.DeleteBySeller(gig_id, seller_id);
+                if (deleted == false)
+                {
+                    return new JsonResult("Failed to delete gig.");
+                }
+                return new JsonResult("");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                return false;
+                return new JsonResult("Server error.");
             }
             finally
             {

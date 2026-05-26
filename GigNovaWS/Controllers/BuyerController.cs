@@ -401,21 +401,30 @@ namespace GigNovaWS.Controllers
 
                 JsonSerializerOptions options = new JsonSerializerOptions();
                 options.PropertyNameCaseInsensitive = true;
-                CustomizeOrderViewModel viewModel = JsonSerializer.Deserialize<CustomizeOrderViewModel>(modelJson, options);
-                if (viewModel == null || viewModel.order == null)
+                CustomizeOrderModel dto = JsonSerializer.Deserialize<CustomizeOrderModel>(modelJson, options);
+                if (dto == null || dto.Gig_id <= 0 || string.IsNullOrWhiteSpace(dto.Buyer_id))
                 {
                     return false;
                 }
 
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
 
-                if (viewModel.order.Order_requirements == null)
+                Gig gig = this.repositoryUOW.GigRepository.GetById(dto.Gig_id.ToString());
+                if (gig == null)
                 {
-                    viewModel.order.Order_requirements = "";
+                    return false;
                 }
 
-                viewModel.order.Is_payment = true;
-                bool orderCreated = this.repositoryUOW.OrderRepository.Create(viewModel.order);
+                Order order = new Order();
+                order.Gig_id = dto.Gig_id;
+                order.Buyer_id = int.Parse(dto.Buyer_id);
+                order.Seller_id = gig.Seller_id;
+                order.Order_requirements = dto.requirements ?? "";
+                order.Order_creation_date = DateTime.Now.ToShortDateString();
+                order.Order_status_id = 1;
+                order.Is_payment = true;
+
+                bool orderCreated = this.repositoryUOW.OrderRepository.Create(order);
                 if (orderCreated == false)
                 {
                     return false;
@@ -440,7 +449,6 @@ namespace GigNovaWS.Controllers
                     {
                         string extension = Path.GetExtension(file.FileName);
                         string fileName = orderId + "_" + fileCounter + extension;
-                        string originalFileName = Path.GetFileName(file.FileName);
                         string filePath = Path.Combine(uploadsFolder, fileName);
 
                         using (FileStream stream = new FileStream(filePath, FileMode.Create))
@@ -450,7 +458,7 @@ namespace GigNovaWS.Controllers
 
                         Order_file orderFile = new Order_file();
                         orderFile.Order_id = orderId;
-                        orderFile.Order_file_name = originalFileName;
+                        orderFile.Order_file_name = fileName;
                         this.repositoryUOW.Order_filesRepository.Create(orderFile);
                         fileCounter++;
                     }
@@ -737,7 +745,7 @@ namespace GigNovaWS.Controllers
                                 return false;
                             }
 
-                            string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", "Seller", "Seller_avatars");
+                            string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", "SellerAvatars");
                             if (Directory.Exists(uploadsFolder) == false)
                             {
                                 Directory.CreateDirectory(uploadsFolder);

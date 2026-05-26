@@ -29,6 +29,7 @@
         <div class="incoming-orders-list">
             @if (Model != null && Model.Count > 0)
             {
+                int orderNumber = Model.Count;
                 foreach (SelectedOrderViewModel incoming in Model)
                 {
                     if (incoming == null || incoming.Order == null)
@@ -58,10 +59,12 @@
 
                     <a class="incoming-order-link" asp-controller="Seller" asp-action="SelectedIncomingOrder" asp-route-order_id="@incoming.Order.Order_id" asp-route-seller_id="@sellerId">
                         <div class="incoming-order-item">
-                            <div class="incoming-order-title">@buyerDisplayName has purchased your gig @gigName, order number @incoming.Order.Order_id</div>
+                            <div class="incoming-order-title">@buyerDisplayName has purchased your gig @gigName, order number @orderNumber</div>
                             <div class="incoming-order-meta">Created: @incoming.Order.Order_creation_date</div>
                         </div>
                     </a>
+
+                    orderNumber--;
                 }
             }
             else

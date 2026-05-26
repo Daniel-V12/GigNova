@@ -14,6 +14,11 @@
 <div class="orders-container">
     <div class="orders-main-content">
         <section class="orders-section">
+            @if (TempData["OrdersMessage"] != null)
+            {
+                <div class="orders-message">@TempData["OrdersMessage"]</div>
+            }
+
             <div class="orders-header">
                 <h2>My Orders</h2>
                 <p>@(Model != null ? Model.Count : 0) order(s)</p>

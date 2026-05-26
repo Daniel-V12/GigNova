@@ -16,6 +16,16 @@
     width: 100%;
 }
 
+.orders-message {
+    background: rgba(74,144,226,0.2);
+    border: 1px solid rgba(74,144,226,0.5);
+    color: #fff;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    font-weight: 600;
+}
+
 .orders-header {
     margin-bottom: 16px;
     border-bottom: 1px solid #4a4f80;

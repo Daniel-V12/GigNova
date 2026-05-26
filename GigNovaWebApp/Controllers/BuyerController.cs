@@ -360,16 +360,23 @@ namespace GigNovaWebApp.Controllers
         [HttpPost]
         public async Task<IActionResult> CustomizeOrder([FromForm] CustomizeOrderModel model)
         {
-            model.Buyer_id = HttpContext.Session.GetString("person_id");
+            if (model == null)
+            {
+                TempData["CustomizeOrderMessage"] = "Something went wrong. Please try again.";
+                return RedirectToAction("ViewCatalogPage", "Guest");
+            }
 
-            if (model.Buyer_id == null)
+            string buyerId = HttpContext.Session.GetString("person_id");
+            if (buyerId == null)
             {
                 return RedirectToAction("HomePage", "Guest");
             }
+            model.Buyer_id = buyerId;
 
-            if (model == null || model.Gig_id <= 0)
+            if (model.Gig_id <= 0)
             {
-                return CustomizeOrderFailed("HomePage", null);
+                TempData["CustomizeOrderMessage"] = "Please pick a gig first.";
+                return RedirectToAction("ViewCatalogPage", "Guest");
             }
 
             if (model.requirements == null)
@@ -392,61 +399,46 @@ namespace GigNovaWebApp.Controllers
                 return RedirectToAction("CustomizeOrder", new { gig_id = model.Gig_id });
             }
 
-            List<Stream> filesToSend = BuildFileStreams(model.Files);
-
-            bool response = await PostCustomizeOrder(model, filesToSend);
-
-            DisposeStreams(filesToSend);
-
-            if (response == false)
-            {
-                return CustomizeOrderFailed("CustomizeOrder", model.Gig_id);
-            }
-            return RedirectToAction("HomePage");
-        }
-
-        private IActionResult CustomizeOrderFailed(string action, int? gigId)
-        {
-            TempData["CustomizeOrderMessage"] = "Failed to create order.";
-            if (action == "CustomizeOrder" && gigId.HasValue)
-            {
-                return RedirectToAction("CustomizeOrder", new { gig_id = gigId.Value });
-            }
-            return RedirectToAction(action);
-        }
-
-        private List<Stream> BuildFileStreams(List<IFormFile> orderFiles)
-        { 
             List<Stream> filesToSend = new List<Stream>();
-            if (orderFiles != null)
+            List<string> fileNames = new List<string>();
+            if (model.Files != null)
             {
-                foreach (IFormFile file in orderFiles)
+                foreach (IFormFile file in model.Files)
                 {
                     if (file != null && file.Length > 0)
                     {
                         filesToSend.Add(file.OpenReadStream());
+                        fileNames.Add(file.FileName);
                     }
                 }
             }
-            return filesToSend;
-        }
 
-        private void DisposeStreams(List<Stream> filesToSend)
-        {
-            foreach (Stream thisStream in filesToSend)
+            bool response = await PostCustomizeOrder(model, filesToSend, fileNames);
+
+            foreach (Stream stream in filesToSend)
             {
-                thisStream.Dispose();
+                stream.Dispose();
             }
+
+            if (response == false)
+            {
+                TempData["CustomizeOrderMessage"] = "Failed to create order. Please try again.";
+                return RedirectToAction("CustomizeOrder", new { gig_id = model.Gig_id });
+            }
+
+            TempData["OrdersMessage"] = "Your order has been created successfully!";
+            return RedirectToAction("ViewOrders", new { buyerId = buyerId });
         }
 
-        private async Task<bool> PostCustomizeOrder(CustomizeOrderModel model, List<Stream> filesToSend)
+
+        private async Task<bool> PostCustomizeOrder(CustomizeOrderModel model, List<Stream> filesToSend, List<string> fileNames)
         {
             ApiClient<CustomizeOrderModel> client = new ApiClient<CustomizeOrderModel>();
             client.Scheme = "https";
             client.Host = "localhost";
             client.Port = 7059;
             client.Path = "api/Buyer/CreateOrderAndPayWithFiles";
-            return await client.PostAsync(model, filesToSend);
+            return await client.PostAsync(model, filesToSend, fileNames);
         }
 
         [HttpGet]
@@ -592,12 +584,6 @@ namespace GigNovaWebApp.Controllers
                 return View("BecomeASellerPage", seller);
             }
 
-            List<Stream> avatarFiles = new List<Stream>();
-            if (sellerAvatarFile != null && sellerAvatarFile.Length > 0)
-            {
-                avatarFiles.Add(sellerAvatarFile.OpenReadStream());
-            }
-
             ApiClient<Seller> client = new ApiClient<Seller>();
             client.Scheme = "https";
             client.Host = "localhost";
@@ -605,18 +591,29 @@ namespace GigNovaWebApp.Controllers
             client.Path = "api/Buyer/BecomeASeller";
 
             bool response = false;
+            Stream avatarStream = null;
             try
             {
-                response = await client.PostAsync(seller, avatarFiles);
+                if (sellerAvatarFile != null && sellerAvatarFile.Length > 0)
+                {
+                    avatarStream = sellerAvatarFile.OpenReadStream();
+                    response = await client.PostAsync(seller, avatarStream, sellerAvatarFile.FileName);
+                }
+                else
+                {
+                    response = await client.PostAsync(seller);
+                }
             }
             catch
             {
                 response = false;
             }
-
-            foreach (Stream stream in avatarFiles)
+            finally
             {
-                stream.Dispose();
+                if (avatarStream != null)
+                {
+                    avatarStream.Dispose();
+                }
             }
 
             if (response)

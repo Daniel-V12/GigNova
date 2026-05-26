@@ -196,12 +196,6 @@ namespace GigNovaWebApp.Controllers
                 return RedirectToAction("SellerProfile", new { seller_id = sellerId });
             }
 
-            List<Stream> avatarFiles = new List<Stream>();
-            if (sellerAvatarFile != null && sellerAvatarFile.Length > 0)
-            {
-                avatarFiles.Add(sellerAvatarFile.OpenReadStream());
-            }
-
             ApiClient<Seller> client = new ApiClient<Seller>();
             client.Scheme = "https";
             client.Host = "localhost";
@@ -209,18 +203,29 @@ namespace GigNovaWebApp.Controllers
             client.Path = "api/Buyer/BecomeASeller";
 
             bool response = false;
+            Stream avatarStream = null;
             try
             {
-                response = await client.PostAsync(sellerToUpdate, avatarFiles);
+                if (sellerAvatarFile != null && sellerAvatarFile.Length > 0)
+                {
+                    avatarStream = sellerAvatarFile.OpenReadStream();
+                    response = await client.PostAsync(sellerToUpdate, avatarStream, sellerAvatarFile.FileName);
+                }
+                else
+                {
+                    response = await client.PostAsync(sellerToUpdate);
+                }
             }
             catch
             {
                 response = false;
             }
-
-            foreach (Stream stream in avatarFiles)
+            finally
             {
-                stream.Dispose();
+                if (avatarStream != null)
+                {
+                    avatarStream.Dispose();
+                }
             }
 
             if (response)
@@ -363,7 +368,7 @@ namespace GigNovaWebApp.Controllers
             return View("~/Views/Seller/IncomingOrders.cshtml", notifications);
         }
 
-        [HttpPost]
+
         [HttpPost]
         public async Task<IActionResult> AddGig(Gig gig, IFormFile gigPhotoFile, List<string> Category_ids)
         {
@@ -385,6 +390,11 @@ namespace GigNovaWebApp.Controllers
                 gig.Language_id = 1;
             }
             gig.Language_id = 1; // Delete later test code
+
+            ModelState.Remove("Gig_id");
+            ModelState.Remove("Gig_date");
+            ModelState.Remove("Gig_photo");
+            ModelState.Remove("Category_id");
 
             if (ModelState.IsValid == false)
             {
@@ -471,6 +481,9 @@ namespace GigNovaWebApp.Controllers
                 gig.Language_id = 1;
             }
 
+            ModelState.Remove("Gig_date");
+            ModelState.Remove("Category_id");
+
             if (ModelState.IsValid == false)
             {
                 string firstError = "Please fill required fields.";
@@ -551,8 +564,15 @@ namespace GigNovaWebApp.Controllers
             client.AddParameter("seller_id", sellerId);
             client.AddParameter("gig_id", gig_id);
 
-            bool response = await client.PostAsyncReturn<string, bool>("");
-            TempData["ManageGigMessage"] = response ? "Gig deleted successfully." : "Failed to delete gig.";
+            string response = await client.PostAsyncReturn<string, string>("");
+            if (string.IsNullOrWhiteSpace(response))
+            {
+                TempData["ManageGigMessage"] = "Gig deleted successfully.";
+            }
+            else
+            {
+                TempData["ManageGigMessage"] = response;
+            }
             return RedirectToAction("ManageGigs", new { seller_id = sellerId });
         }
 
@@ -693,6 +713,7 @@ namespace GigNovaWebApp.Controllers
             delivery.Delivery_file = "";
 
             List<Stream> fileStreams = new List<Stream>();
+            List<string> fileNames = new List<string>();
             if (deliveryFiles != null)
             {
                 foreach (IFormFile file in deliveryFiles)
@@ -700,6 +721,7 @@ namespace GigNovaWebApp.Controllers
                     if (file != null && file.Length > 0)
                     {
                         fileStreams.Add(file.OpenReadStream());
+                        fileNames.Add(file.FileName);
                     }
                 }
             }
@@ -713,7 +735,7 @@ namespace GigNovaWebApp.Controllers
             bool response = false;
             try
             {
-                response = await client.PostAsync(delivery, fileStreams);
+                response = await client.PostAsync(delivery, fileStreams, fileNames);
             }
             catch
             {

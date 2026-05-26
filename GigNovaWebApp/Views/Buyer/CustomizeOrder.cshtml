@@ -141,20 +141,36 @@
 </div>
 
 <script>
+    <script>
         const fileInput = document.getElementById("Files");
-    const selectedFilesText = document.getElementById("selectedFilesText");
+        const selectedFilesText = document.getElementById("selectedFilesText");
+        const dataTransfer = new DataTransfer();
 
-    if (fileInput && selectedFilesText) {
-        fileInput.addEventListener("change", function () {
-        const files = Array.from(fileInput.files || []);
+        if (fileInput && selectedFilesText) {
+            fileInput.addEventListener("change", function () {
+                const newFiles = Array.from(fileInput.files || []);
 
-            if (files.length === 0) {
-            selectedFilesText.innerText = "";
-            return;
+                for (let i = 0; i < newFiles.length; i++) {
+                    let alreadyAdded = false;
+                    for (let j = 0; j < dataTransfer.files.length; j++) {
+                        if (dataTransfer.files[j].name === newFiles[i].name && dataTransfer.files[j].size === newFiles[i].size) {
+                            alreadyAdded = true;
+                            break;
+                        }
+                    }
+                    if (!alreadyAdded) {
+                        dataTransfer.items.add(newFiles[i]);
+                    }
+                }
+
+                fileInput.files = dataTransfer.files;
+
+                const allFiles = Array.from(fileInput.files);
+                if (allFiles.length === 0) {
+                    selectedFilesText.innerText = "";
+                } else {
+                    selectedFilesText.innerText = "Selected files (" + allFiles.length + "): " + allFiles.map(f => f.name).join(", ");
+                }
+            });
         }
-
-        selectedFilesText.innerText =
-            "Selected files (" + files.length + "): " + files.map(f => f.name).join(", ");
-    });
-    }
 </script>
