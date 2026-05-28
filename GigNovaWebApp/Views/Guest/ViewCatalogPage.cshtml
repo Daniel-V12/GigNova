@@ -89,24 +89,24 @@
         <div class="main-content">
             <aside class="sidebar">
                 <div class="filter-section">
-                    <h3>Budget</h3>
+                    <h3>Budget (USD)</h3>
                     <div class="budget-inputs">
                         @if (Model != null && Model.min_price > 0)
                         {
-                            <input type="number" name="min_price" placeholder="Min $" min="0" step="1" value="@Model.min_price">
+                            <input type="number" name="min_price" placeholder="Min $ (USD)" min="0" step="1" value="@Model.min_price">
                         }
                         else
                         {
-                            <input type="number" name="min_price" placeholder="Min $" min="0" step="1">
+                            <input type="number" name="min_price" placeholder="Min $ (USD)" min="0" step="1">
                         }
 
                         @if (Model != null && Model.max_price > 0)
                         {
-                            <input type="number" name="max_price" placeholder="Max $" min="0" step="1" value="@Model.max_price">
+                            <input type="number" name="max_price" placeholder="Max $ (USD)" min="0" step="1" value="@Model.max_price">
                         }
                         else
                         {
-                            <input type="number" name="max_price" placeholder="Max $" min="0" step="1">
+                            <input type="number" name="max_price" placeholder="Max $ (USD)" min="0" step="1">
                         }
                     </div>
                 </div>
@@ -156,6 +156,31 @@
                                         <option value="@language.Language_id">@language.Language_name</option>
                                     }
                                 }
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Display Currency</h3>
+                    <select name="currency">
+                        @{
+                            string[] supportedCurrencies = new[] { "USD", "EUR", "ILS", "GBP", "JPY" };
+                            string selectedCurrency = "USD";
+                            if (Model != null && !string.IsNullOrEmpty(Model.currency_code))
+                            {
+                                selectedCurrency = Model.currency_code;
+                            }
+                        }
+                        @foreach (string code in supportedCurrencies)
+                        {
+                            if (code == selectedCurrency)
+                            {
+                                <option value="@code" selected>@code</option>
+                            }
+                            else
+                            {
+                                <option value="@code">@code</option>
                             }
                         }
                     </select>
@@ -261,7 +286,7 @@
                                     <div class="gig-footer">
                                         <div class="gig-price">
                                             <span class="price-label">Starting at</span>
-                                            <span class="price-value">$@gig.Gig_price</span>
+                                            <span class="price-value">@Model.currency_symbol@string.Format("{0:N2}", gig.Gig_price * Model.exchange_rate)</span>
                                         </div>
                                     </div>
                                 </div>
@@ -291,7 +316,8 @@
                                asp-route-max_price="@Model.max_price"
                                asp-route-delivery_time_id="@Model.delivery_time_id"
                                asp-route-language_id="@Model.language_id"
-                               asp-route-min_rating="@Model.min_rating">Previous</a>
+                               asp-route-min_rating="@Model.min_rating"
+                               asp-route-currency="@Model.currency_code">Previous</a>
                         }
                         else
                         {
@@ -315,7 +341,8 @@
                                asp-route-max_price="@Model.max_price"
                                asp-route-delivery_time_id="@Model.delivery_time_id"
                                asp-route-language_id="@Model.language_id"
-                               asp-route-min_rating="@Model.min_rating">@i</a>
+                               asp-route-min_rating="@Model.min_rating"
+                               asp-route-currency="@Model.currency_code">@i</a>
                         }
 
                         @if (Model.Page < Model.TotalPages)
@@ -329,7 +356,8 @@
                                asp-route-max_price="@Model.max_price"
                                asp-route-delivery_time_id="@Model.delivery_time_id"
                                asp-route-language_id="@Model.language_id"
-                               asp-route-min_rating="@Model.min_rating">Next</a>
+                               asp-route-min_rating="@Model.min_rating"
+                               asp-route-currency="@Model.currency_code">Next</a>
                         }
                         else
                         {

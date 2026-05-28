@@ -598,6 +598,26 @@ namespace GigNovaWS.Controllers
                     return BadRequest();
                 }
 
+                // Delivery file rules: exactly 1 file, max 100MB, only .rar or .zip.
+                if (form.Files == null || form.Files.Count != 1)
+                {
+                    return BadRequest();
+                }
+                IFormFile deliveryFile = form.Files[0];
+                if (deliveryFile == null || deliveryFile.Length == 0)
+                {
+                    return BadRequest();
+                }
+                if (deliveryFile.Length > 100 * 1024 * 1024)
+                {
+                    return BadRequest();
+                }
+                string deliveryExt = Path.GetExtension(deliveryFile.FileName).ToLower();
+                if (deliveryExt != ".rar" && deliveryExt != ".zip")
+                {
+                    return BadRequest();
+                }
+
                 if (delivery.Delivery_text == null)
                 {
                     delivery.Delivery_text = "";
@@ -626,44 +646,27 @@ namespace GigNovaWS.Controllers
                 }
 
                 List<string> uploadedFileNames = new List<string>();
-                if (form.Files != null && form.Files.Count > 0)
+                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "DeliveryFiles");
+                if (Directory.Exists(uploadsFolder) == false)
                 {
-                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "DeliveryFiles");
-                    if (Directory.Exists(uploadsFolder) == false)
-                    {
-                        Directory.CreateDirectory(uploadsFolder);
-                    }
-
-                    int fileCounter = 1;
-                    foreach (IFormFile file in form.Files)
-                    {
-                        if (file == null || file.Length == 0)
-                        {
-                            continue;
-                        }
-
-                        string extension = Path.GetExtension(file.FileName);
-                        string fileName = deliveryId + "_" + fileCounter + extension;
-                        string filePath = Path.Combine(uploadsFolder, fileName);
-                        using (FileStream stream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-                        {
-                            await file.CopyToAsync(stream);
-                        }
-
-                        uploadedFileNames.Add(fileName);
-                        fileCounter++;
-                    }
+                    Directory.CreateDirectory(uploadsFolder);
                 }
 
-                if (uploadedFileNames.Count > 0)
+                string savedExtension = Path.GetExtension(deliveryFile.FileName);
+                string savedFileName = deliveryId + "_1" + savedExtension;
+                string savedFilePath = Path.Combine(uploadsFolder, savedFileName);
+                using (FileStream stream = new FileStream(savedFilePath, FileMode.Create, FileAccess.Write))
                 {
-                    string deliveryFilesValue = string.Join("|", uploadedFileNames);
-                    bool fileUpdated = this.repositoryUOW.DeliveryRepository.UpdateFileById(deliveryId, deliveryFilesValue);
-                    if (fileUpdated == false)
-                    {
-                        this.repositoryUOW.DbHelperOledb.RollBack();
-                        return BadRequest();
-                    }
+                    await deliveryFile.CopyToAsync(stream);
+                }
+                uploadedFileNames.Add("DeliveryFiles/" + savedFileName);
+
+                string deliveryFilesValue = string.Join("|", uploadedFileNames);
+                bool fileUpdated = this.repositoryUOW.DeliveryRepository.UpdateFileById(deliveryId, deliveryFilesValue);
+                if (fileUpdated == false)
+                {
+                    this.repositoryUOW.DbHelperOledb.RollBack();
+                    return BadRequest();
                 }
 
                 bool statusUpdated = this.repositoryUOW.OrderRepository.UpdateOrderStatus(delivery.Order_id, 2);
@@ -679,8 +682,7 @@ namespace GigNovaWS.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                this.repositoryUOW.DbHelperOledb.RollBack();
-                return StatusCode(500, "Delivery Failed");
+                return BadRequest();
             }
             finally
             {

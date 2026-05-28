@@ -140,7 +140,7 @@
                                 @foreach (GigNovaModels.Models.Order_file file in Model.order_files)
                                 {
                                     <li>
-                                        @file.Order_file_name
+                                        <a href="https://localhost:7059/@file.Order_file_path" target="_blank">@System.IO.Path.GetFileName(file.Order_file_path)</a>
                                     </li>
                                 }
                             </ul>

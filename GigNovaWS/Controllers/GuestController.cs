@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using GigNovaModels;
 using GigNovaModels.ViewModels;
 using GigNovaModels.Models;
 using System.Linq.Expressions;
+using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 namespace GigNovaWS.Controllers
 {
     [Route("api/[controller]/[action]")]
@@ -12,9 +15,11 @@ namespace GigNovaWS.Controllers
     public class GuestController : ControllerBase
     {
         RepositoryUOW repositoryUOW;
-        public GuestController()
+        IConfiguration config;
+        public GuestController(IConfiguration config)
         {
             this.repositoryUOW = new RepositoryUOW();
+            this.config = config;
         }
 
         [HttpGet]
@@ -298,6 +303,63 @@ namespace GigNovaWS.Controllers
                 page = catalogviewModel.TotalPages;
             }
             catalogviewModel.Page = page;
+        }
+
+        [HttpGet]
+        public async Task<double> GetExchangeRate(string from, string to)
+        {
+            if (string.IsNullOrWhiteSpace(from) || string.IsNullOrWhiteSpace(to))
+            {
+                return 1.0;
+            }
+            if (from == to)
+            {
+                return 1.0;
+            }
+            try
+            {
+                string key = this.config["Rapidapi:CurrencyKey"];
+                string host = this.config["Rapidapi:CurrencyHost"];
+                string baseUrl = this.config["Rapidapi:CurrencyBaseUrl"];
+                if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(baseUrl))
+                {
+                    return 1.0;
+                }
+
+                using (HttpClient client = new HttpClient())
+                {
+                    using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/convert?from={from}&to={to}&amount=1"))
+                    {
+                        request.Headers.Add("x-rapidapi-key", key);
+                        request.Headers.Add("x-rapidapi-host", host);
+                        using (HttpResponseMessage response = await client.SendAsync(request))
+                        {
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                return 1.0;
+                            }
+                            string body = await response.Content.ReadAsStringAsync();
+                            using (JsonDocument doc = JsonDocument.Parse(body))
+                            {
+                                if (doc.RootElement.TryGetProperty("result", out JsonElement resultElement))
+                                {
+                                    double rate = resultElement.GetDouble();
+                                    if (rate > 0)
+                                    {
+                                        return rate;
+                                    }
+                                }
+                                return 1.0;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return 1.0;
+            }
         }
 
         [HttpGet]

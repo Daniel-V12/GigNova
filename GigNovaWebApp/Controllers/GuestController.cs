@@ -30,7 +30,8 @@ namespace GigNovaWebApp.Controllers
             double max_price = 0,
             int delivery_time_id = 0,
             int language_id = 0,
-            double min_rating = 0)
+            double min_rating = 0,
+            string currency = "USD")
         {
             ApiClient<CatalogViewModel> client = new ApiClient<CatalogViewModel>();
             client.Scheme = "https";
@@ -66,6 +67,42 @@ namespace GigNovaWebApp.Controllers
                 client.AddParameter("min_rating", min_rating.ToString());
             }
             CatalogViewModel catalogViewModel = await client.GetAsync();
+
+            Dictionary<string, string> currencySymbols = new Dictionary<string, string>
+            {
+                { "USD", "$" },
+                { "EUR", "€" },
+                { "ILS", "₪" },
+                { "GBP", "£" },
+                { "JPY", "¥" }
+            };
+            if (string.IsNullOrWhiteSpace(currency) || !currencySymbols.ContainsKey(currency))
+            {
+                currency = "USD";
+            }
+            double exchangeRate = 1.0;
+            if (currency != "USD")
+            {
+                ApiClient<double> rateClient = new ApiClient<double>();
+                rateClient.Scheme = "https";
+                rateClient.Host = "localhost";
+                rateClient.Port = 7059;
+                rateClient.Path = "api/Guest/GetExchangeRate";
+                rateClient.AddParameter("from", "USD");
+                rateClient.AddParameter("to", currency);
+                exchangeRate = await rateClient.GetAsync();
+                if (exchangeRate <= 0)
+                {
+                    exchangeRate = 1.0;
+                    currency = "USD";
+                }
+            }
+            if (catalogViewModel != null)
+            {
+                catalogViewModel.currency_code = currency;
+                catalogViewModel.currency_symbol = currencySymbols[currency];
+                catalogViewModel.exchange_rate = exchangeRate;
+            }
             return View(catalogViewModel);
         }
 

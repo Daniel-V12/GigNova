@@ -9,11 +9,11 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>(options =>
 {
-    options.Limits.MaxRequestBodySize = 500 * 1024 * 1024;
+    options.Limits.MaxRequestBodySize = 260 * 1024 * 1024;
 });
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = 500 * 1024 * 1024;
+    options.MultipartBodyLengthLimit = 260 * 1024 * 1024;
 });
 
 var app = builder.Build();

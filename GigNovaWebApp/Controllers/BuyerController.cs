@@ -399,6 +399,41 @@ namespace GigNovaWebApp.Controllers
                 return RedirectToAction("CustomizeOrder", new { gig_id = model.Gig_id });
             }
 
+            // Order file rules: max 5 files, max 50MB each, no blocked extensions.
+            if (model.Files != null && model.Files.Count > 0)
+            {
+                if (model.Files.Count > 5)
+                {
+                    TempData["CustomizeOrderMessage"] = "You can upload up to 5 files only.";
+                    return RedirectToAction("CustomizeOrder", new { gig_id = model.Gig_id });
+                }
+
+                string[] blockedExtensions = new string[] { ".exe", ".bat", ".cmd", ".sh", ".ps1", ".msi", ".dll", ".vbs" };
+                long maxFileSize = 50 * 1024 * 1024;
+
+                foreach (IFormFile file in model.Files)
+                {
+                    if (file == null || file.Length == 0)
+                    {
+                        continue;
+                    }
+                    if (file.Length > maxFileSize)
+                    {
+                        TempData["CustomizeOrderMessage"] = "Each file must be 50MB or smaller.";
+                        return RedirectToAction("CustomizeOrder", new { gig_id = model.Gig_id });
+                    }
+                    string ext = Path.GetExtension(file.FileName).ToLower();
+                    for (int i = 0; i < blockedExtensions.Length; i++)
+                    {
+                        if (blockedExtensions[i] == ext)
+                        {
+                            TempData["CustomizeOrderMessage"] = "File type not allowed. Blocked: exe, bat, cmd, sh, ps1, msi, dll, vbs.";
+                            return RedirectToAction("CustomizeOrder", new { gig_id = model.Gig_id });
+                        }
+                    }
+                }
+            }
+
             List<Stream> filesToSend = new List<Stream>();
             List<string> fileNames = new List<string>();
             if (model.Files != null)
@@ -468,26 +503,56 @@ namespace GigNovaWebApp.Controllers
             return View(viewModel);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Message(string message_id)
+        [HttpPost]
+        public async Task<IActionResult> SendMessage(Message message)
         {
-            ApiClient<MessageViewModel> client = new ApiClient<MessageViewModel>();
+            string senderId = HttpContext.Session.GetString("person_id");
+            if (string.IsNullOrWhiteSpace(senderId))
+            {
+                return RedirectToAction("HomePage", "Guest");
+            }
+
+            if (message == null)
+            {
+                return RedirectToAction("MessagingBox");
+            }
+
+            if (message.Order_id <= 0 || string.IsNullOrWhiteSpace(message.Message_text))
+            {
+                TempData["MessagingBoxMessage"] = "Please write a message before sending.";
+                string fallbackOrderId = (message.Order_id > 0) ? message.Order_id.ToString() : null;
+                return RedirectToAction("MessagingBox", new { order_id = fallbackOrderId });
+            }
+
+            // Always override sender_id from session, never trust the form.
+            message.Sender_id = Convert.ToInt32(senderId);
+
+            ApiClient<Message> client = new ApiClient<Message>();
             client.Scheme = "https";
             client.Host = "localhost";
             client.Port = 7059;
-            client.Path = "api/Buyer/GetMessageViewModel";
-            if (message_id != null)
-            {
-                client.AddParameter("message_id", message_id);
-            }
-            MessageViewModel viewModel = await client.GetAsync();
-            return View(viewModel);
-        }
+            client.Path = "api/Buyer/SendMessage";
 
-        [HttpPost]
-        public IActionResult SendMessage(Message message)
-        {
-            return View(message);
+            bool response = false;
+            try
+            {
+                response = await client.PostAsync(message);
+            }
+            catch
+            {
+                response = false;
+            }
+
+            if (response)
+            {
+                TempData["MessagingBoxMessage"] = "Message sent.";
+            }
+            else
+            {
+                TempData["MessagingBoxMessage"] = "Failed to send message. Please try again.";
+            }
+
+            return RedirectToAction("MessagingBox", new { order_id = message.Order_id.ToString() });
         }
 
         [HttpPost]

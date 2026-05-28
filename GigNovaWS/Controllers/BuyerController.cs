@@ -407,6 +407,38 @@ namespace GigNovaWS.Controllers
                     return false;
                 }
 
+                // Order file rules: max 5 files, max 50MB each, no blocked extensions.
+                if (form.Files != null && form.Files.Count > 0)
+                {
+                    if (form.Files.Count > 5)
+                    {
+                        return false;
+                    }
+
+                    string[] blockedExtensions = new string[] { ".exe", ".bat", ".cmd", ".sh", ".ps1", ".msi", ".dll", ".vbs" };
+                    long maxFileSize = 50 * 1024 * 1024;
+
+                    foreach (IFormFile uploadedFile in form.Files)
+                    {
+                        if (uploadedFile == null || uploadedFile.Length == 0)
+                        {
+                            continue;
+                        }
+                        if (uploadedFile.Length > maxFileSize)
+                        {
+                            return false;
+                        }
+                        string ext = Path.GetExtension(uploadedFile.FileName).ToLower();
+                        for (int i = 0; i < blockedExtensions.Length; i++)
+                        {
+                            if (blockedExtensions[i] == ext)
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                }
+
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
 
                 Gig gig = this.repositoryUOW.GigRepository.GetById(dto.Gig_id.ToString());
@@ -458,7 +490,7 @@ namespace GigNovaWS.Controllers
 
                         Order_file orderFile = new Order_file();
                         orderFile.Order_id = orderId;
-                        orderFile.Order_file_name = fileName;
+                        orderFile.Order_file_path = "OrderFiles/" + fileName;
                         this.repositoryUOW.Order_filesRepository.Create(orderFile);
                         fileCounter++;
                     }
@@ -501,7 +533,7 @@ namespace GigNovaWS.Controllers
         }
 
         [HttpGet]
-        public MessagesBoxViewModel MessagingBoxViewModel(string buyer_id, string order_id = null)
+        public MessagesBoxViewModel MessagingBoxViewModel(string person_id, string order_id = null)
         {
             MessagesBoxViewModel viewModel = new MessagesBoxViewModel();
             viewModel.Messages = new List<Message>();
@@ -509,13 +541,13 @@ namespace GigNovaWS.Controllers
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
-                if (order_id != null && order_id != "")
+                if (string.IsNullOrWhiteSpace(order_id) == false)
                 {
-                    viewModel.Messages = this.repositoryUOW.MessageRepository.GetByBuyerAndOrderId(buyer_id, order_id);
+                    viewModel.Messages = this.repositoryUOW.MessageRepository.GetByPersonAndOrderId(person_id, order_id);
                 }
                 else
                 {
-                    viewModel.Messages = this.repositoryUOW.MessageRepository.GetByBuyerId(buyer_id);
+                    viewModel.Messages = this.repositoryUOW.MessageRepository.GetByPersonId(person_id);
                 }
 
                 foreach (Message message in viewModel.Messages)
@@ -551,41 +583,43 @@ namespace GigNovaWS.Controllers
             }
         }
 
-        [HttpGet]
-        public MessageViewModel GetMessageViewModel(string message_id)
-        {
-            MessageViewModel viewModel = new MessageViewModel();
-            try
-            {
-                this.repositoryUOW.DbHelperOledb.OpenConnection();
-                viewModel.message = this.repositoryUOW.MessageRepository.GetById(message_id);
-                if (viewModel.message != null)
-                {
-                    viewModel.order = this.repositoryUOW.OrderRepository.GetById(viewModel.message.Order_id.ToString());
-                }
-                return viewModel;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return viewModel;
-            }
-            finally
-            {
-                this.repositoryUOW.DbHelperOledb.CloseConnection();
-            }
-        }
-
         [HttpPost]
         public bool SendMessage(Message message)
         {
-            if (message == null)
+            if (message == null || message.Sender_id <= 0 || message.Order_id <= 0)
+            {
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(message.Message_text))
             {
                 return false;
             }
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
+
+                Order order = this.repositoryUOW.OrderRepository.GetById(message.Order_id.ToString());
+                if (order == null || string.IsNullOrWhiteSpace(order.Order_id))
+                {
+                    return false;
+                }
+
+                // Sender must be a participant in this order.
+                if (order.Buyer_id != message.Sender_id && order.Seller_id != message.Sender_id)
+                {
+                    return false;
+                }
+
+                // Recipient is the other party.
+                if (order.Buyer_id == message.Sender_id)
+                {
+                    message.Reciever_id = order.Seller_id;
+                }
+                else
+                {
+                    message.Reciever_id = order.Buyer_id;
+                }
+
                 return this.repositoryUOW.MessageRepository.Create(message);
             }
             catch (Exception ex)

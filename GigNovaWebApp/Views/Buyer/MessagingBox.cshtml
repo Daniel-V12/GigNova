@@ -1,8 +1,18 @@
 ﻿@using GigNovaModels.ViewModels
+@using GigNovaModels.Models
 @model MessagesBoxViewModel
 @{
     ViewData["Title"] = "MessagingBox";
     Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+    string actor = Context.Session.GetString("actor");
+    if (actor == "seller")
+    {
+        Layout = "~/Views/Shared/MasterSellerPage.cshtml";
+    }
+
+    string currentPersonId = ViewBag.CurrentPersonId as string ?? "";
+    string orderId = ViewBag.OrderId as string ?? "";
+    bool hasOrder = string.IsNullOrWhiteSpace(orderId) == false;
 }
 <link href="~/css/buyer_pages/orders_page.css" rel="stylesheet" />
 
@@ -13,38 +23,63 @@
             <p>Order communication between buyer and seller.</p>
         </div>
 
+        @if (TempData["MessagingBoxMessage"] != null)
+        {
+            <div class="orders-message">@TempData["MessagingBoxMessage"]</div>
+        }
+
+        @if (hasOrder)
+        {
+            <div class="send-message-bar">
+                <button type="button" class="open-messaging-btn" onclick="openSendMessage()">Send a Message</button>
+            </div>
+        }
+
         @if (Model != null && Model.Messages != null && Model.Messages.Count > 0)
         {
             <div class="orders-grid" style="grid-template-columns:1fr;">
-                @foreach (GigNovaModels.Models.Message message in Model.Messages)
+                @foreach (Message message in Model.Messages)
                 {
                     if (message != null)
                     {
-                        string senderName = "Unknown";
-                        if (Model.Senders != null)
+                        string fromLabel;
+                        if (message.Sender_id.ToString() == currentPersonId)
                         {
-                            foreach (GigNovaModels.Models.Person sender in Model.Senders)
+                            fromLabel = "YOU";
+                        }
+                        else
+                        {
+                            string senderName = "Unknown";
+                            if (Model.Senders != null)
                             {
-                                if (sender != null && sender.Person_id == message.Sender_id.ToString())
+                                foreach (Person sender in Model.Senders)
                                 {
-                                    senderName = sender.Person_username;
+                                    if (sender != null && sender.Person_id == message.Sender_id.ToString())
+                                    {
+                                        senderName = sender.Person_username;
+                                    }
                                 }
                             }
+                            fromLabel = senderName;
                         }
 
-                        <a asp-controller="Buyer" asp-action="Message" asp-route-message_id="@message.Message_id" class="order-card-link">
-                            <div class="order-card">
-                                <div class="order-info">
-                                    <p class="order-title" style="font-size:28px;">Message #@message.Message_id</p>
-                                    <p class="order-description" style="min-height:auto;">@message.Message_text</p>
-                                    <div class="order-footer">
-                                        <div><strong>From:</strong> @senderName</div>
-                                        <div><strong>Date:</strong> @message.Message_date</div>
-                                        <div><strong>Order #</strong> @message.Order_id</div>
-                                    </div>
+                        <div class="order-card message-card"
+                             data-msg-id="@message.Message_id"
+                             data-msg-text="@message.Message_text"
+                             data-msg-date="@message.Message_date"
+                             data-msg-from="@fromLabel"
+                             data-msg-order="@message.Order_id"
+                             onclick="openMessageView(this)">
+                            <div class="order-info">
+                                <p class="order-title" style="font-size:28px;">Message #@message.Message_id</p>
+                                <p class="order-description" style="min-height:auto;">@message.Message_text</p>
+                                <div class="order-footer">
+                                    <div><strong>From:</strong> @fromLabel</div>
+                                    <div><strong>Date:</strong> @message.Message_date</div>
+                                    <div><strong>Order #</strong> @message.Order_id</div>
                                 </div>
                             </div>
-                        </a>
+                        </div>
                     }
                 }
             </div>
@@ -58,3 +93,74 @@
         }
     </div>
 </div>
+
+<div id="messageViewOverlay" class="message-modal-overlay" onclick="closeMessageView(event)">
+    <div class="message-modal">
+        <h3>Message <span id="msgViewId"></span></h3>
+        <div class="form-group">
+            <div><strong>From:</strong> <span id="msgViewFrom"></span></div>
+            <div><strong>Date:</strong> <span id="msgViewDate"></span></div>
+            <div><strong>Order #</strong> <span id="msgViewOrder"></span></div>
+        </div>
+        <div class="form-group">
+            <p class="form-label">Message</p>
+            <p id="msgViewText" class="message-view-text"></p>
+        </div>
+        <div class="message-modal-buttons">
+            <button type="button" class="open-messaging-btn" onclick="closeMessageView()">Close</button>
+        </div>
+    </div>
+</div>
+
+@if (hasOrder)
+{
+    <div id="sendMessageOverlay" class="message-modal-overlay" onclick="closeSendMessage(event)">
+        <div class="message-modal">
+            <h3>Send a Message</h3>
+            <form asp-controller="Buyer" asp-action="SendMessage" method="post">
+                <input type="hidden" name="order_id" value="@orderId" />
+                <div class="form-group">
+                    <label class="form-label" for="message_text">Your Message</label>
+                    <textarea id="message_text" name="message_text" class="form-textarea" placeholder="Write your message..." maxlength="1000" required></textarea>
+                </div>
+                <div class="message-modal-buttons">
+                    <button type="submit" class="open-messaging-btn">Send</button>
+                    <button type="button" class="open-messaging-btn secondary-order-btn" onclick="closeSendMessage()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+<script>
+    function openMessageView(card) {
+        if (!card) return;
+        document.getElementById('msgViewId').innerText = '#' + (card.dataset.msgId || '');
+        document.getElementById('msgViewFrom').innerText = card.dataset.msgFrom || '';
+        document.getElementById('msgViewDate').innerText = card.dataset.msgDate || '';
+        document.getElementById('msgViewOrder').innerText = card.dataset.msgOrder || '';
+        document.getElementById('msgViewText').innerText = card.dataset.msgText || '';
+        document.getElementById('messageViewOverlay').style.display = 'flex';
+    }
+
+    function closeMessageView(event) {
+        if (event && event.target.id != 'messageViewOverlay') {
+            return;
+        }
+        document.getElementById('messageViewOverlay').style.display = 'none';
+    }
+
+    function openSendMessage() {
+        var overlay = document.getElementById('sendMessageOverlay');
+        if (overlay) overlay.style.display = 'flex';
+    }
+
+    function closeSendMessage(event) {
+        var overlay = document.getElementById('sendMessageOverlay');
+        if (!overlay) return;
+        if (event && event.target.id != 'sendMessageOverlay') {
+            return;
+        }
+        overlay.style.display = 'none';
+    }
+</script>

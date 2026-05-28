@@ -7,10 +7,10 @@ namespace GigNovaWS
     {
         public Order_file CreateModel(IDataReader dataReader)
         {
-            Order_file order_file_name = new Order_file();
-            order_file_name.Order_file_id = Convert.ToString(dataReader["order_file_id"]);
-            order_file_name.Order_file_name = Convert.ToString(dataReader["order_file_name"]);
-            return order_file_name;
+            Order_file order_file = new Order_file();
+            order_file.Order_file_id = Convert.ToString(dataReader["order_file_id"]);
+            order_file.Order_file_path = Convert.ToString(dataReader["order_file_path"]);
+            return order_file;
         }
-    } 
+    }
 }

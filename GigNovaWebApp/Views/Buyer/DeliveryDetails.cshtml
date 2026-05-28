@@ -57,10 +57,10 @@
             @if (deliveryFiles != null && deliveryFiles.Count > 0)
             {
                 <ul class="delivery-files-list">
-                    @foreach (string fileName in deliveryFiles)
+                    @foreach (string filePath in deliveryFiles)
                     {
                         <li>
-                            <a href="https://localhost:7059/DeliveryFiles/@fileName" target="_blank">@fileName</a>
+                            <a href="https://localhost:7059/@filePath" target="_blank">@System.IO.Path.GetFileName(filePath)</a>
                         </li>
                     }
                 </ul>

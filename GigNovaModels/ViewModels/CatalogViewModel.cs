@@ -26,5 +26,9 @@ namespace GigNovaModels.ViewModels
         public int delivery_time_id { get; set; } = 0;
         public int language_id { get; set; } = 0;
         public double min_rating { get; set; } = 0;
+
+        public string currency_code { get; set; } = "USD";
+        public string currency_symbol { get; set; } = "$";
+        public double exchange_rate { get; set; } = 1.0;
     }
 }

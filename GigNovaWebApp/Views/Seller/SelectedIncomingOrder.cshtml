@@ -126,10 +126,10 @@
                             int buyerFileNumber = 1;
                             foreach (Order_file buyerFile in buyerFiles)
                             {
-                                if (buyerFile != null && string.IsNullOrWhiteSpace(buyerFile.Order_file_name) == false)
+                                if (buyerFile != null && string.IsNullOrWhiteSpace(buyerFile.Order_file_path) == false)
                                 {
                                     <div class="delivery-history-files">
-                                        <a href="https://localhost:7059/OrderFiles/@buyerFile.Order_file_name" target="_blank">File #@buyerFileNumber (@buyerFile.Order_file_name)</a>
+                                        <a href="https://localhost:7059/@buyerFile.Order_file_path" target="_blank">File #@buyerFileNumber (@System.IO.Path.GetFileName(buyerFile.Order_file_path))</a>
                                     </div>
 
                                     buyerFileNumber++;
@@ -156,9 +156,9 @@
                                     {
                                         <div class="delivery-history-files">
                                             <strong>Files:</strong>
-                                            @foreach (string fileName in delivery.Delivery_file.Split('|', StringSplitOptions.RemoveEmptyEntries))
+                                            @foreach (string filePath in delivery.Delivery_file.Split('|', StringSplitOptions.RemoveEmptyEntries))
                                             {
-                                                <a href="https://localhost:7059/DeliveryFiles/@fileName" target="_blank">@fileName</a>
+                                                <a href="https://localhost:7059/@filePath" target="_blank">@System.IO.Path.GetFileName(filePath)</a>
                                             }
                                         </div>
                                     }
@@ -194,8 +194,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label" for="deliveryFiles">Upload Delivery Files</label>
-                            <input type="file" id="deliveryFiles" name="deliveryFiles" class="form-input" multiple>
+                            <label class="form-label" for="deliveryFiles">Upload Delivery File (.rar or .zip, max 100MB)</label>
+                            <input type="file" id="deliveryFiles" name="deliveryFiles" class="form-input" accept=".rar,.zip" />
+                            <p class="help-text">Only one file. Must be .rar or .zip. Max 100MB.</p>
                         </div>
 
                         <div class="delivery-modal-buttons">
@@ -225,5 +226,26 @@
             return;
         }
         document.getElementById('deliveryModalOverlay').style.display = 'none';
+    }
+
+    const deliveryFileInput = document.getElementById("deliveryFiles");
+    if (deliveryFileInput) {
+        deliveryFileInput.addEventListener("change", function () {
+            const file = deliveryFileInput.files && deliveryFileInput.files[0];
+            if (!file) {
+                return;
+            }
+            const ext = file.name.split(".").pop().toLowerCase();
+            if (ext !== "rar" && ext !== "zip") {
+                alert("Delivery file must be .rar or .zip only.");
+                deliveryFileInput.value = "";
+                return;
+            }
+            if (file.size > 100 * 1024 * 1024) {
+                alert("Delivery file must be 100MB or smaller.");
+                deliveryFileInput.value = "";
+                return;
+            }
+        });
     }
 </script>

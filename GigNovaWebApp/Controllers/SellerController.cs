@@ -707,6 +707,35 @@ namespace GigNovaWebApp.Controllers
                 return RedirectToAction("IncomingOrders", new { seller_id = seller_id });
             }
 
+            // Delivery file rules: exactly 1 file, max 100MB, only .rar or .zip.
+            if (deliveryFiles == null || deliveryFiles.Count == 0)
+            {
+                TempData["SellerIncomingOrderMessage"] = "Please upload a delivery file (.rar or .zip).";
+                return RedirectToAction("SelectedIncomingOrder", new { order_id = order_id, seller_id = seller_id });
+            }
+            if (deliveryFiles.Count != 1)
+            {
+                TempData["SellerIncomingOrderMessage"] = "You can only upload one delivery file (.rar or .zip).";
+                return RedirectToAction("SelectedIncomingOrder", new { order_id = order_id, seller_id = seller_id });
+            }
+            IFormFile singleDeliveryFile = deliveryFiles[0];
+            if (singleDeliveryFile == null || singleDeliveryFile.Length == 0)
+            {
+                TempData["SellerIncomingOrderMessage"] = "Please upload a delivery file (.rar or .zip).";
+                return RedirectToAction("SelectedIncomingOrder", new { order_id = order_id, seller_id = seller_id });
+            }
+            if (singleDeliveryFile.Length > 100 * 1024 * 1024)
+            {
+                TempData["SellerIncomingOrderMessage"] = "The delivery file must be 100MB or smaller.";
+                return RedirectToAction("SelectedIncomingOrder", new { order_id = order_id, seller_id = seller_id });
+            }
+            string deliveryExt = Path.GetExtension(singleDeliveryFile.FileName).ToLower();
+            if (deliveryExt != ".rar" && deliveryExt != ".zip")
+            {
+                TempData["SellerIncomingOrderMessage"] = "Delivery file must be .rar or .zip only.";
+                return RedirectToAction("SelectedIncomingOrder", new { order_id = order_id, seller_id = seller_id });
+            }
+
             Delivery delivery = new Delivery();
             delivery.Order_id = order_id;
             delivery.Delivery_text = delivery_text ?? "";
@@ -714,17 +743,8 @@ namespace GigNovaWebApp.Controllers
 
             List<Stream> fileStreams = new List<Stream>();
             List<string> fileNames = new List<string>();
-            if (deliveryFiles != null)
-            {
-                foreach (IFormFile file in deliveryFiles)
-                {
-                    if (file != null && file.Length > 0)
-                    {
-                        fileStreams.Add(file.OpenReadStream());
-                        fileNames.Add(file.FileName);
-                    }
-                }
-            }
+            fileStreams.Add(singleDeliveryFile.OpenReadStream());
+            fileNames.Add(singleDeliveryFile.FileName);
 
             ApiClient<Delivery> client = new ApiClient<Delivery>();
             client.Scheme = "https";

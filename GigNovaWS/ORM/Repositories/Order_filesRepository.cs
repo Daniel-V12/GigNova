@@ -11,9 +11,9 @@ namespace GigNovaWS
         }
         public bool Create(Order_file model)
         {
-            string sql = @$"Insert into Order_Files (order_file_name, order_id)
-            values ( @order_file_name, @order_id)";
-            this.dbHelperOledb.AddParameter("@order_file_name", model.Order_file_name);
+            string sql = @$"Insert into Order_Files (order_file_path, order_id)
+            values ( @order_file_path, @order_id)";
+            this.dbHelperOledb.AddParameter("@order_file_path", model.Order_file_path);
             this.dbHelperOledb.AddParameter("@order_id", model.Order_id);
             return this.dbHelperOledb.Insert(sql) > 0;
         }
@@ -82,8 +82,8 @@ namespace GigNovaWS
         public bool Update(Order_file model)
         {
             string sql = @"Update Order_Files set 
-            order_file_name = @order_file_name";
-            this.dbHelperOledb.AddParameter("@order_file_name", model.Order_file_name);
+            order_file_path = @order_file_path";
+            this.dbHelperOledb.AddParameter("@order_file_path", model.Order_file_path);
             return this.dbHelperOledb.Update(sql) > 0;
         }
     }
