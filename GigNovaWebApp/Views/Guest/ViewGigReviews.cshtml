@@ -66,18 +66,18 @@
 </div>
 
 <div id="reviewPopup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:2000;">
-    <div style="max-width:520px; margin:8% auto; background:#1f244e; border:1px solid #3f477f; border-radius:10px; padding:22px;">
-        <h3 style="margin-top:0;">Upload Gig Review</h3>
-        <label style="display:block; margin-bottom:6px;">Rating (1 to 5)</label>
-        <select id="reviewRating" style="width:100%; margin-bottom:14px; padding:8px;">
+    <div style="max-width:520px; margin:8% auto; background:#1f244e; border:1px solid #3f477f; border-radius:10px; padding:22px; color:#f2f3ff;">
+        <h3 style="margin-top:0; color:#f2f3ff;">Upload Gig Review</h3>
+        <label style="display:block; margin-bottom:6px; color:#d5d8ef;">Rating (1 to 5)</label>
+        <select id="reviewRating" style="width:100%; margin-bottom:14px; padding:10px; background:#1d2140; color:#f2f3ff; border:1px solid #5a619b; border-radius:8px;">
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
             <option value="4">4</option>
             <option value="5" selected>5</option>
         </select>
-        <label style="display:block; margin-bottom:6px;">Comment</label>
-        <textarea id="reviewComment" style="width:100%; min-height:140px; padding:8px;" placeholder="Write your review..."></textarea>
+        <label style="display:block; margin-bottom:6px; color:#d5d8ef;">Comment</label>
+        <textarea id="reviewComment" style="width:100%; min-height:140px; padding:10px; background:#1d2140; color:#f2f3ff; border:1px solid #5a619b; border-radius:8px; resize:vertical;" placeholder="Write your review..."></textarea>
         <div style="display:flex; gap:10px; margin-top:14px;">
             <button type="button" class="action-btn" onclick="submitReview()">Submit</button>
             <button type="button" class="action-btn clear-btn" onclick="closeReviewPopup()">Cancel</button>

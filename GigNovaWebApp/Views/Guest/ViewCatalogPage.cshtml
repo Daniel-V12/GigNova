@@ -89,24 +89,24 @@
         <div class="main-content">
             <aside class="sidebar">
                 <div class="filter-section">
-                    <h3>Budget (USD)</h3>
+                    <h3>Budget</h3>
                     <div class="budget-inputs">
                         @if (Model != null && Model.min_price > 0)
                         {
-                            <input type="number" name="min_price" placeholder="Min $ (USD)" min="0" step="1" value="@Model.min_price">
+                            <input type="number" name="min_price" placeholder="Min Price" min="0" step="1" value="@Model.min_price">
                         }
                         else
                         {
-                            <input type="number" name="min_price" placeholder="Min $ (USD)" min="0" step="1">
+                            <input type="number" name="min_price" placeholder="Min Price" min="0" step="1">
                         }
 
                         @if (Model != null && Model.max_price > 0)
                         {
-                            <input type="number" name="max_price" placeholder="Max $ (USD)" min="0" step="1" value="@Model.max_price">
+                            <input type="number" name="max_price" placeholder="Max Price" min="0" step="1" value="@Model.max_price">
                         }
                         else
                         {
-                            <input type="number" name="max_price" placeholder="Max $ (USD)" min="0" step="1">
+                            <input type="number" name="max_price" placeholder="Max Price" min="0" step="1">
                         }
                     </div>
                 </div>

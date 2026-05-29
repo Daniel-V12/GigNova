@@ -21,7 +21,7 @@ namespace GigNovaModels.Models
         {
 
         }
-        public string Message_id
+        public string? Message_id
         {
             get { return message_id; }
             set { message_id = value; }
@@ -45,7 +45,7 @@ namespace GigNovaModels.Models
             set { message_text = value; }
         }
 
-        public string Message_date
+        public string? Message_date
         {
             get { return message_date; }
             set { message_date = value; }

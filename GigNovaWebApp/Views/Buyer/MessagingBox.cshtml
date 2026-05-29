@@ -9,12 +9,13 @@
     {
         Layout = "~/Views/Shared/MasterSellerPage.cshtml";
     }
-
+    string fromRole = ViewBag.FromRole as string ?? "";
     string currentPersonId = ViewBag.CurrentPersonId as string ?? "";
     string orderId = ViewBag.OrderId as string ?? "";
     bool hasOrder = string.IsNullOrWhiteSpace(orderId) == false;
 }
 <link href="~/css/buyer_pages/orders_page.css" rel="stylesheet" />
+<link href="~/css/buyer_pages/messagingbox_page.css" rel="stylesheet" />
 
 <div class="orders-container">
     <div class="orders-section">
@@ -32,16 +33,28 @@
         {
             <div class="send-message-bar">
                 <button type="button" class="open-messaging-btn" onclick="openSendMessage()">Send a Message</button>
+                @if (fromRole == "seller")
+                {
+                    <a asp-controller="Seller" asp-action="SelectedIncomingOrder" asp-route-order_id="@orderId" class="open-messaging-btn">Back to Order</a>
+                }
+                else
+                {
+                    <a asp-controller="Buyer" asp-action="SelectedOrder" asp-route-order_id="@orderId" class="open-messaging-btn">Back to Order</a>
+                }
             </div>
         }
 
         @if (Model != null && Model.Messages != null && Model.Messages.Count > 0)
         {
             <div class="orders-grid" style="grid-template-columns:1fr;">
+                @{
+                    int messageNumber = 0;
+                }
                 @foreach (Message message in Model.Messages)
                 {
                     if (message != null)
                     {
+                        messageNumber++;
                         string fromLabel;
                         if (message.Sender_id.ToString() == currentPersonId)
                         {
@@ -63,20 +76,25 @@
                             fromLabel = senderName;
                         }
 
+                        string preview = message.Message_text ?? "";
+                        if (preview.Length > 80)
+                        {
+                            preview = preview.Substring(0, 80) + "...";
+                        }
+
                         <div class="order-card message-card"
-                             data-msg-id="@message.Message_id"
+                             data-msg-number="@messageNumber"
                              data-msg-text="@message.Message_text"
                              data-msg-date="@message.Message_date"
                              data-msg-from="@fromLabel"
                              data-msg-order="@message.Order_id"
                              onclick="openMessageView(this)">
                             <div class="order-info">
-                                <p class="order-title" style="font-size:28px;">Message #@message.Message_id</p>
-                                <p class="order-description" style="min-height:auto;">@message.Message_text</p>
+                                <p class="order-title" style="font-size:28px;">Message #@messageNumber</p>
+                                <p class="order-description" style="min-height:auto;">@preview</p>
                                 <div class="order-footer">
                                     <div><strong>From:</strong> @fromLabel</div>
                                     <div><strong>Date:</strong> @message.Message_date</div>
-                                    <div><strong>Order #</strong> @message.Order_id</div>
                                 </div>
                             </div>
                         </div>
@@ -133,9 +151,9 @@
 }
 
 <script>
-    function openMessageView(card) {
+       function openMessageView(card) {
         if (!card) return;
-        document.getElementById('msgViewId').innerText = '#' + (card.dataset.msgId || '');
+        document.getElementById('msgViewId').innerText = '#' + (card.dataset.msgNumber || '');
         document.getElementById('msgViewFrom').innerText = card.dataset.msgFrom || '';
         document.getElementById('msgViewDate').innerText = card.dataset.msgDate || '';
         document.getElementById('msgViewOrder').innerText = card.dataset.msgOrder || '';

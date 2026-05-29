@@ -477,30 +477,35 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> MessagingBox(string buyer_id, string order_id = null)
+        public async Task<IActionResult> MessagingBox(string buyer_id, string order_id = null, string from_role = null)
         {
-            if (buyer_id == null || buyer_id == "")
             {
-                buyer_id = HttpContext.Session.GetString("person_id");
-            }
+                if (buyer_id == null || buyer_id == "")
+                {
+                    buyer_id = HttpContext.Session.GetString("person_id");
+                }
 
-            if (buyer_id == null || buyer_id == "")
-            {
-                return RedirectToAction("HomePage", "Guest");
-            }
+                if (buyer_id == null || buyer_id == "")
+                {
+                    return RedirectToAction("HomePage", "Guest");
+                }
 
-            ApiClient<MessagesBoxViewModel> client = new ApiClient<MessagesBoxViewModel>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Buyer/MessagingBoxViewModel";
-            client.AddParameter("buyer_id", buyer_id);
-            if (order_id != null && order_id != "")
-            {
-                client.AddParameter("order_id", order_id);
+                ApiClient<MessagesBoxViewModel> client = new ApiClient<MessagesBoxViewModel>();
+                client.Scheme = "https";
+                client.Host = "localhost";
+                client.Port = 7059;
+                client.Path = "api/Buyer/MessagingBoxViewModel";
+                client.AddParameter("person_id", buyer_id);
+                if (order_id != null && order_id != "")
+                {
+                    client.AddParameter("order_id", order_id);
+                }
+                MessagesBoxViewModel viewModel = await client.GetAsync();
+                ViewBag.CurrentPersonId = buyer_id;
+                ViewBag.OrderId = order_id;
+                ViewBag.FromRole = from_role;
+                return View(viewModel);
             }
-            MessagesBoxViewModel viewModel = await client.GetAsync();
-            return View(viewModel);
         }
 
         [HttpPost]
@@ -512,19 +517,12 @@ namespace GigNovaWebApp.Controllers
                 return RedirectToAction("HomePage", "Guest");
             }
 
-            if (message == null)
-            {
-                return RedirectToAction("MessagingBox");
-            }
-
-            if (message.Order_id <= 0 || string.IsNullOrWhiteSpace(message.Message_text))
+            if (message == null || message.Order_id <= 0 || string.IsNullOrWhiteSpace(message.Message_text))
             {
                 TempData["MessagingBoxMessage"] = "Please write a message before sending.";
-                string fallbackOrderId = (message.Order_id > 0) ? message.Order_id.ToString() : null;
-                return RedirectToAction("MessagingBox", new { order_id = fallbackOrderId });
+                return RedirectToAction("MessagingBox", new { order_id = message?.Order_id.ToString() });
             }
 
-            // Always override sender_id from session, never trust the form.
             message.Sender_id = Convert.ToInt32(senderId);
 
             ApiClient<Message> client = new ApiClient<Message>();
@@ -543,15 +541,7 @@ namespace GigNovaWebApp.Controllers
                 response = false;
             }
 
-            if (response)
-            {
-                TempData["MessagingBoxMessage"] = "Message sent.";
-            }
-            else
-            {
-                TempData["MessagingBoxMessage"] = "Failed to send message. Please try again.";
-            }
-
+            TempData["MessagingBoxMessage"] = response ? "Message sent." : "Failed to send message. Please try again.";
             return RedirectToAction("MessagingBox", new { order_id = message.Order_id.ToString() });
         }
 
@@ -761,7 +751,5 @@ namespace GigNovaWebApp.Controllers
             ViewData["Gig"] = orderDetails.gig;
             return View("~/Views/Buyer/DeliveryDetails.cshtml", orderDetails);
         }
-
-
     }
 }

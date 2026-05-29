@@ -24,50 +24,15 @@ namespace GigNovaWebApp.Controllers
 
         [HttpGet]
         public async Task<IActionResult> ViewCatalogPage(
-            string categories = null,
-            int page = 1,
-            double min_price = 0,
-            double max_price = 0,
-            int delivery_time_id = 0,
-            int language_id = 0,
-            double min_rating = 0,
-            string currency = "USD")
+    string categories = null,
+    int page = 1,
+    double min_price = 0,
+    double max_price = 0,
+    int delivery_time_id = 0,
+    int language_id = 0,
+    double min_rating = 0,
+    string currency = "USD")
         {
-            ApiClient<CatalogViewModel> client = new ApiClient<CatalogViewModel>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Guest/GetCatalogViewModel";
-            if (categories != null)
-            {
-                client.AddParameter("categories", categories);
-            }
-            if (page != 0)
-            {
-                client.AddParameter("page", page.ToString());
-            }
-            if (min_price != 0)
-            {
-                client.AddParameter("min_price", min_price.ToString());
-            }
-            if (max_price != 0)
-            {
-                client.AddParameter("max_price", max_price.ToString());
-            }
-            if (delivery_time_id != 0)
-            {
-                client.AddParameter("delivery_time_id", delivery_time_id.ToString());
-            }
-            if (language_id != 0)
-            {
-                client.AddParameter("language_id", language_id.ToString());
-            }
-            if (min_rating != 0)
-            {
-                client.AddParameter("min_rating", min_rating.ToString());
-            }
-            CatalogViewModel catalogViewModel = await client.GetAsync();
-
             Dictionary<string, string> currencySymbols = new Dictionary<string, string>
             {
                 { "USD", "$" },
@@ -80,6 +45,7 @@ namespace GigNovaWebApp.Controllers
             {
                 currency = "USD";
             }
+
             double exchangeRate = 1.0;
             if (currency != "USD")
             {
@@ -97,11 +63,57 @@ namespace GigNovaWebApp.Controllers
                     currency = "USD";
                 }
             }
+
+            double minPriceUsd = min_price;
+            double maxPriceUsd = max_price;
+            if (currency != "USD" && exchangeRate > 0)
+            {
+                if (min_price > 0) minPriceUsd = min_price / exchangeRate;
+                if (max_price > 0) maxPriceUsd = max_price / exchangeRate;
+            }
+
+            ApiClient<CatalogViewModel> client = new ApiClient<CatalogViewModel>();
+            client.Scheme = "https";
+            client.Host = "localhost";
+            client.Port = 7059;
+            client.Path = "api/Guest/GetCatalogViewModel";
+            if (categories != null)
+            {
+                client.AddParameter("categories", categories);
+            }
+            if (page != 0)
+            {
+                client.AddParameter("page", page.ToString());
+            }
+            if (minPriceUsd != 0)
+            {
+                client.AddParameter("min_price", minPriceUsd.ToString());
+            }
+            if (maxPriceUsd != 0)
+            {
+                client.AddParameter("max_price", maxPriceUsd.ToString());
+            }
+            if (delivery_time_id != 0)
+            {
+                client.AddParameter("delivery_time_id", delivery_time_id.ToString());
+            }
+            if (language_id != 0)
+            {
+                client.AddParameter("language_id", language_id.ToString());
+            }
+            if (min_rating != 0)
+            {
+                client.AddParameter("min_rating", min_rating.ToString());
+            }
+            CatalogViewModel catalogViewModel = await client.GetAsync();
+
             if (catalogViewModel != null)
             {
                 catalogViewModel.currency_code = currency;
                 catalogViewModel.currency_symbol = currencySymbols[currency];
                 catalogViewModel.exchange_rate = exchangeRate;
+                catalogViewModel.min_price = min_price;
+                catalogViewModel.max_price = max_price;
             }
             return View(catalogViewModel);
         }

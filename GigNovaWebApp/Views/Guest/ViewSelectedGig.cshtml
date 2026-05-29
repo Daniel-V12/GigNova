@@ -43,6 +43,16 @@
                         <div style="text-align:right;">
                             <span class="price-label selected-gig-price-label">Starting at</span>
                             <span class="price-value" style="font-size:28px;">$@Model.gig.Gig_price</span>
+                            <div style="margin-top:8px; color:#ffd166; font-size:14px; font-weight:700;">
+                                @if (Model.Review > 0)
+                                {
+                                    <span>★ @Model.Review.ToString("0.0") / 5</span>
+                                }
+                                else
+                                {
+                                    <span style="color:#aeb3db;">No reviews yet</span>
+                                }
+                            </div>
                         </div>
                     </div>
 

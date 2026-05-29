@@ -389,12 +389,13 @@ namespace GigNovaWebApp.Controllers
             {
                 gig.Language_id = 1;
             }
-            gig.Language_id = 1; // Delete later test code
+            gig.Language_id = 1;
 
             ModelState.Remove("Gig_id");
             ModelState.Remove("Gig_date");
             ModelState.Remove("Gig_photo");
             ModelState.Remove("Category_id");
+            ModelState.Remove("gigPhotoFile");
 
             if (ModelState.IsValid == false)
             {
@@ -408,6 +409,12 @@ namespace GigNovaWebApp.Controllers
                     }
                 }
                 TempData["ManageGigMessage"] = firstError;
+                return RedirectToAction("ManageGigs", new { seller_id = sellerId });
+            }
+
+            if (gigPhotoFile == null || gigPhotoFile.Length == 0)
+            {
+                TempData["ManageGigMessage"] = "Please upload a gig photo.";
                 return RedirectToAction("ManageGigs", new { seller_id = sellerId });
             }
 
@@ -433,15 +440,8 @@ namespace GigNovaWebApp.Controllers
             Stream photoStream = null;
             try
             {
-                if (gigPhotoFile != null && gigPhotoFile.Length > 0)
-                {
-                    photoStream = gigPhotoFile.OpenReadStream();
-                    response = await client.PostAsync(gig, photoStream, gigPhotoFile.FileName);
-                }
-                else
-                {
-                    response = await client.PostAsync(gig);
-                }
+                photoStream = gigPhotoFile.OpenReadStream();
+                response = await client.PostAsync(gig, photoStream, gigPhotoFile.FileName);
             }
             catch
             {
@@ -483,6 +483,7 @@ namespace GigNovaWebApp.Controllers
 
             ModelState.Remove("Gig_date");
             ModelState.Remove("Category_id");
+            ModelState.Remove("gigPhotoFile");
 
             if (ModelState.IsValid == false)
             {

@@ -124,22 +124,22 @@ namespace GigNovaTesting
             //    GetSalt(5);
             //Console.ReadLine();
 
-            //for (int i = 1; i <= 10; i++)
-            //{
-            //    Console.WriteLine("Insert password: ");
-            //    string password = Console.ReadLine();
-            //    string salt = GetSalt(8);
-            //    string hash = GetHash(password, salt);
-            //    Console.WriteLine(salt);
-            //    Console.WriteLine(hash);
-            //}
-            //Console.ReadLine();
+            for (int i = 1; i <= 10; i++)
+            {
+                Console.WriteLine("Insert password: ");
+                string password = Console.ReadLine();
+                string salt = GetSalt(8);
+                string hash = GetHash(password, salt);
+                Console.WriteLine(salt);
+                Console.WriteLine(hash);
+            }
+            Console.ReadLine();
 
             //Console.ReadLine();
             //TestGigNovaClient();
             //Console.ReadLine();
 
-            Console.WriteLine(GetHash("123ab34", "9X3N6zJWde0="));
+/*            Console.WriteLine(GetHash("123ab34", "9X3N6zJWde0="))*/;
         }
         //static void TestGig()
         //{

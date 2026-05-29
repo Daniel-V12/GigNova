@@ -137,7 +137,6 @@
             <input type="hidden" name="Seller_id" value="@sellerId" />
             <input type="hidden" name="Gig_photo" value="@selectedPhoto" />
             <input type="hidden" name="Language_id" value="@(selectedGig.Language_id > 0 ? selectedGig.Language_id : 1)" />
-            <input type="hidden" name="Has_revisions" value="@selectedGig.Has_revisions.ToString().ToLower()" />
 
             <label class="field-label" for="Gig_name">Title</label>
             <input class="field-input" id="Gig_name" name="Gig_name" value="@selectedGig.Gig_name" maxlength="100" required />
@@ -210,7 +209,16 @@
             @if (string.IsNullOrWhiteSpace(selectedPhoto) == false && selectedPhoto != "none")
             {
                 <p class="photo-label">Current photo:</p>
-                <img class="gig-photo-preview" src="https://localhost:7059/Images/@selectedPhoto" alt="Gig photo" />
+                <button type="button" class="outline-btn" onclick="openGigPhotoPopup()">Show Photo</button>
+
+                <div id="gigPhotoPopup"
+                     style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 3000; padding: 40px;"
+                     onclick="closeGigPhotoPopup(event)">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                        <img src="https://localhost:7059/Images/@selectedPhoto?v=@DateTime.Now.Ticks" alt="Gig photo full" style="max-width: 90vw; max-height: 80vh; object-fit: contain; border-radius: 8px; border: 1px solid #5a619b;" />
+                        <button type="button" class="primary-btn" onclick="closeGigPhotoPopup()">Close</button>
+                    </div>
+                </div>
             }
 
             <div class="editor-buttons">
@@ -275,5 +283,17 @@
             return;
         }
         button.parentElement.remove();
+    }
+
+    function openGigPhotoPopup() {
+        var popup = document.getElementById('gigPhotoPopup');
+        if (popup) popup.style.display = 'flex';
+    }
+
+    function closeGigPhotoPopup(event) {
+        var popup = document.getElementById('gigPhotoPopup');
+        if (!popup) return;
+        if (event && event.target.id !== 'gigPhotoPopup' && !event.target.classList.contains('primary-btn')) return;
+        popup.style.display = 'none';
     }
 </script>

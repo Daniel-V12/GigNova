@@ -18,10 +18,8 @@ namespace GigNovaWS
             gig.Delivery_time_id = Convert.ToUInt16(dataReader["delivery_time_id"]);
             gig.Seller_id = Convert.ToUInt16(dataReader["seller_id"]);
             gig.Is_publish = Convert.ToBoolean(dataReader["is_publish"]);
-            gig.Has_revisions = Convert.ToBoolean(dataReader["has_revisions"]);
             gig.Is_blocked = Convert.ToBoolean(dataReader["is_blocked"]);
             gig.Category_id = TryGetCategoryId(dataReader);
-
             return gig;
         }
 

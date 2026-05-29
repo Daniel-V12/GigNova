@@ -15,28 +15,6 @@ namespace GigNovaWS.Controllers
             this.repositoryUOW = new RepositoryUOW();
         }
 
-
-
-
-        [HttpGet]
-        public List<Order> GetOrderedGigsViewModel(string buyerId)
-        {
-            try
-            {
-                this.repositoryUOW.DbHelperOledb.OpenConnection();
-                return this.repositoryUOW.OrderRepository.GetOrderByBuyerId(buyerId);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return new List<Order>();
-            }
-            finally
-            {
-                this.repositoryUOW.DbHelperOledb.CloseConnection();
-            }
-        }
-
         [HttpGet]
         public BuyerProfileViewmodel GetBuyerProfileViewModel(string buyer_id)
         {
@@ -590,36 +568,26 @@ namespace GigNovaWS.Controllers
             {
                 return false;
             }
-            if (string.IsNullOrWhiteSpace(message.Message_text))
-            {
-                return false;
-            }
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
-
                 Order order = this.repositoryUOW.OrderRepository.GetById(message.Order_id.ToString());
                 if (order == null || string.IsNullOrWhiteSpace(order.Order_id))
                 {
                     return false;
                 }
-
-                // Sender must be a participant in this order.
-                if (order.Buyer_id != message.Sender_id && order.Seller_id != message.Sender_id)
-                {
-                    return false;
-                }
-
-                // Recipient is the other party.
                 if (order.Buyer_id == message.Sender_id)
                 {
                     message.Reciever_id = order.Seller_id;
                 }
-                else
+                else if (order.Seller_id == message.Sender_id)
                 {
                     message.Reciever_id = order.Buyer_id;
                 }
-
+                else
+                {
+                    return false;
+                }
                 return this.repositoryUOW.MessageRepository.Create(message);
             }
             catch (Exception ex)

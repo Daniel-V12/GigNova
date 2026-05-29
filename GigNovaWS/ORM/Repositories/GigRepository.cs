@@ -15,8 +15,8 @@ namespace GigNovaWS
 
         public bool Create(Gig model)
         {
-            string sql = @$"Insert into Gigs (gig_name, gig_description, language_id, gig_date, gig_photo, gig_price , seller_id, is_publish, has_revisions , delivery_time_id, is_blocked)
-            values ( @gig_name , @gig_description ,@language_id, @gig_date , @gig_photo, @gig_price, @seller_id , @is_publish, @has_revisions, @delivery_time_id, @is_blocked )";
+            string sql = @$"Insert into Gigs (gig_name, gig_description, language_id, gig_date, gig_photo, gig_price, seller_id, is_publish, delivery_time_id, is_blocked)
+            values ( @gig_name , @gig_description , @language_id, @gig_date , @gig_photo, @gig_price, @seller_id , @is_publish, @delivery_time_id, @is_blocked )";
             this.dbHelperOledb.AddParameter("@gig_name", model.Gig_name);
             this.dbHelperOledb.AddParameter("@gig_description", model.Gig_description);
             this.dbHelperOledb.AddParameter("@language_id", model.Language_id);
@@ -25,7 +25,6 @@ namespace GigNovaWS
             this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price);
             this.dbHelperOledb.AddParameter("@seller_id", model.Seller_id);
             this.dbHelperOledb.AddParameter("@is_publish", false);
-            this.dbHelperOledb.AddParameter("@has_revisions", false);
             this.dbHelperOledb.AddParameter("@delivery_time_id", model.Delivery_time_id);
             this.dbHelperOledb.AddParameter("@is_blocked", false);
             return this.dbHelperOledb.Insert(sql) > 0;
@@ -33,8 +32,8 @@ namespace GigNovaWS
 
         public bool CreateBySeller(Gig model)
         {
-            string sql = @$"Insert into Gigs (gig_name, gig_description, gig_date, gig_price, gig_photo, language_id, delivery_time_id, seller_id, is_publish, has_revisions, is_blocked)
-    values ( @gig_name , @gig_description , @gig_date , @gig_price, @gig_photo, @language_id, @delivery_time_id, @seller_id, @is_publish, @has_revisions, @is_blocked )";
+            string sql = @$"Insert into Gigs (gig_name, gig_description, gig_date, gig_price, gig_photo, language_id, delivery_time_id, seller_id, is_publish, is_blocked)
+    values ( @gig_name , @gig_description , @gig_date , @gig_price, @gig_photo, @language_id, @delivery_time_id, @seller_id, @is_publish, @is_blocked )";
             this.dbHelperOledb.AddParameter("@gig_name", model.Gig_name);
             this.dbHelperOledb.AddParameter("@gig_description", model.Gig_description);
             this.dbHelperOledb.AddParameter("@gig_date", DateTime.Now.ToShortDateString());
@@ -44,7 +43,6 @@ namespace GigNovaWS
             this.dbHelperOledb.AddParameter("@delivery_time_id", model.Delivery_time_id);
             this.dbHelperOledb.AddParameter("@seller_id", model.Seller_id);
             this.dbHelperOledb.AddParameter("@is_publish", false);
-            this.dbHelperOledb.AddParameter("@has_revisions", model.Has_revisions);
             this.dbHelperOledb.AddParameter("@is_blocked", false);
             return this.dbHelperOledb.Insert(sql) > 0;
         }
@@ -98,14 +96,12 @@ namespace GigNovaWS
             gig_name = @gig_name,
             gig_description = @gig_description,
             gig_price = @gig_price,
-            is_publish = @is_publish,
-            has_revisions = @has_revisions
+            is_publish = @is_publish
             where gig_id = @gig_id";
             this.dbHelperOledb.AddParameter("@gig_name", model.Gig_name);
             this.dbHelperOledb.AddParameter("@gig_description", model.Gig_description);
             this.dbHelperOledb.AddParameter("@gig_price", model.Gig_price);
             this.dbHelperOledb.AddParameter("@is_publish", model.Is_publish);
-            this.dbHelperOledb.AddParameter("@has_revisions", model.Has_revisions);
             this.dbHelperOledb.AddParameter("@gig_id", model.Gig_id);
             return this.dbHelperOledb.Update(sql) > 0;
         }
@@ -118,8 +114,7 @@ namespace GigNovaWS
             gig_price = @gig_price,
             gig_photo = @gig_photo,
             language_id = @language_id,
-            delivery_time_id = @delivery_time_id,
-            has_revisions = @has_revisions
+            delivery_time_id = @delivery_time_id
             where gig_id = @gig_id and seller_id = @seller_id";
             this.dbHelperOledb.AddParameter("@gig_name", model.Gig_name);
             this.dbHelperOledb.AddParameter("@gig_description", model.Gig_description);
@@ -127,7 +122,6 @@ namespace GigNovaWS
             this.dbHelperOledb.AddParameter("@gig_photo", model.Gig_photo);
             this.dbHelperOledb.AddParameter("@language_id", model.Language_id);
             this.dbHelperOledb.AddParameter("@delivery_time_id", model.Delivery_time_id);
-            this.dbHelperOledb.AddParameter("@has_revisions", model.Has_revisions);
             this.dbHelperOledb.AddParameter("@gig_id", model.Gig_id);
             this.dbHelperOledb.AddParameter("@seller_id", model.Seller_id);
             return this.dbHelperOledb.Update(sql) > 0;
@@ -208,7 +202,7 @@ namespace GigNovaWS
             StringBuilder sb = new StringBuilder();
             sb.Append(@"SELECT Gigs.gig_id, Gigs.gig_name, Gigs.gig_description, Gigs.delivery_time_id,
                           Gigs.language_id, Gigs.gig_date, Gigs.gig_photo, Gigs.gig_price, Gigs.seller_id,
-                          Gigs.is_publish, Gigs.has_revisions, Gigs.is_blocked, [Gigs - Categories].category_id
+                          Gigs.is_publish, Gigs.is_blocked, [Gigs - Categories].category_id
                           FROM Gigs
                           INNER JOIN [Gigs - Categories] ON Gigs.gig_id = [Gigs - Categories].gig_id");
             if (categories != null && categories.Length > 0)
@@ -224,7 +218,6 @@ namespace GigNovaWS
                         sb.Append(" Or ");
                     i++;
                 }
-
             }
             List<Gig> gigs = new List<Gig>();
             using (IDataReader reader = this.dbHelperOledb.Select(sb.ToString()))
@@ -237,7 +230,6 @@ namespace GigNovaWS
                 }
             }
             return gigs;
-
         }
 
         private bool IfGigExist(Gig gig, List<Gig> gigs)

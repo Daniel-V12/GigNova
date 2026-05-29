@@ -73,3 +73,30 @@
 .message-card {
     cursor: pointer;
 }
+
+.message-card.order-card {
+    height: auto;
+}
+
+.message-card .order-info {
+    padding: 12px 14px;
+    }
+
+.message-card .order-info .order-title {
+    font-size: 22px !important;
+    min-height: 0 !important;
+    margin: 0 0 4px 0;
+}
+
+.message-card .order-info .order-description {
+    min-height: 0 !important;
+    margin: 0 0 6px 0;
+}
+
+.message-card .order-info .order-footer {
+    margin-top: 0;
+    display: flex;
+    gap: 14px;
+    font-size: 14px;
+}
+

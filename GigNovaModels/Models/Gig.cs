@@ -21,7 +21,6 @@ namespace GigNovaModels.Models
         double gig_price;
         int seller_id;
         bool is_publish;
-        bool has_revisions;
         bool is_blocked;
         string category_id;
         List<string> category_ids = new List<string>();
@@ -110,11 +109,6 @@ namespace GigNovaModels.Models
         {
             get { return is_publish; }
             set { is_publish = value; }
-        }
-        public bool Has_revisions
-        {
-            get { return has_revisions; }
-            set { has_revisions = value; }
         }
 
         public bool Is_blocked
