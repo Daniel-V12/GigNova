@@ -60,7 +60,7 @@
                     @foreach (string filePath in deliveryFiles)
                     {
                         <li>
-                            <a href="https://localhost:7059/@filePath" target="_blank">@System.IO.Path.GetFileName(filePath)</a>
+                            <a href="https://localhost:7059/DeliveryFiles/@filePath" download>@filePath</a>
                         </li>
                     }
                 </ul>

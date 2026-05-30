@@ -320,6 +320,32 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> CompleteOrder(string order_id)
+        {
+            string buyerId = HttpContext.Session.GetString("person_id");
+            if (string.IsNullOrWhiteSpace(buyerId))
+            {
+                return RedirectToAction("HomePage", "Guest");
+            }
+            if (string.IsNullOrWhiteSpace(order_id))
+            {
+                return RedirectToAction("ViewOrders", new { buyerId = buyerId });
+            }
+
+            ApiClient<string> client = new ApiClient<string>();
+            client.Scheme = "https";
+            client.Host = "localhost";
+            client.Port = 7059;
+            client.Path = "api/Buyer/CompleteOrder";
+            client.AddParameter("order_id", order_id);
+            client.AddParameter("buyer_id", buyerId);
+
+            await client.PostAsyncReturn<string, bool>("");
+
+            return RedirectToAction("SelectedOrder", new { order_id = order_id });
+        }
+
+        [HttpPost]
         public IActionResult LogOut()
         {
             HttpContext.Session.Remove("person_id");
@@ -599,13 +625,9 @@ namespace GigNovaWebApp.Controllers
         }
 
         [HttpGet]
-        public IActionResult BecomeASellerPage(Seller seller = null)
+        public IActionResult BecomeASellerPage()
         {
-            if (seller == null)
-            {
-                seller = new Seller();
-            }
-            return View(seller);
+            return View("BecomeASellerPage", new Seller());
         }
 
         [HttpPost]

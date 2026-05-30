@@ -208,7 +208,8 @@ namespace GigNovaWS.Controllers
                 }
 
                 List<Order> pagedOrders = orders
-                    .OrderByDescending(order => DateTime.TryParse(order.Order_creation_date, out DateTime d) ? d : DateTime.MinValue)
+                    .OrderBy(order => order.Order_status_id == 3 ? 1 : 0)
+                    .ThenByDescending(order => DateTime.TryParse(order.Order_creation_date, out DateTime d) ? d : DateTime.MinValue)
                     .ThenByDescending(order => int.TryParse(order.Order_id, out int id) ? id : 0)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
@@ -665,6 +666,42 @@ namespace GigNovaWS.Controllers
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
                 return this.repositoryUOW.OrderRepository.UpdatePaymentStatus(order_id, true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+        [HttpPost]
+        public bool CompleteOrder(string order_id, string buyer_id)
+        {
+            if (string.IsNullOrWhiteSpace(order_id) || string.IsNullOrWhiteSpace(buyer_id))
+            {
+                return false;
+            }
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                Order order = this.repositoryUOW.OrderRepository.GetById(order_id);
+                if (order == null)
+                {
+                    return false;
+                }
+                if (order.Buyer_id.ToString() != buyer_id)
+                {
+                    return false;
+                }
+                if (order.Order_status_id != 2)
+                {
+                    return false;
+                }
+                return this.repositoryUOW.OrderRepository.UpdateOrderStatus(order_id, 3);
             }
             catch (Exception ex)
             {

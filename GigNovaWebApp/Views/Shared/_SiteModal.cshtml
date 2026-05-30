@@ -1,0 +1,88 @@
+﻿<style>
+    .site-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 3000;
+    }
+
+    .site-modal {
+        background: #2f3a58;
+        border: 2px solid rgba(255,255,255,0.2);
+        border-radius: 14px;
+        padding: 24px;
+        max-width: 460px;
+        width: 90%;
+        color: #f2f3ff;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+    }
+
+    .site-modal-text {
+        margin: 0 0 18px 0;
+        font-size: 16px;
+        line-height: 1.4;
+    }
+
+    .site-modal-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .site-modal-btn {
+        background: linear-gradient(180deg, #5a69c7 0%, #4958b7 100%);
+        color: #f2f3ff;
+        border: 1px solid #7d89d8;
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+        .site-modal-btn.secondary {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .site-modal-btn:hover {
+            filter: brightness(1.1);
+        }
+</style>
+
+<div id="siteModalOverlay" class="site-modal-overlay">
+    <div class="site-modal">
+        <p id="siteModalText" class="site-modal-text"></p>
+        <div class="site-modal-buttons">
+            <button type="button" id="siteModalCancel" class="site-modal-btn secondary" onclick="hideSiteModal()">Cancel</button>
+            <button type="button" id="siteModalOk" class="site-modal-btn" onclick="siteModalConfirmOk()">OK</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    var _siteModalCb = null;
+    function showSiteAlert(msg) {
+        document.getElementById('siteModalText').textContent = msg;
+        document.getElementById('siteModalCancel').style.display = 'none';
+        _siteModalCb = null;
+        document.getElementById('siteModalOverlay').style.display = 'flex';
+    }
+    function showSiteConfirm(msg, onConfirm) {
+        document.getElementById('siteModalText').textContent = msg;
+        document.getElementById('siteModalCancel').style.display = 'inline-block';
+        _siteModalCb = onConfirm;
+        document.getElementById('siteModalOverlay').style.display = 'flex';
+    }
+    function hideSiteModal() {
+        document.getElementById('siteModalOverlay').style.display = 'none';
+        _siteModalCb = null;
+    }
+    function siteModalConfirmOk() {
+        var cb = _siteModalCb;
+        hideSiteModal();
+        if (cb) cb();
+    }
+</script>

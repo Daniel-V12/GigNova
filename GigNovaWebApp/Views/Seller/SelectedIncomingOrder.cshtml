@@ -53,9 +53,17 @@
 
     if (Model != null && Model.Order != null && string.IsNullOrWhiteSpace(statusName))
     {
-        if (Model.Order.Order_status_id == 2)
+        if (Model.Order.Order_status_id == 1)
+        {
+            statusName = "In Progress";
+        }
+        else if (Model.Order.Order_status_id == 2)
         {
             statusName = "Delivered";
+        }
+        else if (Model.Order.Order_status_id == 3)
+        {
+            statusName = "Completed";
         }
     }
 
@@ -174,8 +182,11 @@
                     </div>
 
                     <div class="selected-incoming-actions">
-                        <a asp-controller="Buyer" asp-action="MessagingBox" asp-route-order_id="@Model.Order.Order_id" asp-route-from_role="seller" class="incoming-action-btn">Open Messaging</a>
-                        <button type="button" class="incoming-action-btn incoming-deliver-btn" onclick="openDeliveryModal()">Deliver Work / Send Revision</button>
+                        <a asp-controller="Buyer" asp-action="MessagingBox" asp-route-order_id="@Model.Order.Order_id" class="incoming-action-btn">Open Messaging</a>
+                        @if (Model.Order.Order_status_id != 3)
+                        {
+                            <button type="button" class="incoming-action-btn incoming-deliver-btn" onclick="openDeliveryModal()">Deliver Work / Send Revision</button>
+                        }
                         <a asp-controller="Seller" asp-action="IncomingOrders" asp-route-seller_id="@sellerId" class="incoming-action-btn incoming-secondary-btn">Back To Incoming Orders</a>
                     </div>
                 </div>

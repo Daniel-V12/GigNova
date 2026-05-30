@@ -58,7 +58,7 @@
                     }
 
                     <a class="incoming-order-link" asp-controller="Seller" asp-action="SelectedIncomingOrder" asp-route-order_id="@incoming.Order.Order_id" asp-route-seller_id="@sellerId">
-                        <div class="incoming-order-item">
+                        <div class="incoming-order-item @(incoming.Order.Order_status_id == 3 ? "order-completed" : incoming.Order.Order_status_id == 2 ? "order-delivered" : "")">
                             <div class="incoming-order-title">@buyerDisplayName has purchased your gig @gigName, order number @orderNumber</div>
                             <div class="incoming-order-meta">Created: @incoming.Order.Order_creation_date</div>
                         </div>

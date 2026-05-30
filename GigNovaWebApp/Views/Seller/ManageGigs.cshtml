@@ -235,10 +235,10 @@
                     <button type="submit" class="outline-btn wide">@(selectedGig.Is_publish ? "Unpublish Gig" : "Publish Gig")</button>
                 </form>
 
-                <form asp-controller="Seller" asp-action="DeleteGig" method="post" onsubmit="return confirm('Delete this gig?');">
+                <form id="deleteGigForm" asp-controller="Seller" asp-action="DeleteGig" method="post">
                     <input type="hidden" name="seller_id" value="@sellerId" />
                     <input type="hidden" name="gig_id" value="@selectedGig.Gig_id" />
-                    <button type="submit" class="danger-btn wide">Delete Gig</button>
+                    <button type="button" class="danger-btn wide" onclick="showSiteConfirm('Delete this gig?', function(){ document.getElementById('deleteGigForm').submit(); })">Delete Gig</button>
                 </form>
             </div>
         }

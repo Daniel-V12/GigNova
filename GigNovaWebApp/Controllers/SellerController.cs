@@ -334,7 +334,8 @@ namespace GigNovaWebApp.Controllers
             }
 
             notifications = notifications
-                .OrderByDescending(x => DateTime.TryParse(x.Order.Order_creation_date, out DateTime d) ? d : DateTime.MinValue)
+                .OrderBy(x => x.Order.Order_status_id == 3 ? 1 : 0)
+                .ThenByDescending(x => DateTime.TryParse(x.Order.Order_creation_date, out DateTime d) ? d : DateTime.MinValue)
                 .ThenByDescending(x => int.TryParse(x.Order.Order_id, out int id) ? id : 0)
                 .ToList();
 

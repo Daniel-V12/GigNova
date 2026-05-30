@@ -313,3 +313,22 @@
     gap: 10px;
     flex-wrap: wrap;
 }
+.incoming-order-item.order-completed {
+    background-color: #1a2a1f;
+    border-color: #3a5240;
+    opacity: 0.8;
+}
+
+.incoming-order-link:hover .incoming-order-item.order-completed {
+    border-color: #5a8060;
+}
+
+.incoming-order-item.order-delivered {
+    background-color: #2a2417;
+    border-color: #6b5530;
+    opacity: 0.95;
+}
+
+.incoming-order-link:hover .incoming-order-item.order-delivered {
+    border-color: #9a7e45;
+}

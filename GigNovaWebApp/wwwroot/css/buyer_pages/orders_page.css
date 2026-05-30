@@ -286,4 +286,24 @@
     flex-wrap: wrap;
 }
 
+.order-card.order-delivered {
+    background-color: #2a2417;
+    border-color: #6b5530;
+    opacity: 0.95;
+}
+
+.order-card-link:hover .order-card.order-delivered {
+    border-color: #9a7e45;
+}
+
+.order-card.order-completed {
+    background-color: #1a2a1f;
+    border-color: #3a5240;
+    opacity: 0.85;
+}
+
+.order-card-link:hover .order-card.order-completed {
+    border-color: #5a8060;
+}
+
 

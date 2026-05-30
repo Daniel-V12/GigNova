@@ -78,18 +78,6 @@
                                     {
                                         currentStatusName = "Completed";
                                     }
-                                    else if (Model.order.Order_status_id == 4)
-                                    {
-                                        currentStatusName = "Canceled";
-                                    }
-                                    else if (Model.order.Order_status_id == 5)
-                                    {
-                                        currentStatusName = "Revision In Progress";
-                                    }
-                                    else if (Model.order.Order_status_id == 6)
-                                    {
-                                        currentStatusName = "Revisioned";
-                                    }
                                 }
 
                                 if (currentStatusName == "")
@@ -122,32 +110,18 @@
                         <div class="selected-order-section-title">Requirements</div>
                         <p class="selected-order-description">@(Model.order.Order_requirements == null || Model.order.Order_requirements == "" ? "No requirements provided." : Model.order.Order_requirements)</p>
                     </div>
-
                     <div class="selected-order-section selected-order-actions-row">
-                        <a asp-controller="Buyer" asp-action="MessagingBox" asp-route-order_id="@Model.order.Order_id" asp-route-from_role="buyer" class="open-messaging-btn">Open Messaging</a>
-                        @if (Model.order.Order_status_id == 2 || Model.order.Order_status_id == 6)
+                        <a asp-controller="Buyer" asp-action="MessagingBox" asp-route-order_id="@Model.order.Order_id" class="open-messaging-btn">Open Messaging</a>
+                        @if (Model.order.Order_status_id == 2 || Model.order.Order_status_id == 3)
                         {
                             <a asp-controller="@deliveryController" asp-action="DeliveryDetails" asp-route-order_id="@Model.order.Order_id" class="open-messaging-btn secondary-order-btn">See Delivery</a>
                         }
-                    </div>
-
-
-                    <div class="selected-order-section">
-                        <div class="selected-order-section-title">Uploaded Files</div>
-                        @if (Model.order_files != null && Model.order_files.Count > 0)
+                        @if (Model.order.Order_status_id == 2)
                         {
-                            <ul class="selected-order-files-list">
-                                @foreach (GigNovaModels.Models.Order_file file in Model.order_files)
-                                {
-                                    <li>
-                                        <a href="https://localhost:7059/@file.Order_file_path" target="_blank">@System.IO.Path.GetFileName(file.Order_file_path)</a>
-                                    </li>
-                                }
-                            </ul>
-                        }
-                        else
-                        {
-                            <p class="selected-order-description">No files were uploaded for this order.</p>
+                            <form id="completeOrderForm" asp-controller="Buyer" asp-action="CompleteOrder" method="post" style="display:inline;">
+                                <input type="hidden" name="order_id" value="@Model.order.Order_id" />
+                                <button type="button" class="open-messaging-btn secondary-order-btn" onclick="showSiteConfirm('Are you sure? This will mark the order as complete and close it.', function(){ document.getElementById('completeOrderForm').submit(); })">Complete Order</button>
+                            </form>
                         }
                     </div>
                 </div>
