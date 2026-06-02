@@ -7,8 +7,11 @@ namespace GigNovaWS
     {
         public Order_filesRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
         {
-
         }
+
+
+        // ============================== Create / Update / Delete ==============================
+
         public bool Create(Order_file model)
         {
             string sql = @$"Insert into Order_Files (order_file_path, order_id)
@@ -18,12 +21,23 @@ namespace GigNovaWS
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
+        // Order files aren't edited - they're saved once with their order. Update is required by
+        // IRepository<T> but unused. (The previous body had no WHERE clause which would have updated
+        // every row.)
+        public bool Update(Order_file model)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool Delete(string id)
         {
             string sql = @"Delete from Order_Files where order_file_id = @order_file_id";
             this.dbHelperOledb.AddParameter("@order_file_id", id);
             return this.dbHelperOledb.Delete(sql) > 0;
         }
+
+
+        // ============================== Read (single + lists) ==============================
 
         public List<Order_file> GetAll()
         {
@@ -50,6 +64,7 @@ namespace GigNovaWS
             }
         }
 
+        // First file attached to an order (the one shown as the "main" requirement file).
         public Order_file GetByOrderId(string orderId)
         {
             string sql = "Select * from Order_Files where order_id = @order_id";
@@ -64,6 +79,7 @@ namespace GigNovaWS
             return null;
         }
 
+        // All files attached to an order (the buyer may have uploaded up to 5).
         public List<Order_file> GetAllByOrderId(string orderId)
         {
             string sql = "Select * from Order_Files where order_id = @order_id";
@@ -77,14 +93,6 @@ namespace GigNovaWS
                 }
             }
             return orderFiles;
-        }
-
-        public bool Update(Order_file model)
-        {
-            string sql = @"Update Order_Files set 
-            order_file_path = @order_file_path";
-            this.dbHelperOledb.AddParameter("@order_file_path", model.Order_file_path);
-            return this.dbHelperOledb.Update(sql) > 0;
         }
     }
 }

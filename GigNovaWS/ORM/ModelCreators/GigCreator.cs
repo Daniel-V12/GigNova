@@ -23,16 +23,15 @@ namespace GigNovaWS
             return gig;
         }
 
+        // category_id lives in the [Gigs - Categories] join table, NOT in the Gigs table.
+        // So most queries (SELECT * FROM Gigs and friends) don't return a category_id column,
+        // and reading it would throw. Only GetGigByCategories joins the table and returns it.
+        // The try/catch returns "" when the column is missing.
         private string TryGetCategoryId(IDataReader dataReader)
         {
             try
             {
-                object value = dataReader["category_id"];
-                if (value == null)
-                {
-                    return "";
-                }
-                return Convert.ToString(value);
+                return Convert.ToString(dataReader["category_id"]);
             }
             catch
             {

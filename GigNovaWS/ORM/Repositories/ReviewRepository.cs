@@ -1,7 +1,5 @@
-﻿using GigNovaModels;
-using GigNovaModels.Models;
+﻿using GigNovaModels.Models;
 using System.Data;
-using System.Reflection;
 
 namespace GigNovaWS
 {
@@ -9,8 +7,11 @@ namespace GigNovaWS
     {
         public ReviewRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
         {
-
         }
+
+
+        // ============================== Create / Update / Delete ==============================
+
         public bool Create(Review model)
         {
             string sql = @$"Insert into Reviews (review_rating, review_comment, review_creation_date, buyer_id, seller_id, gig_id)
@@ -24,12 +25,22 @@ namespace GigNovaWS
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
+        // Reviews aren't edited - they're written once. Update is required by IRepository<T> but unused.
+        // (The previous body had no WHERE clause which would have updated every row.)
+        public bool Update(Review model)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool Delete(string id)
         {
             string sql = @"Delete from Reviews where review_id = @review_id";
             this.dbHelperOledb.AddParameter("@review_id", id);
             return this.dbHelperOledb.Delete(sql) > 0;
         }
+
+
+        // ============================== Read (single + lists) ==============================
 
         public List<Review> GetAll()
         {
@@ -56,16 +67,7 @@ namespace GigNovaWS
             }
         }
 
-        public bool Update(Review model)
-        {
-            string sql = @"Update Reviews set 
-            review_rating = @review_rating ,
-            review_comment = @review_comment ";
-            this.dbHelperOledb.AddParameter("@review_rating", model.Review_rating);
-            this.dbHelperOledb.AddParameter("@review_comment", model.Review_comment);
-            return this.dbHelperOledb.Update(sql) > 0;
-        }
-
+        // All reviews left on a specific gig.
         public List<Review> GetReviewsByGigId(string gigId)
         {
             string sql = "Select * from Reviews where gig_id = @gig_id";
@@ -81,6 +83,13 @@ namespace GigNovaWS
             return reviews;
         }
 
+
+        // ============================== Average rating queries ==============================
+        // SQL Avg() returns NULL when no rows match (no reviews yet). DBNull.Value is how OLEDB
+        // surfaces SQL NULL to .NET. If we don't check for it, Convert.ToDouble(DBNull.Value)
+        // throws. Both methods return 0 in that "no reviews" case.
+
+        // Average review rating across all of one seller's gigs.
         public double GetReviewBySeller(string sellerId)
         {
             string sql = @"SELECT Avg(Reviews.review_rating) AS [Avg]
@@ -95,9 +104,9 @@ namespace GigNovaWS
                 }
                 return 0;
             }
-
         }
 
+        // Average review rating for a single gig.
         public double GetAverageRatingByGigId(string gigId)
         {
             string sql = @"SELECT Avg(Reviews.review_rating) AS [Avg]
@@ -114,5 +123,4 @@ namespace GigNovaWS
             }
         }
     }
-
 }

@@ -7,8 +7,10 @@ namespace GigNovaWS
     {
         public DeliveryRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
         {
-
         }
+
+
+        // ============================== Create / Update / Delete ==============================
 
         public bool Create(Delivery model)
         {
@@ -19,40 +21,14 @@ namespace GigNovaWS
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
-        public string GetLastInsertedDeliveryId()
+        public bool Update(Delivery model)
         {
-            string sql = "Select @@IDENTITY as new_id";
-            using (IDataReader reader = this.dbHelperOledb.Select(sql))
-            {
-                if (reader.Read() == true)
-                {
-                    return Convert.ToString(reader["new_id"]);
-                }
-            }
-            return "";
-        }
-
-        public bool UpdateFileById(string deliveryId, string deliveryFile)
-        {
-            string sql = @"Update Deliveries set delivery_file = @delivery_file where delivery_id = @delivery_id";
-            this.dbHelperOledb.AddParameter("@delivery_file", deliveryFile);
-            this.dbHelperOledb.AddParameter("@delivery_id", deliveryId);
+            string sql = @"Update Deliveries set delivery_text = @delivery_text, delivery_file = @delivery_file, order_id = @order_id where delivery_id = @delivery_id";
+            this.dbHelperOledb.AddParameter("@delivery_text", model.Delivery_text);
+            this.dbHelperOledb.AddParameter("@delivery_file", model.Delivery_file);
+            this.dbHelperOledb.AddParameter("@order_id", model.Order_id);
+            this.dbHelperOledb.AddParameter("@delivery_id", model.Delivery_id);
             return this.dbHelperOledb.Update(sql) > 0;
-        }
-
-        public List<Delivery> GetAllByOrderId(string orderId)
-        {
-            string sql = "Select * from Deliveries where order_id = @order_id order by delivery_id desc";
-            this.dbHelperOledb.AddParameter("@order_id", orderId);
-            List<Delivery> deliveries = new List<Delivery>();
-            using (IDataReader reader = this.dbHelperOledb.Select(sql))
-            {
-                while (reader.Read())
-                {
-                    deliveries.Add(this.modelCreators.DeliveryCreator.CreateModel(reader));
-                }
-            }
-            return deliveries;
         }
 
         public bool Delete(string id)
@@ -61,6 +37,9 @@ namespace GigNovaWS
             this.dbHelperOledb.AddParameter("@delivery_id", id);
             return this.dbHelperOledb.Delete(sql) > 0;
         }
+
+
+        // ============================== Read (single + lists) ==============================
 
         public List<Delivery> GetAll()
         {
@@ -90,13 +69,46 @@ namespace GigNovaWS
             }
         }
 
-        public bool Update(Delivery model)
+        // All deliveries on a given order, newest first.
+        public List<Delivery> GetAllByOrderId(string orderId)
         {
-            string sql = @"Update Deliveries set delivery_text = @delivery_text, delivery_file = @delivery_file, order_id = @order_id where delivery_id = @delivery_id";
-            this.dbHelperOledb.AddParameter("@delivery_text", model.Delivery_text);
-            this.dbHelperOledb.AddParameter("@delivery_file", model.Delivery_file);
-            this.dbHelperOledb.AddParameter("@order_id", model.Order_id);
-            this.dbHelperOledb.AddParameter("@delivery_id", model.Delivery_id);
+            string sql = "Select * from Deliveries where order_id = @order_id order by delivery_id desc";
+            this.dbHelperOledb.AddParameter("@order_id", orderId);
+            List<Delivery> deliveries = new List<Delivery>();
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                while (reader.Read())
+                {
+                    deliveries.Add(this.modelCreators.DeliveryCreator.CreateModel(reader));
+                }
+            }
+            return deliveries;
+        }
+
+
+        // ============================== Helpers ==============================
+
+        // Used right after Create to get the id of the row we just inserted, so we can
+        // store the uploaded file path keyed to that id.
+        public string GetLastInsertedDeliveryId()
+        {
+            string sql = "Select @@IDENTITY as new_id";
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                if (reader.Read() == true)
+                {
+                    return Convert.ToString(reader["new_id"]);
+                }
+            }
+            return "";
+        }
+
+        // Update only the delivery_file column for one row (used after the file is saved to disk).
+        public bool UpdateFileById(string deliveryId, string deliveryFile)
+        {
+            string sql = @"Update Deliveries set delivery_file = @delivery_file where delivery_id = @delivery_id";
+            this.dbHelperOledb.AddParameter("@delivery_file", deliveryFile);
+            this.dbHelperOledb.AddParameter("@delivery_id", deliveryId);
             return this.dbHelperOledb.Update(sql) > 0;
         }
     }

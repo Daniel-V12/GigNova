@@ -1,5 +1,4 @@
 ﻿using GigNovaModels.Models;
-using System;
 using System.Data;
 
 namespace GigNovaWS
@@ -8,8 +7,11 @@ namespace GigNovaWS
     {
         public BuyerRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
         {
-
         }
+
+
+        // ============================== Create / Update / Delete ==============================
+
         public bool Create(Buyer model)
         {
             string sql = "Insert into Buyers (buyer_description, buyer_display_name) values ( @buyer_description ,  @buyer_display_name)";
@@ -18,12 +20,28 @@ namespace GigNovaWS
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
+        // The buyer_id in the Buyers table is the same as the Person_id (1-to-1 with Person).
+        public bool Update(Buyer model)
+        {
+            string sql = @"Update Buyers set
+            buyer_description = @buyer_description ,
+            buyer_display_name = @buyer_display_name
+            where buyer_id = @buyer_id";
+            this.dbHelperOledb.AddParameter("@buyer_description", model.Buyer_description);
+            this.dbHelperOledb.AddParameter("@buyer_display_name", model.Buyer_display_name);
+            this.dbHelperOledb.AddParameter("@buyer_id", model.Person_id);
+            return this.dbHelperOledb.Update(sql) > 0;
+        }
+
         public bool Delete(string id)
         {
             string sql = @"Delete from Buyers where buyer_id = @buyer_id";
-            this.dbHelperOledb.AddParameter("buyer_id", id);
+            this.dbHelperOledb.AddParameter("@buyer_id", id);
             return this.dbHelperOledb.Delete(sql) > 0;
         }
+
+
+        // ============================== Read (single + lists) ==============================
 
         public List<Buyer> GetAll()
         {
@@ -48,18 +66,6 @@ namespace GigNovaWS
                 reader.Read();
                 return this.modelCreators.BuyerCreator.CreateModel(reader);
             }
-        }
-
-        public bool Update(Buyer model)
-        {
-            string sql = @"Update Buyers set 
-            buyer_description = @buyer_description ,
-            buyer_display_name = @buyer_display_name
-            where buyer_id = @buyer_id";
-            this.dbHelperOledb.AddParameter("@buyer_description", model.Buyer_description);
-            this.dbHelperOledb.AddParameter("@buyer_display_name", model.Buyer_display_name);
-            this.dbHelperOledb.AddParameter("@buyer_id", model.Person_id);
-            return this.dbHelperOledb.Update(sql) > 0;
         }
     }
 }

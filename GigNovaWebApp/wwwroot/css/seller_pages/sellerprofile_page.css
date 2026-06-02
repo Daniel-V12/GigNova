@@ -1,4 +1,4 @@
-﻿/* Profile Container */
+﻿/* ============ Profile container + header ============ */
 .profile-container {
     max-width: 900px;
     margin: 50px auto;
@@ -25,7 +25,18 @@
     font-weight: 500;
 }
 
-/* Avatar Section */
+.profile-message {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: rgba(74, 144, 226, 0.25);
+    border: 1px solid rgba(74, 144, 226, 0.55);
+    color: white;
+    font-weight: 600;
+}
+
+
+/* ============ Avatar picker (round picture above the form) ============ */
 .avatar-section {
     display: flex;
     flex-direction: column;
@@ -82,11 +93,13 @@
         border-color: rgba(255,255,255,0.5);
     }
 
+/* Hides the real <input type="file"> so the user clicks the styled label instead. */
 .file-input {
     display: none;
 }
 
-/* Profile Sections */
+
+/* ============ Profile section panels (Seller Info / Personal Info) ============ */
 .profile-section {
     background: rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
@@ -107,6 +120,8 @@
     border-bottom: 2px solid rgba(255,255,255,0.2);
 }
 
+
+/* ============ Form (label + text input + textarea + info text + char counter) ============ */
 .form-group {
     margin-bottom: 25px;
 }
@@ -177,6 +192,15 @@
     text-align: right;
 }
 
+.info-text {
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+    font-style: italic;
+    margin-top: 8px;
+}
+
+
+/* ============ Buttons (Save / Log Out / Change Password) ============ */
 .edit-button {
     padding: 12px 30px;
     background: #4a90e2;
@@ -197,13 +221,6 @@
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(74,144,226,0.4);
     }
-
-.info-text {
-    font-size: 14px;
-    color: rgba(255,255,255,0.7);
-    font-style: italic;
-    margin-top: 8px;
-}
 
 .logout-button {
     width: 100%;
@@ -226,8 +243,79 @@
         box-shadow: 0 6px 16px rgba(233,69,96,0.4);
     }
 
+.change-password-button {
+    margin-top: 12px;
+    padding: 10px 18px;
+    background: transparent;
+    color: white;
+    border: 2px solid rgba(255,255,255,0.7);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+}
 
-/* Animations */
+    .change-password-button:hover {
+        background: rgba(255,255,255,0.15);
+    }
+
+
+/* ============ Change-password popup (overlay + modal panel + cancel button) ============ */
+.password-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.65);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.password-modal {
+    width: 100%;
+    max-width: 500px;
+    background: #2f3a58;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 14px;
+    padding: 28px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+}
+
+    .password-modal h3 {
+        color: white;
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+.password-modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.cancel-password-button {
+    padding: 12px 24px;
+    background: transparent;
+    color: white;
+    border: 2px solid rgba(255,255,255,0.7);
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+    .cancel-password-button:hover {
+        background: rgba(255,255,255,0.15);
+    }
+
+
+/* ============ Animation used by .profile-header and .profile-section above ============ */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -240,7 +328,13 @@
     }
 }
 
-/* Responsive */
+
+/* ============ Responsive breakpoints ============
+   1200px: wide tablet - small tweaks to the master layout's nav buttons.
+   968px : tablet      - shrink the master layout's logo / nav buttons / btn
+                         (those classes come from MasterSellerPage.cshtml),
+                         plus shrink the profile container / title / section / avatar.
+   480px : phone       - smaller logo, smaller title, tighter section, smaller avatar. */
 @media (max-width: 1200px) {
     .nav-buttons {
         gap: 14px;
@@ -317,82 +411,3 @@
         font-size: 40px;
     }
 }
-
-.profile-message {
-    margin-bottom: 20px;
-    padding: 12px 16px;
-    border-radius: 8px;
-    background: rgba(74, 144, 226, 0.25);
-    border: 1px solid rgba(74, 144, 226, 0.55);
-    color: white;
-    font-weight: 600;
-}
-
-.change-password-button {
-    margin-top: 12px;
-    padding: 10px 18px;
-    background: transparent;
-    color: white;
-    border: 2px solid rgba(255,255,255,0.7);
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-    .change-password-button:hover {
-        background: rgba(255,255,255,0.15);
-    }
-
-.password-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.65);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    padding: 20px;
-}
-
-.password-modal {
-    width: 100%;
-    max-width: 500px;
-    background: #2f3a58;
-    border: 2px solid rgba(255,255,255,0.2);
-    border-radius: 14px;
-    padding: 28px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
-}
-
-    .password-modal h3 {
-        color: white;
-        font-size: 24px;
-        margin-bottom: 20px;
-    }
-
-.password-modal-buttons {
-    display: flex;
-    gap: 12px;
-    margin-top: 10px;
-}
-
-.cancel-password-button {
-    padding: 12px 24px;
-    background: transparent;
-    color: white;
-    border: 2px solid rgba(255,255,255,0.7);
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-    .cancel-password-button:hover {
-        background: rgba(255,255,255,0.15);
-    }

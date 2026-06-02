@@ -1,3 +1,4 @@
+/* ============ Resets + body background ============ */
 * {
     margin: 0;
     padding: 0;
@@ -11,7 +12,8 @@ body {
     overflow-x: hidden;
 }
 
-/* Signup Container */
+
+/* ============ Signup container + card ============ */
 .signup-container {
     max-width: 550px;
     margin: 60px auto;
@@ -43,6 +45,8 @@ body {
     margin-bottom: 40px;
 }
 
+
+/* ============ Form (label + text input + textarea) ============ */
 .form-group {
     margin-bottom: 25px;
 }
@@ -101,6 +105,8 @@ body {
         background: rgba(255,255,255,0.15);
     }
 
+
+/* ============ Submit button + link to login ============ */
 .submit-btn {
     width: 100%;
     padding: 16px;
@@ -143,13 +149,11 @@ body {
             border-bottom-color: #e94560;
         }
 
-/*.char-count {
-    font-size: 12px;
-    color: rgba(255,255,255,0.6);
-    margin-top: 5px;
-    text-align: right;
-}*/
 
+/* ============ Responsive breakpoints ============
+   968px: tablet - shrink the master layout's logo / nav buttons (those classes come from
+                   MasterGuestPage.cshtml), and shrink the signup card and title.
+   480px: phone  - even smaller logo, tighter card padding, smaller title. */
 @media (max-width: 968px) {
     .dashboard-container {
         height: auto;

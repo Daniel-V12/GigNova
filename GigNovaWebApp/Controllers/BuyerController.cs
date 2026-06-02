@@ -84,6 +84,21 @@ namespace GigNovaWebApp.Controllers
             {
                 return RedirectToAction("HomePage", "Guest");
             }
+            // Server-side validation matching the attributes on BuyerProfileUpdateViewModel.
+            if (ModelState.IsValid == false)
+            {
+                string firstError = "Please fix the highlighted fields.";
+                foreach (var entry in ModelState.Values)
+                {
+                    if (entry.Errors.Count > 0)
+                    {
+                        firstError = entry.Errors[0].ErrorMessage;
+                        break;
+                    }
+                }
+                TempData["BuyerProfileMessage"] = firstError;
+                return RedirectToAction("BuyerProfile", new { buyer_id = buyerId });
+            }
 
             viewModel.Person_id = buyerId;
             viewModel.Buyer_description = viewModel.Buyer_description ?? "";

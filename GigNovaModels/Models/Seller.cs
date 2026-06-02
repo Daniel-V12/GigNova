@@ -44,7 +44,7 @@ namespace GigNovaModels.Models
         public string Seller_avatar
         {
             get { return seller_avatar; }
-            set { seller_avatar = value; } //ValidateProperty(value, "seller_avatar");
+            set { seller_avatar = value; }
         }
 
         public bool Seller_is_linked

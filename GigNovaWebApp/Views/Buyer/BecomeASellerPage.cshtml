@@ -51,7 +51,9 @@
                        class="form-input"
                        placeholder="Enter your seller display name"
                        value="@sellerDisplayName"
-                       required>
+                       required
+                       minlength="2"
+                       maxlength="30">
                 <span asp-validation-for="Seller_display_name" style="color:#ff9aa8; font-size:13px;"></span>
             </div>
 
@@ -61,6 +63,7 @@
                           name="Seller_description"
                           class="form-textarea"
                           placeholder="Tell potential clients about your skills, experience, and what services you offer..."
+                          minlength="10"
                           maxlength="500"
                           required>@sellerDescription</textarea>
                 <div class="char-count"><span id="charCount">0</span>/500 characters</div>

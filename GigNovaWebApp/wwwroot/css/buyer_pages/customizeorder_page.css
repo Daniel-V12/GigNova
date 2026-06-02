@@ -1,4 +1,5 @@
-﻿.customize-order-container {
+﻿/* ============ Page container ============ */
+.customize-order-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 26px;
@@ -19,6 +20,8 @@
     font-weight: 700;
 }
 
+
+/* ============ Two-column layout (requirements form + order summary) ============ */
 .customize-grid {
     display: grid;
     grid-template-columns: 1.3fr 0.9fr;
@@ -40,6 +43,8 @@
     font-size: 28px;
 }
 
+
+/* ============ Form fields (textarea + file input + help text) ============ */
 .form-group {
     margin-bottom: 14px;
 }
@@ -78,6 +83,19 @@
     font-size: 14px;
 }
 
+.uploaded-files-list {
+    margin: 0;
+    padding-left: 18px;
+    color: #d8ddfb;
+    font-size: 14px;
+}
+
+    .uploaded-files-list li {
+        margin-bottom: 4px;
+    }
+
+
+/* ============ Submit button ============ */
 .pay-btn {
     width: 100%;
     border: none;
@@ -90,6 +108,8 @@
     cursor: pointer;
 }
 
+
+/* ============ Right-side summary box (image + gig info + rows + total) ============ */
 .summary-gig {
     display: flex;
     gap: 12px;
@@ -128,19 +148,11 @@
         font-weight: 800;
     }
 
+
+/* ============ Responsive ============
+   900px: collapse the two columns into one (summary box goes under the form). */
 @media (max-width: 900px) {
     .customize-grid {
         grid-template-columns: 1fr;
     }
 }
-
-.uploaded-files-list {
-    margin: 0;
-    padding-left: 18px;
-    color: #d8ddfb;
-    font-size: 14px;
-}
-
-    .uploaded-files-list li {
-        margin-bottom: 4px;
-    }

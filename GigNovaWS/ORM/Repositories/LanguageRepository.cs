@@ -7,8 +7,11 @@ namespace GigNovaWS
     {
         public LanguageRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
         {
-
         }
+
+
+        // ============================== Create / Update / Delete ==============================
+
         public bool Create(Language model)
         {
             string sql = @$"Insert into Languages (language_name)
@@ -17,12 +20,23 @@ namespace GigNovaWS
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
+        // The Languages table is a fixed lookup - we never edit a row. Update is required by
+        // IRepository<T> but unused. (The previous body had no WHERE clause which would have
+        // updated every row.)
+        public bool Update(Language model)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool Delete(string id)
         {
             string sql = @"Delete from Languages where language_id = @language_id";
             this.dbHelperOledb.AddParameter("@language_id", id);
             return this.dbHelperOledb.Delete(sql) > 0;
         }
+
+
+        // ============================== Read (single + lists) ==============================
 
         public List<Language> GetAll()
         {
@@ -47,14 +61,6 @@ namespace GigNovaWS
                 reader.Read();
                 return this.modelCreators.LanguageCreator.CreateModel(reader);
             }
-        }
-
-        public bool Update(Language model)
-        {
-            string sql = @"Update Languages set 
-            language_name = @language_name";
-            this.dbHelperOledb.AddParameter("@language_name", model.Language_name);
-            return this.dbHelperOledb.Update(sql) > 0;
         }
     }
 }

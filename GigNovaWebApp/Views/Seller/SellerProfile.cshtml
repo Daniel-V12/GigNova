@@ -105,7 +105,9 @@
                        class="form-input"
                        value="@sellerDisplayName"
                        placeholder="Enter your display name"
-                       required>
+                       required
+                       minlength="2"
+                       maxlength="30">
             </div>
 
             <div class="form-group">
@@ -114,7 +116,9 @@
                           name="seller.Seller_description"
                           class="form-textarea"
                           placeholder="Tell clients about your skills and experience..."
-                          maxlength="500">@sellerBio</textarea>
+                          minlength="10"
+                          maxlength="500"
+                          required>@sellerBio</textarea>
                 <div class="char-count"><span id="charCount">0</span>/500 characters</div>
             </div>
 
@@ -166,11 +170,11 @@
         <form asp-controller="Seller" asp-action="ChangePassword" method="post">
             <div class="form-group">
                 <label class="form-label" for="currentPassword">Current Password</label>
-                <input type="password" id="currentPassword" name="currentPassword" class="form-input" required>
+                <input type="password" id="currentPassword" name="currentPassword" class="form-input" required minlength="6" maxlength="50">
             </div>
             <div class="form-group">
                 <label class="form-label" for="newPassword">New Password</label>
-                <input type="password" id="newPassword" name="newPassword" class="form-input" required>
+                <input type="password" id="newPassword" name="newPassword" class="form-input" required minlength="6" maxlength="50">
             </div>
             <div class="password-modal-buttons">
                 <button type="submit" class="edit-button">Save Password</button>

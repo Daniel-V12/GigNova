@@ -7,8 +7,11 @@ namespace GigNovaWS
     {
         public SellerRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
         {
-
         }
+
+
+        // ============================== Create / Update / Delete ==============================
+
         public bool Create(Seller model)
         {
             string sql = "Insert into Sellers (seller_id, seller_description, seller_display_name, seller_avatar, is_linked) values (@seller_id, @seller_description, @seller_display_name, @seller_avatar, @is_linked)";
@@ -20,12 +23,31 @@ namespace GigNovaWS
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
+        public bool Update(Seller model)
+        {
+            string sql = @"Update Sellers set
+            seller_description = @seller_description,
+            seller_display_name = @seller_display_name,
+            seller_avatar = @seller_avatar,
+            is_linked = @is_linked
+            where seller_id = @seller_id";
+            this.dbHelperOledb.AddParameter("@seller_description", model.Seller_description);
+            this.dbHelperOledb.AddParameter("@seller_display_name", model.Seller_display_name);
+            this.dbHelperOledb.AddParameter("@seller_avatar", model.Seller_avatar);
+            this.dbHelperOledb.AddParameter("@is_linked", model.Seller_is_linked);
+            this.dbHelperOledb.AddParameter("@seller_id", model.Seller_id);
+            return this.dbHelperOledb.Update(sql) > 0;
+        }
+
         public bool Delete(string id)
         {
             string sql = @"Delete from Sellers where seller_id = @seller_id";
-            this.dbHelperOledb.AddParameter("seller_id", id);
+            this.dbHelperOledb.AddParameter("@seller_id", id);
             return this.dbHelperOledb.Delete(sql) > 0;
         }
+
+
+        // ============================== Read (single + lists) ==============================
 
         public List<Seller> GetAll()
         {
@@ -55,22 +77,10 @@ namespace GigNovaWS
             }
         }
 
-        public bool Update(Seller model)
-        {
-            string sql = @"Update Sellers set 
-            seller_description = @seller_description,
-            seller_display_name = @seller_display_name,
-            seller_avatar = @seller_avatar,
-            is_linked = @is_linked
-            where seller_id = @seller_id";
-            this.dbHelperOledb.AddParameter("@seller_description", model.Seller_description);
-            this.dbHelperOledb.AddParameter("@seller_display_name", model.Seller_display_name);
-            this.dbHelperOledb.AddParameter("@seller_avatar", model.Seller_avatar);
-            this.dbHelperOledb.AddParameter("@is_linked", model.Seller_is_linked);
-            this.dbHelperOledb.AddParameter("@seller_id", model.Seller_id);
-            return this.dbHelperOledb.Update(sql) > 0;
-        }
 
+        // ============================== Avatar (photo) ==============================
+
+        // Stores the avatar filename as "<seller_id>.<extension>" so the file on disk and the DB row line up.
         public bool UpdatePhotoById(string sellerId, string extension)
         {
             string sql = @"Update Sellers set seller_avatar = @seller_avatar where seller_id = @seller_id";
@@ -96,6 +106,5 @@ namespace GigNovaWS
                 return reader["seller_avatar"].ToString();
             }
         }
-
     }
 }

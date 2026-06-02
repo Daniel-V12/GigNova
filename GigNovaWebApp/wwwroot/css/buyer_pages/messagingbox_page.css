@@ -1,4 +1,5 @@
-﻿.message-modal-overlay {
+﻿/* ============ Modal overlay (dark backdrop covering the whole screen) ============ */
+.message-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -12,6 +13,11 @@
     padding: 20px;
 }
 
+
+/* ============ Modal panel ============
+   Setting `color` here means every <p>, <div>, <strong>, <span> inside the modal
+   inherits this light color by default. Fixes the From: / Date: / Order # labels
+   that were rendering as black text on the dark background. */
 .message-modal {
     width: 100%;
     max-width: 700px;
@@ -20,6 +26,7 @@
     border-radius: 14px;
     padding: 24px;
     box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+    color: #f2f3ff;
 }
 
     .message-modal h3 {
@@ -27,6 +34,8 @@
         color: #f2f3ff;
     }
 
+
+/* ============ Form inside the modal (Send a Message) ============ */
 .form-group {
     margin-bottom: 14px;
 }
@@ -56,6 +65,7 @@
     flex-wrap: wrap;
 }
 
+/* The message body shown inside the view-message popup. pre-wrap keeps newlines from the original text. */
 .message-view-text {
     white-space: pre-wrap;
     color: #f2f3ff;
@@ -66,37 +76,40 @@
     margin: 0;
 }
 
+
+/* ============ "Send a Message" bar above the list ============ */
 .send-message-bar {
     margin-bottom: 16px;
 }
 
+
+/* ============ Message cards in the list (override the generic .order-card sizing) ============ */
 .message-card {
     cursor: pointer;
 }
 
-.message-card.order-card {
-    height: auto;
-}
-
-.message-card .order-info {
-    padding: 12px 14px;
+    .message-card.order-card {
+        height: auto;
     }
 
-.message-card .order-info .order-title {
-    font-size: 22px !important;
-    min-height: 0 !important;
-    margin: 0 0 4px 0;
-}
+    .message-card .order-info {
+        padding: 12px 14px;
+    }
 
-.message-card .order-info .order-description {
-    min-height: 0 !important;
-    margin: 0 0 6px 0;
-}
+        .message-card .order-info .order-title {
+            font-size: 22px !important;
+            min-height: 0 !important;
+            margin: 0 0 4px 0;
+        }
 
-.message-card .order-info .order-footer {
-    margin-top: 0;
-    display: flex;
-    gap: 14px;
-    font-size: 14px;
-}
+        .message-card .order-info .order-description {
+            min-height: 0 !important;
+            margin: 0 0 6px 0;
+        }
 
+        .message-card .order-info .order-footer {
+            margin-top: 0;
+            display: flex;
+            gap: 14px;
+            font-size: 14px;
+        }

@@ -204,12 +204,12 @@
             <input type="hidden" name="Language_id" value="@formLanguageId" />
 
             <label class="field-label" for="Gig_name">Title</label>
-            <input class="field-input" id="Gig_name" name="Gig_name" value="@selectedGig.Gig_name" maxlength="100" required />
+            <input class="field-input" id="Gig_name" name="Gig_name" value="@selectedGig.Gig_name" minlength="5" maxlength="50" required />
 
             <div class="field-row-two">
                 <div>
                     <label class="field-label" for="Gig_price">Price ($)</label>
-                    <input class="field-input" id="Gig_price" name="Gig_price" type="number" min="1" step="0.01" value="@formGigPrice" required />
+                    <input class="field-input" id="Gig_price" name="Gig_price" type="number" min="1" max="10000" step="0.01" value="@formGigPrice" required />
                 </div>
                 <div>
                     <label class="field-label" for="Delivery_time_id">Delivery Time</label>
@@ -266,7 +266,7 @@
             <button type="button" class="outline-btn category-add-btn" onclick="addCategoryRow()">+ Add another category</button>
 
             <label class="field-label" for="Gig_description">Description</label>
-            <textarea class="field-textarea" id="Gig_description" name="Gig_description" maxlength="2000" required>@selectedGig.Gig_description</textarea>
+            <textarea class="field-textarea" id="Gig_description" name="Gig_description" minlength="20" maxlength="500" required>@selectedGig.Gig_description</textarea>
 
             <label class="field-label" for="gigPhotoFile">Gig Photo (image only)</label>
             <input class="field-file" id="gigPhotoFile" name="gigPhotoFile" type="file" accept="image/*" />

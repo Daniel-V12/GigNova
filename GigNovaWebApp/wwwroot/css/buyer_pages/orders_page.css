@@ -1,4 +1,5 @@
-﻿.orders-container {
+﻿/* ============ Page container (used by both ViewOrders and SelectedOrder) ============ */
+.orders-container {
     width: min(1280px, 96vw);
     margin: 16px auto;
     padding: 16px;
@@ -44,6 +45,8 @@
         color: #c7c9df;
     }
 
+
+/* ============ Orders grid (ViewOrders list view) ============ */
 .orders-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -132,6 +135,30 @@
     background-color: #1b1f3f;
 }
 
+
+/* ============ Order-status card variants (drives the colored background on completed/delivered orders) ============ */
+.order-card.order-delivered {
+    background-color: #2a2417;
+    border-color: #6b5530;
+    opacity: 0.95;
+}
+
+.order-card-link:hover .order-card.order-delivered {
+    border-color: #9a7e45;
+}
+
+.order-card.order-completed {
+    background-color: #1a2a1f;
+    border-color: #3a5240;
+    opacity: 0.85;
+}
+
+.order-card-link:hover .order-card.order-completed {
+    border-color: #5a8060;
+}
+
+
+/* ============ Selected order (SelectedOrder detail view) ============ */
 .selected-order-card {
     border: 1px solid #5a619b;
     border-radius: 10px;
@@ -228,13 +255,14 @@
     font-size: 30px;
 }
 
-.selected-order-files-list {
-    margin-top: 10px;
-    margin-bottom: 0;
-    padding-left: 18px;
-    color: #d5d8ef;
+.selected-order-actions-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
+
+/* ============ Buttons shared by both views ============ */
 .open-messaging-btn {
     display: inline-block;
     text-decoration: none;
@@ -253,6 +281,17 @@
         background: linear-gradient(180deg, #6876d1 0%, #5564c3 100%);
     }
 
+.secondary-order-btn {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.35);
+}
+
+    .secondary-order-btn:hover {
+        background: rgba(255,255,255,0.2);
+    }
+
+
+/* ============ Pagination row ============ */
 .orders-pagination {
     margin-top: 16px;
     display: flex;
@@ -270,40 +309,3 @@
     opacity: 0.55;
     pointer-events: none;
 }
-
-.secondary-order-btn {
-    background: rgba(255,255,255,0.12);
-    border-color: rgba(255,255,255,0.35);
-}
-
-    .secondary-order-btn:hover {
-        background: rgba(255,255,255,0.2);
-    }
-
-.selected-order-actions-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.order-card.order-delivered {
-    background-color: #2a2417;
-    border-color: #6b5530;
-    opacity: 0.95;
-}
-
-.order-card-link:hover .order-card.order-delivered {
-    border-color: #9a7e45;
-}
-
-.order-card.order-completed {
-    background-color: #1a2a1f;
-    border-color: #3a5240;
-    opacity: 0.85;
-}
-
-.order-card-link:hover .order-card.order-completed {
-    border-color: #5a8060;
-}
-
-

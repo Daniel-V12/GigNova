@@ -1,14 +1,19 @@
-﻿* {
+﻿/* ============ Resets + body background ============ */
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* !important is needed because the master layouts already set a background
+   on html/body and we want this gradient to win on the home page. */
 html, body {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%) !important;
     min-height: 100vh;
 }
 
+
+/* ============ Hero section (big title + subtitle at the top) ============ */
 .hero-section {
     max-width: 1200px;
     margin: 0 auto;
@@ -35,12 +40,13 @@ html, body {
     white-space: pre-line;
 }
 
+
+/* ============ Three info cards (the row of "what is GigNova" cards) ============ */
 .info-cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 30px;
     margin-top: 60px;
-    animation: fadeInUp 1s ease 0.4s backwards;
 }
 
 .info-card {
@@ -57,6 +63,20 @@ html, body {
         transform: translateY(-10px);
         background: rgba(255,255,255,0.15);
         box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    }
+
+    /* Per-card stagger - each info card slides up one-by-one with a small delay,
+   so they don't all appear at once. */
+    .info-card:nth-child(1) {
+        animation: fadeInUp 0.8s ease 0.5s backwards;
+    }
+
+    .info-card:nth-child(2) {
+        animation: fadeInUp 0.8s ease 0.7s backwards;
+    }
+
+    .info-card:nth-child(3) {
+        animation: fadeInUp 0.8s ease 0.9s backwards;
     }
 
 .card-icon {
@@ -78,6 +98,8 @@ html, body {
     color: rgba(255,255,255,0.85);
 }
 
+
+/* ============ Features section (4-item grid with icons + descriptions) ============ */
 .features-section {
     max-width: 1000px;
     margin: 80px auto 0;
@@ -91,14 +113,13 @@ html, body {
     color: white;
     margin-bottom: 50px;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
-    animation: fadeInUp 1s ease 0.6s backwards;
+    animation: fadeInUp 1s ease 1.1s backwards;
 }
 
 .features-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 30px;
-    animation: fadeInUp 1s ease 0.8s backwards;
 }
 
 .feature-item {
@@ -116,6 +137,23 @@ html, body {
     .feature-item:hover {
         background: rgba(255,255,255,0.12);
         transform: translateX(10px);
+    }
+
+    /* Per-item stagger - same idea as the info cards above. */
+    .feature-item:nth-child(1) {
+        animation: fadeInUp 0.7s ease 1.3s backwards;
+    }
+
+    .feature-item:nth-child(2) {
+        animation: fadeInUp 0.7s ease 1.45s backwards;
+    }
+
+    .feature-item:nth-child(3) {
+        animation: fadeInUp 0.7s ease 1.6s backwards;
+    }
+
+    .feature-item:nth-child(4) {
+        animation: fadeInUp 0.7s ease 1.75s backwards;
     }
 
 .feature-icon {
@@ -136,12 +174,14 @@ html, body {
     line-height: 1.5;
 }
 
+
+/* ============ About section (last block on the page) ============ */
 .about-section {
     max-width: 900px;
     margin: 0 auto;
     padding: 60px 40px 120px;
     text-align: center;
-    animation: fadeInUp 1s ease 1s backwards;
+    animation: fadeInUp 1s ease 2s backwards;
 }
 
 .about-content {
@@ -167,6 +207,12 @@ html, body {
     margin-bottom: 20px;
 }
 
+
+/* ============ Animation used by everything above ============
+   "from { ... } to { ... }" means: start invisible and 30px below, end fully
+   visible at the normal position. "backwards" on the animation property means
+   the element stays at the FROM state during the delay (so it doesn't flash
+   in before its turn). */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -179,6 +225,11 @@ html, body {
     }
 }
 
+
+/* ============ Responsive breakpoints ============
+   968px: tablet - collapse the 3-col info cards and the 2-col features grid
+                   to single column, and shrink the big titles.
+   480px: phone  - even smaller titles, tighter about box padding. */
 @media (max-width: 968px) {
     .hero-title {
         font-size: 48px;

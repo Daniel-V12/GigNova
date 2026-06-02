@@ -1,16 +1,17 @@
-﻿using GigNovaModels;
-using GigNovaModels.Models;
+﻿using GigNovaModels.Models;
 using System.Data;
 
 namespace GigNovaWS
 {
     public class CategoryRepository : Repository, IRepository<Category>
     {
-
         public CategoryRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
         {
-
         }
+
+
+        // ============================== Create / Update / Delete ==============================
+
         public bool Create(Category model)
         {
             string sql = "Insert into Categories (category_name, is_blocked) values ( @category_name, @is_blocked )";
@@ -19,12 +20,25 @@ namespace GigNovaWS
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
+        public bool Update(Category model)
+        {
+            string sql = @"Update Categories set
+            category_name = @category_name
+            where category_id = @category_id";
+            this.dbHelperOledb.AddParameter("@category_name", model.Category_name);
+            this.dbHelperOledb.AddParameter("@category_id", model.Category_id);
+            return this.dbHelperOledb.Update(sql) > 0;
+        }
+
         public bool Delete(string id)
         {
             string sql = @"Delete from Categories where category_id = @category_id";
-            this.dbHelperOledb.AddParameter("category_id", id);
+            this.dbHelperOledb.AddParameter("@category_id", id);
             return this.dbHelperOledb.Delete(sql) > 0;
         }
+
+
+        // ============================== Read (single + lists) ==============================
 
         public List<Category> GetAll()
         {
@@ -51,15 +65,22 @@ namespace GigNovaWS
             }
         }
 
-        public bool Update(Category model)
+        public List<Category> GetBlocked()
         {
-            string sql = @"Update Categories set
-            category_name = @category_name
-            where category_id = @category_id";
-            this.dbHelperOledb.AddParameter("@category_name", model.Category_name);
-            this.dbHelperOledb.AddParameter("@category_id", model.Category_id);
-            return this.dbHelperOledb.Update(sql) > 0;
+            string sql = "Select * from Categories where is_blocked = True";
+            List<Category> categories = new List<Category>();
+            using (IDataReader reader = this.dbHelperOledb.Select(sql))
+            {
+                while (reader.Read())
+                {
+                    categories.Add(this.modelCreators.CategoryCreator.CreateModel(reader));
+                }
+            }
+            return categories;
         }
+
+
+        // ============================== Block / Unblock ==============================
 
         public bool Block(string id)
         {
@@ -79,20 +100,6 @@ namespace GigNovaWS
             this.dbHelperOledb.AddParameter("@is_blocked", false);
             this.dbHelperOledb.AddParameter("@category_id", id);
             return this.dbHelperOledb.Update(sql) > 0;
-        }
-
-        public List<Category> GetBlocked()
-        {
-            string sql = "Select * from Categories where is_blocked = True";
-            List<Category> categories = new List<Category>();
-            using (IDataReader reader = this.dbHelperOledb.Select(sql))
-            {
-                while (reader.Read())
-                {
-                    categories.Add(this.modelCreators.CategoryCreator.CreateModel(reader));
-                }
-            }
-            return categories;
         }
     }
 }

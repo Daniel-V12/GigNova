@@ -1,4 +1,5 @@
-﻿* {
+﻿/* ============ Resets + body background ============ */
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -11,6 +12,8 @@ body {
     overflow-x: hidden;
 }
 
+
+/* ============ Top nav header (the bar across the top of every page) ============ */
 .dashboard-header {
     background: rgba(0,0,0,0.3);
     backdrop-filter: blur(10px);
@@ -27,6 +30,8 @@ body {
     height: 90px;
 }
 
+
+/* ============ Logo (left side of the header) ============ */
 .logo-section {
     display: flex;
     align-items: center;
@@ -42,6 +47,9 @@ body {
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
+
+/* ============ Nav buttons (right side of the header) ============
+   Each .btn-* variant just changes the colors. They all share the base .btn style above. */
 .nav-buttons {
     display: flex;
     gap: 18px;
@@ -157,6 +165,10 @@ body {
         transform: translateY(-2px);
     }
 
+
+/* ============ Responsive breakpoints ============
+   1200px: wide tablet - shrink the nav buttons a bit.
+   968px : tablet      - stack the header (logo above buttons) and wrap the buttons. */
 @media (max-width: 1200px) {
     .nav-buttons {
         gap: 14px;

@@ -1,4 +1,5 @@
-﻿.incoming-orders-container {
+﻿/* ============ Page container (used by both IncomingOrders list and SelectedIncomingOrder detail) ============ */
+.incoming-orders-container {
     width: min(1280px, 96vw);
     margin: 16px auto;
     padding: 16px;
@@ -29,6 +30,18 @@
         color: #c7c9df;
     }
 
+.incoming-order-message {
+    background: rgba(74,144,226,0.2);
+    border: 1px solid rgba(74,144,226,0.5);
+    color: white;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+
+/* ============ List view: one row per incoming order ============ */
 .incoming-orders-list {
     display: grid;
     gap: 12px;
@@ -73,16 +86,30 @@
     background-color: #1b1f3f;
 }
 
-.incoming-order-message {
-    background: rgba(74,144,226,0.2);
-    border: 1px solid rgba(74,144,226,0.5);
-    color: white;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 20px;
-    font-weight: 600;
+
+/* ============ Status variants (drives the colored background on delivered/completed rows) ============ */
+.incoming-order-item.order-completed {
+    background-color: #1a2a1f;
+    border-color: #3a5240;
+    opacity: 0.8;
 }
 
+.incoming-order-link:hover .incoming-order-item.order-completed {
+    border-color: #5a8060;
+}
+
+.incoming-order-item.order-delivered {
+    background-color: #2a2417;
+    border-color: #6b5530;
+    opacity: 0.95;
+}
+
+.incoming-order-link:hover .incoming-order-item.order-delivered {
+    border-color: #9a7e45;
+}
+
+
+/* ============ Detail view (SelectedIncomingOrder): big card with image + info ============ */
 .selected-incoming-card {
     border: 1px solid #5a619b;
     border-radius: 10px;
@@ -183,6 +210,8 @@
     gap: 10px;
 }
 
+
+/* ============ Action buttons (Open Messaging / Deliver Work / Back) ============ */
 .incoming-action-btn {
     display: inline-block;
     text-decoration: none;
@@ -217,6 +246,8 @@
         background: rgba(255,255,255,0.2);
     }
 
+
+/* ============ Delivery history list (each past delivery the seller already sent) ============ */
 .delivery-history-item {
     margin-top: 12px;
     border: 1px solid #3d4270;
@@ -252,6 +283,8 @@
             text-decoration: underline;
         }
 
+
+/* ============ "Send Delivery" popup (overlay + modal panel + form) ============ */
 .delivery-modal-overlay {
     position: fixed;
     top: 0;
@@ -312,23 +345,4 @@
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-}
-.incoming-order-item.order-completed {
-    background-color: #1a2a1f;
-    border-color: #3a5240;
-    opacity: 0.8;
-}
-
-.incoming-order-link:hover .incoming-order-item.order-completed {
-    border-color: #5a8060;
-}
-
-.incoming-order-item.order-delivered {
-    background-color: #2a2417;
-    border-color: #6b5530;
-    opacity: 0.95;
-}
-
-.incoming-order-link:hover .incoming-order-item.order-delivered {
-    border-color: #9a7e45;
 }

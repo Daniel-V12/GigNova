@@ -1,4 +1,4 @@
-﻿/* Signup Container */
+﻿/* ============ Signup container + card ============ */
 .signup-container {
     max-width: 600px;
     margin: 60px auto;
@@ -31,7 +31,8 @@
     line-height: 1.5;
 }
 
-/* Avatar Section */
+
+/* ============ Avatar picker (round picture above the form) ============ */
 .avatar-section {
     display: flex;
     flex-direction: column;
@@ -88,10 +89,13 @@
         border-color: rgba(255,255,255,0.5);
     }
 
+/* Hides the real <input type="file"> so the user clicks the styled label instead. */
 .file-input {
     display: none;
 }
 
+
+/* ============ Form (label + text input + textarea + char counter) ============ */
 .form-group {
     margin-bottom: 25px;
 }
@@ -157,7 +161,8 @@
     text-align: right;
 }
 
-/* Checkbox */
+
+/* ============ "I am 18+" checkbox ============ */
 .checkbox-group {
     display: flex;
     align-items: flex-start;
@@ -182,7 +187,8 @@
     line-height: 1.5;
 }
 
-/* Payment Account Button */
+
+/* ============ Payment account toggle button ============ */
 .link-account-btn {
     width: 100%;
     padding: 16px 24px;
@@ -206,16 +212,6 @@
         transform: translateY(-2px);
     }
 
-    .link-account-btn.linked {
-        background: rgba(74,144,226,0.2);
-        border-color: #4a90e2;
-        color: #4a90e2;
-    }
-
-        .link-account-btn.linked:hover {
-            background: rgba(74,144,226,0.3);
-        }
-
 .btn-icon {
     font-size: 20px;
 }
@@ -231,11 +227,8 @@
     text-align: center;
 }
 
-    .account-status.linked {
-        color: #4a90e2;
-        font-weight: 600;
-    }
 
+/* ============ Submit button + info text below it ============ */
 .submit-btn {
     width: 100%;
     padding: 16px;
@@ -271,6 +264,12 @@
     line-height: 1.6;
 }
 
+
+/* ============ Responsive breakpoints ============
+   968px: tablet - shrink the master layout's logo / nav buttons / btn
+                   (those classes come from MasterBuyerPage.cshtml),
+                   plus shrink the signup card / title / avatar.
+   480px: phone  - smaller logo, tighter card padding, smaller title and avatar. */
 @media (max-width: 968px) {
     .dashboard-container {
         height: auto;

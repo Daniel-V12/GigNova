@@ -1,6 +1,5 @@
 ﻿using GigNovaModels.Models;
 using System.Data;
-using System.Reflection.PortableExecutable;
 
 namespace GigNovaWS
 {
@@ -8,8 +7,10 @@ namespace GigNovaWS
     {
         public Delivery_timeRepository(DbHelperOledb dbHelperOledb, ModelCreators modelCreators) : base(dbHelperOledb, modelCreators)
         {
-
         }
+
+
+        // ============================== Create / Update / Delete ==============================
 
         public bool Create(Delivery_time model)
         {
@@ -19,12 +20,23 @@ namespace GigNovaWS
             return this.dbHelperOledb.Insert(sql) > 0;
         }
 
+        // The Delivery_Times table is a fixed lookup - we never edit a row. Update is required
+        // by IRepository<T> but unused. (The previous body had no WHERE clause which would have
+        // updated every row.)
+        public bool Update(Delivery_time model)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool Delete(string id)
         {
             string sql = @"Delete from Delivery_Times where delivery_time_id = @delivery_time_id";
             this.dbHelperOledb.AddParameter("@delivery_time_id", id);
             return this.dbHelperOledb.Delete(sql) > 0;
         }
+
+
+        // ============================== Read (single + lists) ==============================
 
         public List<Delivery_time> GetAll()
         {
@@ -49,14 +61,6 @@ namespace GigNovaWS
                 reader.Read();
                 return this.modelCreators.DeliveryTimeCreator.CreateModel(reader);
             }
-        }
-
-        public bool Update(Delivery_time model)
-        {
-            string sql = @"Update Delivery_Times set 
-            delivery_time_name = @delivery_time_name";
-            this.dbHelperOledb.AddParameter("@delivery_time_name", model.Delivery_time_name);
-            return this.dbHelperOledb.Update(sql) > 0;
         }
     }
 }

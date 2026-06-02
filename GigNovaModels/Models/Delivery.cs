@@ -25,8 +25,7 @@ namespace GigNovaModels.Models
             set { delivery_id = value; }
         }
 
-        [Required(ErrorMessage = "Delivery message is required")]
-        [StringLength(2000, MinimumLength = 5, ErrorMessage = "Delivery message must be between 5 and 2000 characters")]
+        [StringLength(500, ErrorMessage = "Delivery message must be no longer than 500 characters")]
         public string Delivery_text
         {
             get { return delivery_text; }

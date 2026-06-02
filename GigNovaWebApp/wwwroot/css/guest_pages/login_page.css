@@ -1,4 +1,4 @@
-/* Login Container */
+/* ============ Login container + card ============ */
 .login-container {
     max-width: 480px;
     margin: 100px auto;
@@ -30,6 +30,8 @@
     margin-bottom: 40px;
 }
 
+
+/* ============ Form (label + text input) ============ */
 .form-group {
     margin-bottom: 25px;
 }
@@ -64,6 +66,8 @@
         background: rgba(255,255,255,0.15);
     }
 
+
+/* ============ Submit button + link to signup ============ */
 .submit-btn {
     width: 100%;
     padding: 16px;
@@ -106,6 +110,10 @@
             border-bottom-color: #e94560;
         }
 
+
+/* ============ Responsive breakpoints ============
+   968px: tablet - shrink the top margin and card padding, smaller title.
+   480px: phone  - even tighter padding and title size. */
 @media (max-width: 968px) {
     .login-container {
         margin: 60px auto;

@@ -1,4 +1,5 @@
-﻿.manage-gigs-container {
+﻿/* ============ Page container (two-column grid: gig list on the left, editor on the right) ============ */
+.manage-gigs-container {
     width: min(1280px, 96vw);
     margin: 16px auto;
     padding: 16px;
@@ -36,11 +37,15 @@
     margin-bottom: 12px;
 }
 
+/* Broad selector - applies to BOTH panel headings ("Manage Gigs" / "Edit Gig").
+   If this view ever gets a third h2 it will inherit these styles too. */
 h2 {
     margin: 0;
     color: #f2f3ff;
 }
 
+
+/* ============ Left panel: scrollable list of gig rows ============ */
 .gig-list {
     display: grid;
     gap: 10px;
@@ -77,6 +82,8 @@ h2 {
     font-size: 14px;
 }
 
+
+/* ============ Status pill (green = published, amber = unpublished, blue = draft) ============ */
 .gig-status {
     border-radius: 999px;
     padding: 4px 10px;
@@ -107,6 +114,8 @@ h2 {
     color: #d5d8ef;
 }
 
+
+/* ============ Right panel: gig editor form ============ */
 .gig-editor-form {
     margin-top: 12px;
     display: grid;
@@ -141,6 +150,44 @@ h2 {
     resize: vertical;
 }
 
+
+/* ============ Category picker (rows of dropdowns + "x" remove button) ============ */
+.category-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.category-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1 1 220px;
+    max-width: 100%;
+}
+
+    .category-row .category-select {
+        flex: 1;
+        min-width: 0;
+    }
+
+.category-remove-btn {
+    background: rgba(209,92,110,0.25);
+    color: #ff9aa8;
+    border: 1px solid rgba(229,138,154,0.4);
+    border-radius: 6px;
+    width: 32px;
+    height: 38px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.category-add-btn {
+    align-self: flex-start;
+}
+
+
+/* ============ Editor footer buttons (Save / Publish / Delete) ============ */
 .editor-buttons {
     display: flex;
     gap: 10px;
@@ -183,39 +230,10 @@ h2 {
 .wide {
     width: 180px;
 }
-.category-picker {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
 
-.category-row {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex: 1 1 220px;
-    max-width: 100%;
-}
 
-    .category-row .category-select {
-        flex: 1;
-        min-width: 0;
-    }
-
-.category-remove-btn {
-    background: rgba(209,92,110,0.25);
-    color: #ff9aa8;
-    border: 1px solid rgba(229,138,154,0.4);
-    border-radius: 6px;
-    width: 32px;
-    height: 38px;
-    cursor: pointer;
-    font-weight: 700;
-}
-
-.category-add-btn {
-    align-self: flex-start;
-}
+/* ============ Responsive ============
+   980px: tablet - collapse the two columns so the editor panel sits below the list. */
 @media (max-width: 980px) {
     .manage-gigs-container {
         grid-template-columns: 1fr;

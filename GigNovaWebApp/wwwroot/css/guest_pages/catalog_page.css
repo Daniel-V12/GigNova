@@ -1,4 +1,5 @@
-﻿* {
+﻿/* ============ Resets ============ */
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -10,6 +11,8 @@ html, body {
     min-height: 100vh;
 }
 
+
+/* ============ Catalog Container + Cards ============ */
 .catalog-container {
     max-width: 1400px;
     margin: 0 auto;
@@ -42,6 +45,8 @@ html, body {
     font-weight: 900;
 }
 
+
+/* ============ Category chip buttons (top row) ============ */
 .category-buttons {
     display: flex;
     flex-wrap: wrap;
@@ -71,6 +76,8 @@ html, body {
         border-color: #6f77c8;
     }
 
+
+/* ============ Sidebar layout + filter inputs ============ */
 .main-content {
     display: grid;
     grid-template-columns: 300px 1fr;
@@ -127,6 +134,8 @@ select {
     color: #fff;
 }
 
+
+/* ============ Gigs grid + gig card ============ */
 .gigs-section {
     padding: 22px;
 }
@@ -204,6 +213,8 @@ select {
     text-align: center;
 }
 
+
+/* ============ Pagination ============ */
 .pagination {
     margin-top: 18px;
     display: flex;
@@ -232,29 +243,8 @@ select {
         pointer-events: none;
     }
 
-@media (max-width: 1100px) {
-    .gigs-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
 
-@media (max-width: 860px) {
-    .main-content {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 640px) {
-    .catalog-container {
-        padding: 18px;
-    }
-
-    .gigs-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-
+/* ============ Per-gig category chips (inside a card) ============ */
 .gig-categories-wrap {
     display: flex;
     gap: 6px;
@@ -278,6 +268,11 @@ select {
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
+
+/* ============ Shared overrides used by Reviews / Seller Profile / Selected Gig =============
+   These pages reuse catalog_page.css for the card visuals, but want bigger titles / different
+   font sizes. The !important is needed to win against the base .gig-title / .gig-description
+   rules above (same specificity but defined earlier). */
 .review-average-text {
     font-size: 17px;
 }
@@ -313,32 +308,29 @@ select {
     font-size: 16px;
 }
 
-.selected-seller-label {
-    color: #aeb3db;
-    font-size: 24px;
-    font-weight: 800;
+
+/* ============ Responsive breakpoints ============
+   1100px: drop the gigs grid from 3 columns to 2.
+   860px : also collapse the sidebar so filters sit above the gigs (single column).
+   640px : tighten the container padding and drop the gigs grid to 1 column (phone). */
+@media (max-width: 1100px) {
+    .gigs-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
-.selected-seller-name {
-    color: white;
-    font-weight: 800;
-    font-size: 24px;
+@media (max-width: 860px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
 }
 
-.selected-seller-rating {
-    color: #c6c9e7;
-    font-size: 18px;
-    font-weight: 700;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
+@media (max-width: 640px) {
+    .catalog-container {
+        padding: 18px;
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    .gigs-grid {
+        grid-template-columns: 1fr;
     }
 }
