@@ -3,6 +3,7 @@
     ViewData["Title"] = "SellerProfile";
     Layout = "~/Views/Shared/MasterSellerPage.cshtml";
 
+    // Pull values out of the model with safe defaults so the markup below stays clean.
     string joinDate = "Unknown";
     string sellerDisplayName = "";
     string sellerBio = "";
@@ -30,7 +31,6 @@
             }
             isLinked = Model.seller.Seller_is_linked;
         }
-
         if (Model.seller_person != null)
         {
             if (Model.seller_person.Person_username != null)
@@ -45,22 +45,25 @@
             {
                 birthdate = Model.seller_person.Person_birthdate;
             }
-            if (Model.seller_person.Person_join_date != null && Model.seller_person.Person_join_date != "")
+            if (string.IsNullOrEmpty(Model.seller_person.Person_join_date) == false)
             {
                 joinDate = Model.seller_person.Person_join_date;
             }
         }
     }
 
+    // Build the avatar URL (only if we have both a seller id and a saved avatar filename).
     string avatarUrl = "";
-    if (Model != null && Model.seller != null && string.IsNullOrWhiteSpace(Model.seller.Seller_id) == false && string.IsNullOrWhiteSpace(sellerAvatar) == false)
+    if (Model != null && Model.seller != null
+        && string.IsNullOrWhiteSpace(Model.seller.Seller_id) == false
+        && string.IsNullOrWhiteSpace(sellerAvatar) == false)
     {
         avatarUrl = "https://localhost:7059/api/Seller/GetPhoto?seller_id=" + Model.seller.Seller_id;
     }
-
 }
 
 <link href="~/css/seller_pages/sellerprofile_page.css" rel="stylesheet" />
+
 <div class="profile-container">
     <div class="profile-header">
         <h1 class="profile-title">Seller Profile</h1>
@@ -76,6 +79,7 @@
         <div class="profile-section">
             <h2 class="section-title">Seller Information</h2>
 
+            <!-- Avatar picker. The preview is updated by JS when a file is chosen. -->
             <div class="avatar-section">
                 <div class="avatar-container">
                     <div class="avatar" id="avatarPreview">
@@ -139,7 +143,7 @@
             <label class="form-label" for="passwordDisplay">Password</label>
             <input type="password" id="passwordDisplay" class="form-input" value="********" readonly>
             <p class="info-text">Use the button below to change password</p>
-            <button type="button" class="change-password-button" style="margin-top:12px;padding:10px 18px;background:transparent;color:white;border:2px solid rgba(255,255,255,0.7);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;" onclick="document.getElementById('passwordModalOverlay').style.display='flex'">Change Password</button>
+            <button type="button" class="change-password-button" style="margin-top:12px;padding:10px 18px;background:transparent;color:white;border:2px solid rgba(255,255,255,0.7);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;" onclick="openPasswordModal()">Change Password</button>
         </div>
 
         <div class="form-group">
@@ -152,9 +156,10 @@
     <form asp-controller="Buyer" asp-action="LogOut" method="post">
         <button class="logout-button" type="submit">Log Out</button>
     </form>
-
 </div>
 
+
+<!-- ============================== Change Password Popup (hidden by default) ============================== -->
 <div id="passwordModalOverlay" class="password-modal-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);justify-content:center;align-items:center;z-index:2000;padding:20px;" onclick="closePasswordModal(event)">
     <div class="password-modal" style="width:100%;max-width:500px;background:#2f3a58;border:2px solid rgba(255,255,255,0.2);border-radius:14px;padding:28px;box-shadow:0 12px 30px rgba(0,0,0,0.4);">
         <h3>Change Password</h3>
@@ -169,47 +174,69 @@
             </div>
             <div class="password-modal-buttons">
                 <button type="submit" class="edit-button">Save Password</button>
-                <button type="button" class="cancel-password-button" onclick="document.getElementById('passwordModalOverlay').style.display='none'">Cancel</button>
+                <button type="button" class="cancel-password-button" onclick="closePasswordModal()">Cancel</button>
             </div>
         </form>
     </div>
 </div>
 
+
+<!-- ============================== JavaScript: Char Counter + Avatar Preview + Password Popup ============================== -->
+@*
+    Three small features:
+      1. CHAR COUNTER  : as the user types into the Bio textarea, update the "X/500 characters" line.
+      2. AVATAR PREVIEW: when the user picks an image, read it and put it inside the round preview circle.
+                         FileReader is a browser built-in that gives us the file as a data: URL we can use as <img src>.
+      3. PASSWORD POPUP: open/close the change-password popup.
+*@
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var bio = document.getElementById('Seller_description');
-        var count = document.getElementById('charCount');
-        if (bio && count) {
-            var updateCount = function () { count.textContent = bio.value.length; };
-            bio.addEventListener('input', updateCount);
-            updateCount();
-        }
 
-        var avatarInput = document.getElementById('sellerAvatarFile');
-        var preview = document.getElementById('avatarPreview');
-        if (avatarInput && preview) {
-            avatarInput.addEventListener('change', function () {
-                if (!avatarInput.files || avatarInput.files.length === 0) {
-                    return;
-                }
+    // ----------- 1. CHAR COUNTER -----------
+    var bio = document.getElementById('Seller_description');
+    var count = document.getElementById('charCount');
 
-                var file = avatarInput.files[0];
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    preview.innerHTML = '<img src="' + e.target.result + '" alt="Seller Avatar Preview" />';
-                };
-                reader.readAsDataURL(file);
-            });
-        }
+    function updateCount() {
+        count.textContent = bio.value.length;
+    }
 
-    });
+    if (bio != null && count != null) {
+        bio.addEventListener('input', updateCount);
+        updateCount();
+    }
 
 
-    function closePasswordModal(event) {
-        if (event) {
-            if (event.target.id != "passwordModalOverlay") {
+    // ----------- 2. AVATAR PREVIEW -----------
+    var avatarInput = document.getElementById('sellerAvatarFile');
+    var preview = document.getElementById('avatarPreview');
+
+    if (avatarInput != null && preview != null) {
+        avatarInput.addEventListener('change', function () {
+            if (avatarInput.files == null || avatarInput.files.length == 0) {
                 return;
             }
+            var file = avatarInput.files[0];
+            var reader = new FileReader();
+            reader.onload = function () {
+                preview.innerHTML = '<img src="' + reader.result + '" alt="Seller Avatar Preview" />';
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+
+    // ----------- 3. PASSWORD POPUP -----------
+
+    // Show the change-password popup.
+    function openPasswordModal() {
+        document.getElementById("passwordModalOverlay").style.display = "flex";
+    }
+
+    // Hide the change-password popup.
+    // Called from the Cancel button (no event) and from clicking the dark backdrop (with event).
+    // We only close on backdrop clicks - clicking inside the popup itself should NOT close it.
+    function closePasswordModal(event) {
+        if (event != null && event.target.id != "passwordModalOverlay") {
+            return;
         }
         document.getElementById("passwordModalOverlay").style.display = "none";
     }

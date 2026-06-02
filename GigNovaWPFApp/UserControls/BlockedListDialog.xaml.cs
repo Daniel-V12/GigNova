@@ -14,6 +14,9 @@ namespace GigNovaWPFApp.UserControls
         bool didChange;
         bool isInitialized;
 
+
+        // ============================== Initialization ==============================
+
         public BlockedListDialog()
         {
             InitializeComponent();
@@ -23,36 +26,61 @@ namespace GigNovaWPFApp.UserControls
             LoadList(1);
         }
 
+        // Read-only flag used by the caller (CatalogPage) to know if it should refresh after this dialog closes.
         public bool DidChange
         {
             get { return didChange; }
         }
 
+
+        // ============================== Top Controls (type switcher + search + close) ==============================
+
+        // Switch between "Gigs" and "Categories" view.
         private void TypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (!isInitialized) return;
+            // Ignore the SelectionChanged fired by the initial XAML setup (before ctor finished).
+            if (isInitialized == false)
+            {
+                return;
+            }
             ComboBoxItem item = TypeComboBox.SelectedItem as ComboBoxItem;
-            if (item == null) return;
+            if (item == null)
+            {
+                return;
+            }
             string text = item.Content.ToString();
-            if (text == "Gigs") currentType = "gig";
-            else currentType = "category";
+            if (text == "Gigs")
+            {
+                currentType = "gig";
+            }
+            else
+            {
+                currentType = "category";
+            }
             LoadList(1);
         }
 
+        // Search button: just reload from page 1 with whatever is in the search box.
         private void Search_Click(object sender, RoutedEventArgs e)
         {
             LoadList(1);
         }
 
+        // Close the dialog.
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+
+        // ============================== Loading + Rendering ==============================
+
+        // Fetches the blocked list for the current type (gig/category), filtered by search, paged.
         private async void LoadList(int page)
         {
             try
             {
-                ApiClient<BlockedListViewModel> client = new ApiClient<BlockedListViewModel>();
-                client.Scheme = "https";
-                client.Host = "localhost";
-                client.Port = 7059;
-                client.Path = "api/Admin/GetBlockedListViewModel";
+                ApiClient<BlockedListViewModel> client = WpfHelpers.BuildClient<BlockedListViewModel>("api/Admin/GetBlockedListViewModel");
                 client.AddParameter("type", currentType);
                 client.AddParameter("page", page.ToString());
                 client.AddParameter("search", SearchTextBox.Text.Trim());
@@ -72,6 +100,7 @@ namespace GigNovaWPFApp.UserControls
             }
         }
 
+        // Render one row per blocked item (gig OR category, depending on currentType).
         private void ShowItems()
         {
             ItemsPanel.Children.Clear();
@@ -102,6 +131,7 @@ namespace GigNovaWPFApp.UserControls
             }
         }
 
+        // Add a centered "no results" message to the items panel.
         private void AddEmptyMessage(string message)
         {
             TextBlock txt = new TextBlock();
@@ -113,11 +143,12 @@ namespace GigNovaWPFApp.UserControls
             ItemsPanel.Children.Add(txt);
         }
 
+        // Add one row: name on the left, "Unblock" button on the right. Stores the id in the button's Tag.
         private void AddRow(string id, string name)
         {
             Border row = new Border();
-            row.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#171717"));
-            row.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3A3A3A"));
+            row.Background = WpfHelpers.Brush("#171717");
+            row.BorderBrush = WpfHelpers.Brush("#3A3A3A");
             row.BorderThickness = new Thickness(1);
             row.CornerRadius = new CornerRadius(8);
             row.Padding = new Thickness(12, 8, 12, 8);
@@ -145,7 +176,7 @@ namespace GigNovaWPFApp.UserControls
             button.Style = (Style)FindResource("DialogButtonStyle");
             button.Width = 90;
             button.Height = 30;
-            button.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#19A64B"));
+            button.Background = WpfHelpers.Brush("#19A64B");
             button.Tag = id;
             button.Click += UnblockButton_Click;
             Grid.SetColumn(button, 1);
@@ -155,6 +186,7 @@ namespace GigNovaWPFApp.UserControls
             ItemsPanel.Children.Add(row);
         }
 
+        // "Unblock" click handler. Asks the WS to unblock either a gig or a category (based on currentType).
         private async void UnblockButton_Click(object sender, RoutedEventArgs e)
         {
             Button btn = sender as Button;
@@ -164,25 +196,25 @@ namespace GigNovaWPFApp.UserControls
                 "Are you sure you want to unblock this item?",
                 "Confirm Unblock",
                 MessageBoxButton.YesNo);
-            if (confirm != MessageBoxResult.Yes) return;
+            if (confirm != MessageBoxResult.Yes)
+            {
+                return;
+            }
 
-            ApiClient<bool> client = new ApiClient<bool>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
+            ApiClient<bool> client;
             if (currentType == "gig")
             {
-                client.Path = "api/Admin/UnblockGig";
+                client = WpfHelpers.BuildClient<bool>("api/Admin/UnblockGig");
                 client.AddParameter("gig_id", id);
             }
             else
             {
-                client.Path = "api/Admin/UnblockCategory";
+                client = WpfHelpers.BuildClient<bool>("api/Admin/UnblockCategory");
                 client.AddParameter("category_id", id);
             }
 
             bool ok = await client.PostAsync(false);
-            if (!ok)
+            if (ok == false)
             {
                 MessageBox.Show("Failed to unblock item.", "GigNova");
                 return;
@@ -191,53 +223,71 @@ namespace GigNovaWPFApp.UserControls
             LoadList(viewModel.Page);
         }
 
+
+        // ============================== Pagination ==============================
+
+        // Build Previous / page-number / Next buttons. Each button's target page is stored in its Tag,
+        // and the shared PageButton_Click handler reads it (no lambda event handlers).
         private void ShowPagination()
         {
             PaginationPanel.Children.Clear();
-            if (viewModel == null || viewModel.TotalPages <= 1) return;
+            if (viewModel == null || viewModel.TotalPages <= 1)
+            {
+                return;
+            }
 
             Button prev = CreatePageButton("Previous", viewModel.Page > 1);
-            int prevPage = viewModel.Page - 1;
-            prev.Click += (s, e) => LoadList(prevPage);
+            prev.Tag = viewModel.Page - 1;
+            prev.Click += PageButton_Click;
             PaginationPanel.Children.Add(prev);
 
             for (int i = 1; i <= viewModel.TotalPages; i++)
             {
-                int pageNumber = i;
-                Button pageBtn = CreatePageButton(pageNumber.ToString(), true);
-                if (viewModel.Page == pageNumber)
+                Button pageBtn = CreatePageButton(i.ToString(), true);
+                pageBtn.Tag = i;
+                if (viewModel.Page == i)
                 {
-                    pageBtn.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
+                    pageBtn.Background = WpfHelpers.Brush("#E94560");
                 }
-                pageBtn.Click += (s, e) => LoadList(pageNumber);
+                pageBtn.Click += PageButton_Click;
                 PaginationPanel.Children.Add(pageBtn);
             }
 
             Button next = CreatePageButton("Next", viewModel.Page < viewModel.TotalPages);
-            int nextPage = viewModel.Page + 1;
-            next.Click += (s, e) => LoadList(nextPage);
+            next.Tag = viewModel.Page + 1;
+            next.Click += PageButton_Click;
             PaginationPanel.Children.Add(next);
         }
 
+        // Shared click handler for every page button. The target page is in the button's Tag.
+        private void PageButton_Click(object sender, RoutedEventArgs e)
+        {
+            Button btn = sender as Button;
+            int page = (int)btn.Tag;
+            LoadList(page);
+        }
+
+        // Helper that creates a styled pagination button. isEnabled=false greys it out.
         private Button CreatePageButton(string text, bool isEnabled)
         {
             Button button = new Button();
             button.Content = text;
             button.Style = (Style)FindResource("DialogButtonStyle");
-            button.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3A3A3A"));
+            button.Background = WpfHelpers.Brush("#3A3A3A");
             button.Foreground = Brushes.White;
             button.Width = 70;
             button.Height = 30;
             button.Margin = new Thickness(4, 0, 4, 0);
             button.IsEnabled = isEnabled;
-            if (isEnabled) button.Opacity = 1.0;
-            else button.Opacity = 0.5;
+            if (isEnabled)
+            {
+                button.Opacity = 1.0;
+            }
+            else
+            {
+                button.Opacity = 0.5;
+            }
             return button;
-        }
-
-        private void Close_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
         }
     }
 }

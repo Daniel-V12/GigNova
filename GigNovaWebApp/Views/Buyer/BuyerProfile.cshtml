@@ -3,20 +3,41 @@
     ViewData["Title"] = "BuyerProfile";
     Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
 
-    string personId = Model?.buyer?.Person_id ?? Model?.buyer_person?.Person_id ?? "";
-    string buyerDisplayName = Model?.buyer?.Buyer_display_name ?? "";
-    string buyerBio = Model?.buyer?.Buyer_description ?? "";
-    string username = Model?.buyer_person?.Person_username ?? "";
-    string email = Model?.buyer_person?.Person_email ?? "";
-    string birthdate = Model?.buyer_person?.Person_birthdate ?? "";
-    string joinDate = Model?.buyer?.Person_join_date;
-    if (string.IsNullOrEmpty(joinDate))
+    // Pull values out of the model with safe defaults so the markup below stays clean.
+    string personId = "";
+    string buyerDisplayName = "";
+    string buyerBio = "";
+    string username = "";
+    string email = "";
+    string birthdate = "";
+    string joinDate = "Unknown";
+
+    if (Model != null)
     {
-        joinDate = Model?.buyer_person?.Person_join_date;
-    }
-    if (string.IsNullOrEmpty(joinDate))
-    {
-        joinDate = "Unknown";
+        if (Model.buyer != null)
+        {
+            personId = Model.buyer.Person_id;
+            buyerDisplayName = Model.buyer.Buyer_display_name;
+            buyerBio = Model.buyer.Buyer_description;
+            if (string.IsNullOrEmpty(Model.buyer.Person_join_date) == false)
+            {
+                joinDate = Model.buyer.Person_join_date;
+            }
+        }
+        if (Model.buyer_person != null)
+        {
+            if (string.IsNullOrEmpty(personId))
+            {
+                personId = Model.buyer_person.Person_id;
+            }
+            username = Model.buyer_person.Person_username;
+            email = Model.buyer_person.Person_email;
+            birthdate = Model.buyer_person.Person_birthdate;
+            if (joinDate == "Unknown" && string.IsNullOrEmpty(Model.buyer_person.Person_join_date) == false)
+            {
+                joinDate = Model.buyer_person.Person_join_date;
+            }
+        }
     }
 }
 
@@ -24,6 +45,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GigNova - Buyer Profile</title>
 <link href="~/css/buyer_pages/buyerprofile_page.css" rel="stylesheet" />
+
 <div class="profile-container">
     <div class="profile-header">
         <h1 class="profile-title">Buyer Profile</h1>
@@ -118,6 +140,8 @@
     </form>
 </div>
 
+
+<!-- ============================== Change Password Popup (hidden by default) ============================== -->
 <div id="passwordModalOverlay" class="password-modal-overlay" onclick="closePasswordModal(event)">
     <div class="password-modal">
         <h3>Change Password</h3>
@@ -138,16 +162,20 @@
     </div>
 </div>
 
+
+<!-- ============================== JavaScript: Open / Close Password Popup ============================== -->
 <script>
+    // Show the password popup.
     function openPasswordModal() {
         document.getElementById("passwordModalOverlay").style.display = "flex";
     }
 
+    // Hide the password popup.
+    // Called both by the Cancel button (no event) and by clicking the dark backdrop.
+    // We only close on backdrop clicks - clicking inside the popup should NOT close it.
     function closePasswordModal(event) {
-        if (event) {
-            if (event.target.id != "passwordModalOverlay") {
-                return;
-            }
+        if (event != null && event.target.id != "passwordModalOverlay") {
+            return;
         }
         document.getElementById("passwordModalOverlay").style.display = "none";
     }

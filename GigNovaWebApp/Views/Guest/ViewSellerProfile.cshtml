@@ -3,6 +3,8 @@
 @model SellerPublicProfileViewModel
 @{
     ViewData["Title"] = "ViewSellerProfile";
+
+    // Pick the right layout based on the current session (guest / buyer / seller).
     Layout = "~/Views/Shared/MasterGuestPage.cshtml";
     string personId = Context.Session.GetString("person_id");
     string actor = Context.Session.GetString("actor");

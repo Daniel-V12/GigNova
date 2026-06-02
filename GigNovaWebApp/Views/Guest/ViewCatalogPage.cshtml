@@ -1,9 +1,12 @@
 ﻿@using Microsoft.AspNetCore.Http
-﻿@using GigNovaModels.ViewModels
+@using GigNovaModels.ViewModels
 @using GigNovaModels.Models
 @model CatalogViewModel
 @{
     ViewData["Title"] = "ViewCatalogPage";
+
+    // ============================== Page Layout (which master to use) ==============================
+    // Default to the guest layout. If a user is logged in, switch to the buyer or seller layout.
     Layout = "~/Views/Shared/MasterGuestPage.cshtml";
     string personId = Context.Session.GetString("person_id");
     string actor = Context.Session.GetString("actor");
@@ -18,22 +21,20 @@
             Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
         }
     }
+
+    // ============================== Selected Category Ids (from the URL) ==============================
+    // The catalog page receives the selected categories as one comma-separated string in the URL.
+    // Split it into a list so we can check which buttons should appear "active".
     List<string> selectedCategories = new List<string>();
-    if (Model != null)
+    if (Model != null && Model.GigCategories != null)
     {
-        if (Model.GigCategories != null)
+        string[] categories = Model.GigCategories.Split(',');
+        foreach (string category in categories)
         {
-            string[] categories = Model.GigCategories.Split(',');
-            foreach (string category in categories)
+            string trimmedCategory = category.Trim();
+            if (trimmedCategory != "")
             {
-                if (category != null)
-                {
-                    string trimmedCategory = category.Trim();
-                    if (trimmedCategory != "")
-                    {
-                        selectedCategories.Add(trimmedCategory);
-                    }
-                }
+                selectedCategories.Add(trimmedCategory);
             }
         }
     }
@@ -42,132 +43,128 @@
 
 <div class="catalog-container">
     <form method="get" asp-controller="Guest" asp-action="ViewCatalogPage">
+
+        <!-- ============================== Category Filter Buttons ============================== -->
         <div class="category-filters">
             <h2>Categories</h2>
             <div class="category-buttons">
-                @if (Model != null)
+                @if (Model != null && Model.Categories != null)
                 {
-                    if (Model.Categories != null)
+                    foreach (Category category in Model.Categories)
                     {
-                        foreach (Category category in Model.Categories)
+                        // Is this category currently selected?
+                        bool isSelected = false;
+                        foreach (string selectedCategory in selectedCategories)
                         {
-                            bool isSelected = false;
-                            foreach (string selectedCategory in selectedCategories)
+                            if (selectedCategory == category.Category_id)
                             {
-                                if (selectedCategory == category.Category_id)
-                                {
-                                    isSelected = true;
-                                }
-                            }
-
-                            string activeClass = "";
-                            if (isSelected)
-                            {
-                                activeClass = "active";
-                            }
-
-                            if (isSelected)
-                            {
-                                <label class="category-btn @activeClass">
-                                    <input type="checkbox" value="@category.Category_id" checked />
-                                    <span>@category.Category_name</span>
-                                </label>
-                            }
-                            else
-                            {
-                                <label class="category-btn @activeClass">
-                                    <input type="checkbox" value="@category.Category_id" />
-                                    <span>@category.Category_name</span>
-                                </label>
+                                isSelected = true;
+                                break;
                             }
                         }
+
+                        // Build the CSS class and "checked" attribute based on isSelected.
+                        string activeClass = "";
+                        string checkedAttr = "";
+                        if (isSelected)
+                        {
+                            activeClass = "active";
+                            checkedAttr = "checked";
+                        }
+
+                        <label class="category-btn @activeClass">
+                            <input type="checkbox" value="@category.Category_id" @checkedAttr />
+                            <span>@category.Category_name</span>
+                        </label>
                     }
                 }
             </div>
         </div>
 
         <div class="main-content">
+
+            <!-- ============================== Sidebar Filters (Budget / Delivery / Language / Currency / Rating) ============================== -->
             <aside class="sidebar">
+
+                <!-- Budget filter: two number inputs (min and max). Empty value means "no limit". -->
                 <div class="filter-section">
                     <h3>Budget</h3>
                     <div class="budget-inputs">
-                        @if (Model != null && Model.min_price > 0)
-                        {
-                            <input type="number" name="min_price" placeholder="Min Price" min="0" step="1" value="@Model.min_price">
+                        @{
+                            // Precompute the value attributes so we render each input only once.
+                            string minPriceValue = "";
+                            string maxPriceValue = "";
+                            if (Model != null)
+                            {
+                                if (Model.min_price > 0)
+                                {
+                                    minPriceValue = Model.min_price.ToString();
+                                }
+                                if (Model.max_price > 0)
+                                {
+                                    maxPriceValue = Model.max_price.ToString();
+                                }
+                            }
                         }
-                        else
-                        {
-                            <input type="number" name="min_price" placeholder="Min Price" min="0" step="1">
-                        }
-
-                        @if (Model != null && Model.max_price > 0)
-                        {
-                            <input type="number" name="max_price" placeholder="Max Price" min="0" step="1" value="@Model.max_price">
-                        }
-                        else
-                        {
-                            <input type="number" name="max_price" placeholder="Max Price" min="0" step="1">
-                        }
+                        <input type="number" name="min_price" placeholder="Min Price" min="0" step="1" value="@minPriceValue">
+                        <input type="number" name="max_price" placeholder="Max Price" min="0" step="1" value="@maxPriceValue">
                     </div>
                 </div>
 
+                <!-- Delivery time filter. "Any Time" is value 0. -->
                 <div class="filter-section">
                     <h3>Delivery Time</h3>
                     <select name="delivery_time_id">
                         <option value="0">Any Time</option>
-                        @if (Model != null)
+                        @if (Model != null && Model.Delivery_Times != null)
                         {
-                            if (Model.Delivery_Times != null)
+                            foreach (Delivery_time deliveryTime in Model.Delivery_Times)
                             {
-                                foreach (Delivery_time deliveryTime in Model.Delivery_Times)
+                                int deliveryTimeId = Convert.ToInt32(deliveryTime.Delivery_time_id);
+                                if (Model.delivery_time_id == deliveryTimeId)
                                 {
-                                    int deliveryTimeId = Convert.ToInt32(deliveryTime.Delivery_time_id);
-                                    if (Model.delivery_time_id == deliveryTimeId)
-                                    {
-                                        <option value="@deliveryTime.Delivery_time_id" selected>@deliveryTime.Delivery_time_name</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@deliveryTime.Delivery_time_id">@deliveryTime.Delivery_time_name</option>
-                                    }
+                                    <option value="@deliveryTime.Delivery_time_id" selected>@deliveryTime.Delivery_time_name</option>
+                                }
+                                else
+                                {
+                                    <option value="@deliveryTime.Delivery_time_id">@deliveryTime.Delivery_time_name</option>
                                 }
                             }
                         }
                     </select>
                 </div>
 
+                <!-- Seller language filter. "All Languages" is value 0. -->
                 <div class="filter-section">
                     <h3>Seller Language</h3>
                     <select name="language_id">
                         <option value="0">All Languages</option>
-                        @if (Model != null)
+                        @if (Model != null && Model.Languages != null)
                         {
-                            if (Model.Languages != null)
+                            foreach (Language language in Model.Languages)
                             {
-                                foreach (Language language in Model.Languages)
+                                int languageId = Convert.ToInt32(language.Language_id);
+                                if (Model.language_id == languageId)
                                 {
-                                    int languageId = Convert.ToInt32(language.Language_id);
-                                    if (Model.language_id == languageId)
-                                    {
-                                        <option value="@language.Language_id" selected>@language.Language_name</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@language.Language_id">@language.Language_name</option>
-                                    }
+                                    <option value="@language.Language_id" selected>@language.Language_name</option>
+                                }
+                                else
+                                {
+                                    <option value="@language.Language_id">@language.Language_name</option>
                                 }
                             }
                         }
                     </select>
                 </div>
 
+                <!-- Display currency filter. Picking a non-USD currency converts prices via the WS exchange rate. -->
                 <div class="filter-section">
                     <h3>Display Currency</h3>
                     <select name="currency">
                         @{
                             string[] supportedCurrencies = new[] { "USD", "EUR", "ILS", "GBP", "JPY" };
                             string selectedCurrency = "USD";
-                            if (Model != null && !string.IsNullOrEmpty(Model.currency_code))
+                            if (Model != null && string.IsNullOrEmpty(Model.currency_code) == false)
                             {
                                 selectedCurrency = Model.currency_code;
                             }
@@ -186,6 +183,7 @@
                     </select>
                 </div>
 
+                <!-- Minimum rating filter. "All Ratings" is value 0. -->
                 <div class="filter-section">
                     <h3>Rating</h3>
                     <select name="min_rating">
@@ -204,14 +202,15 @@
                     </select>
                 </div>
 
-                @if (Model != null)
-                {
-                    <input type="hidden" name="categories" id="categoriesInput" value="@Model.GigCategories" />
+                <!-- Hidden inputs the form actually submits. "categories" is filled in by the JavaScript at the bottom. -->
+                @{
+                    string categoriesValue = "";
+                    if (Model != null)
+                    {
+                        categoriesValue = Model.GigCategories;
+                    }
                 }
-                else
-                {
-                    <input type="hidden" name="categories" id="categoriesInput" value="" />
-                }
+                <input type="hidden" name="categories" id="categoriesInput" value="@categoriesValue" />
                 <input type="hidden" name="page" value="1" />
 
                 <div class="actions-row">
@@ -220,16 +219,18 @@
                 </div>
             </aside>
 
+
+            <!-- ============================== Gigs Grid ============================== -->
             <div class="gigs-section">
                 <div class="gigs-header">
-                    @if (Model != null && Model.Gigs != null)
-                    {
-                        <h2 id="resultCount">Available Gigs (@Model.Gigs.Count on this page)</h2>
+                    @{
+                        int gigsOnPage = 0;
+                        if (Model != null && Model.Gigs != null)
+                        {
+                            gigsOnPage = Model.Gigs.Count;
+                        }
                     }
-                    else
-                    {
-                        <h2 id="resultCount">Available Gigs (0 on this page)</h2>
-                    }
+                    <h2 id="resultCount">Available Gigs (@gigsOnPage on this page)</h2>
                 </div>
 
                 <div class="gigs-grid" id="gigsGrid">
@@ -246,23 +247,25 @@
                                     <p class="gig-title">@gig.Gig_name</p>
                                     <p class="gig-description">@gig.Gig_description</p>
                                     @{
+                                        // Try the precomputed category name list first, then fall back to the single Category_id.
                                         string categoryNamesText = "";
                                         if (Model.GigCategoryNames != null && Model.GigCategoryNames.Count > i)
                                         {
                                             categoryNamesText = Model.GigCategoryNames[i];
                                         }
-
-                                        if (categoryNamesText == "" && gig.Category_id != null && gig.Category_id != "" && Model.Categories != null)
+                                        if (categoryNamesText == "" && string.IsNullOrEmpty(gig.Category_id) == false && Model.Categories != null)
                                         {
                                             foreach (Category category in Model.Categories)
                                             {
                                                 if (category.Category_id == gig.Category_id)
                                                 {
                                                     categoryNamesText = category.Category_name;
+                                                    break;
                                                 }
                                             }
                                         }
 
+                                        // Render the names as chips, one per category.
                                         if (categoryNamesText != "")
                                         {
                                             <div class="gig-categories-wrap">
@@ -270,13 +273,10 @@
                                                     string[] gigCategories = categoryNamesText.Split(',');
                                                     foreach (string gigCategory in gigCategories)
                                                     {
-                                                        if (gigCategory != null)
+                                                        string categoryTrim = gigCategory.Trim();
+                                                        if (categoryTrim != "")
                                                         {
-                                                            string categoryTrim = gigCategory.Trim();
-                                                            if (categoryTrim != "")
-                                                            {
-                                                                <span class="gig-category-chip">@categoryTrim</span>
-                                                            }
+                                                            <span class="gig-category-chip">@categoryTrim</span>
                                                         }
                                                     }
                                                 }
@@ -302,9 +302,13 @@
                     }
                 </div>
 
+
+                <!-- ============================== Pagination ============================== -->
                 @if (Model != null && Model.TotalPages > 1)
                 {
                     <div class="pagination">
+
+                        @* Previous link - only a real link if we are not on page 1. *@
                         @if (Model.Page > 1)
                         {
                             <a class="page-btn"
@@ -324,6 +328,7 @@
                             <span class="page-btn disabled">Previous</span>
                         }
 
+                        @* Page number buttons. The current page gets the "active" class. *@
                         @for (int i = 1; i <= Model.TotalPages; i++)
                         {
                             string pageClass = "page-btn";
@@ -331,7 +336,6 @@
                             {
                                 pageClass = "page-btn active";
                             }
-
                             <a class="@pageClass"
                                asp-controller="Guest"
                                asp-action="ViewCatalogPage"
@@ -345,6 +349,7 @@
                                asp-route-currency="@Model.currency_code">@i</a>
                         }
 
+                        @* Next link - only a real link if we are not on the last page. *@
                         @if (Model.Page < Model.TotalPages)
                         {
                             <a class="page-btn"
@@ -370,25 +375,36 @@
     </form>
 </div>
 
+
+<!-- ============================== JavaScript: Category Checkboxes -> Hidden Input ============================== -->
+@*
+    Why this script exists:
+    The "categories" field that the form submits to the server is a HIDDEN input (see above) -
+    it is NOT the checkboxes themselves. So whenever the user clicks a category checkbox,
+    this script gathers all currently-checked values into a comma-separated string and writes
+    that string into the hidden input. Then when the form is submitted, the server gets the list.
+*@
 <script>
-    (function () {
-        var categoryInputs = document.querySelectorAll('.category-btn input[type="checkbox"]');
-        var categoriesInput = document.getElementById('categoriesInput');
+    // Grab all the category checkboxes and the hidden input that the form actually submits.
+    var categoryInputs = document.querySelectorAll('.category-btn input[type="checkbox"]');
+    var categoriesInput = document.getElementById('categoriesInput');
 
-        function updateCategories() {
-            var selected = [];
-            for (var i = 0; i < categoryInputs.length; i++) {
-                if (categoryInputs[i].checked) {
-                    selected.push(categoryInputs[i].value);
-                }
-            }
-            categoriesInput.value = selected.join(',');
-        }
-
+    // This function reads which boxes are checked right now and writes them, comma-separated, into the hidden input.
+    function updateCategories() {
+        var selected = [];
         for (var i = 0; i < categoryInputs.length; i++) {
-            categoryInputs[i].addEventListener('change', updateCategories);
+            if (categoryInputs[i].checked) {
+                selected.push(categoryInputs[i].value);
+            }
         }
+        categoriesInput.value = selected.join(',');
+    }
 
-        updateCategories();
-    })();
+    // Hook up: whenever the user clicks any category checkbox, call updateCategories.
+    for (var i = 0; i < categoryInputs.length; i++) {
+        categoryInputs[i].addEventListener('change', updateCategories);
+    }
+
+    // Run it once now so the hidden input matches whatever boxes are already checked when the page loads.
+    updateCategories();
 </script>

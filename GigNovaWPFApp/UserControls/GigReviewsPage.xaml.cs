@@ -11,6 +11,9 @@ namespace GigNovaWPFApp.UserControls
     {
         private string gigId;
 
+
+        // ============================== Initialization ==============================
+
         public GigReviewsPage(string gigId)
         {
             InitializeComponent();
@@ -18,48 +21,56 @@ namespace GigNovaWPFApp.UserControls
             LoadReviews();
         }
 
+
+        // ============================== Loading + Rendering ==============================
+
+        // Fetch the reviews from the WS, compute the average, and build one card per review.
         private async void LoadReviews()
         {
-            ApiClient<List<Review>> client = new ApiClient<List<Review>>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Guest/ViewGigReviews";
+            ApiClient<List<Review>> client = WpfHelpers.BuildClient<List<Review>>("api/Guest/ViewGigReviews");
             client.AddParameter("gig_id", gigId);
 
             List<Review> reviews = await client.GetAsync();
             int count = 0;
-            if (reviews != null) count = reviews.Count;
+            if (reviews != null)
+            {
+                count = reviews.Count;
+            }
 
+            // Compute the average rating.
             double average = 0;
             if (count > 0)
             {
                 double sum = 0;
-                foreach (Review r in reviews) sum += r.Review_rating;
+                foreach (Review r in reviews)
+                {
+                    sum += r.Review_rating;
+                }
                 average = sum / count;
             }
 
             HeaderText.Text = "Gig Reviews (" + count + ")";
             AverageText.Text = "Overall average rating: " + average.ToString("0.0");
 
+            // Rebuild the list of review cards.
             ReviewsList.Children.Clear();
             if (count == 0)
             {
                 ReviewsList.Children.Add(MakeEmptyState());
                 return;
             }
-
             foreach (Review r in reviews)
             {
                 ReviewsList.Children.Add(MakeReviewCard(r));
             }
         }
 
+        // Builds one review card: rating + comment + date on the left, "Remove" button on the right.
         private Border MakeReviewCard(Review review)
         {
             Border card = new Border();
-            card.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1A1A1A"));
-            card.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#B83C5A"));
+            card.Background = WpfHelpers.Brush("#1A1A1A");
+            card.BorderBrush = WpfHelpers.Brush("#B83C5A");
             card.BorderThickness = new Thickness(1);
             card.CornerRadius = new CornerRadius(10);
             card.Padding = new Thickness(18);
@@ -73,6 +84,7 @@ namespace GigNovaWPFApp.UserControls
             grid.ColumnDefinitions.Add(col0);
             grid.ColumnDefinitions.Add(col1);
 
+            // Left column: rating + comment + date stacked vertically.
             StackPanel panel = new StackPanel();
             Grid.SetColumn(panel, 0);
 
@@ -86,7 +98,7 @@ namespace GigNovaWPFApp.UserControls
 
             TextBlock comment = new TextBlock();
             comment.Text = review.Review_comment;
-            comment.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D3D3D3"));
+            comment.Foreground = WpfHelpers.Brush("#D3D3D3");
             comment.FontSize = 15;
             comment.TextWrapping = TextWrapping.Wrap;
             comment.Margin = new Thickness(0, 0, 0, 8);
@@ -94,17 +106,18 @@ namespace GigNovaWPFApp.UserControls
 
             TextBlock date = new TextBlock();
             date.Text = review.Review_creation_date;
-            date.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#BFBFBF"));
+            date.Foreground = WpfHelpers.Brush("#BFBFBF");
             date.FontSize = 13;
             date.FontWeight = FontWeights.SemiBold;
             panel.Children.Add(date);
 
             grid.Children.Add(panel);
 
+            // Right column: "Remove" button. Stores the review id in its Tag.
             Button removeButton = new Button();
             removeButton.Style = (Style)FindResource("NiceButtonStyle");
             removeButton.Content = "Remove";
-            removeButton.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
+            removeButton.Background = WpfHelpers.Brush("#E94560");
             removeButton.Width = 100;
             removeButton.Height = 36;
             removeButton.VerticalAlignment = VerticalAlignment.Top;
@@ -117,6 +130,7 @@ namespace GigNovaWPFApp.UserControls
             return card;
         }
 
+        // Remove button click: confirm with the user, then call the WS Admin/RemoveGigReview endpoint.
         private async void RemoveReview_Click(object sender, RoutedEventArgs e)
         {
             Button btn = sender as Button;
@@ -126,17 +140,16 @@ namespace GigNovaWPFApp.UserControls
                 "Are you sure you want to delete this review?",
                 "Confirm Delete",
                 MessageBoxButton.YesNo);
-            if (result != MessageBoxResult.Yes) return;
+            if (result != MessageBoxResult.Yes)
+            {
+                return;
+            }
 
-            ApiClient<bool> client = new ApiClient<bool>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Admin/RemoveGigReview";
+            ApiClient<bool> client = WpfHelpers.BuildClient<bool>("api/Admin/RemoveGigReview");
             client.AddParameter("review_id", reviewId);
 
             bool ok = await client.PostAsync(false);
-            if (!ok)
+            if (ok == false)
             {
                 MessageBox.Show("Failed to delete review.", "GigNova");
                 return;
@@ -144,11 +157,12 @@ namespace GigNovaWPFApp.UserControls
             LoadReviews();
         }
 
+        // The "no reviews yet" card shown when the list is empty.
         private Border MakeEmptyState()
         {
             Border empty = new Border();
-            empty.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1A1A1A"));
-            empty.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#B83C5A"));
+            empty.Background = WpfHelpers.Brush("#1A1A1A");
+            empty.BorderBrush = WpfHelpers.Brush("#B83C5A");
             empty.BorderThickness = new Thickness(1);
             empty.CornerRadius = new CornerRadius(10);
             empty.Padding = new Thickness(20);

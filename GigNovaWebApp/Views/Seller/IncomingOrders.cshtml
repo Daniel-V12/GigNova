@@ -11,10 +11,17 @@
         sellerId = ViewData["SellerId"].ToString();
     }
 
+    // The controller hands us a name-by-order-id map so we can show "X purchased gig Y, order #N".
     Dictionary<string, string> gigNamesByOrderId = new Dictionary<string, string>();
     if (ViewData["GigNamesByOrderId"] is Dictionary<string, string> map)
     {
         gigNamesByOrderId = map;
+    }
+
+    int notificationsCount = 0;
+    if (Model != null)
+    {
+        notificationsCount = Model.Count;
     }
 }
 <link href="~/css/seller_pages/incomingorders_page.css" rel="stylesheet" />
@@ -23,12 +30,13 @@
     <div class="incoming-orders-section">
         <div class="incoming-orders-header">
             <h2>Incoming Orders</h2>
-            <p>@(Model != null ? Model.Count : 0) notification(s)</p>
+            <p>@notificationsCount notification(s)</p>
         </div>
 
         <div class="incoming-orders-list">
             @if (Model != null && Model.Count > 0)
             {
+                // Show newest first as "Order #N", "Order #N-1", etc.
                 int orderNumber = Model.Count;
                 foreach (SelectedOrderViewModel incoming in Model)
                 {
@@ -37,6 +45,7 @@
                         continue;
                     }
 
+                    // Precompute the per-card display values so the markup below stays readable.
                     string orderId = incoming.Order.Order_id;
                     string gigName = "Gig";
                     if (orderId != null && gigNamesByOrderId.ContainsKey(orderId))
@@ -57,8 +66,19 @@
                         }
                     }
 
+                    // Map status id -> CSS class so the card gets the right color.
+                    string statusClass = "";
+                    if (incoming.Order.Order_status_id == 3)
+                    {
+                        statusClass = "order-completed";
+                    }
+                    else if (incoming.Order.Order_status_id == 2)
+                    {
+                        statusClass = "order-delivered";
+                    }
+
                     <a class="incoming-order-link" asp-controller="Seller" asp-action="SelectedIncomingOrder" asp-route-order_id="@incoming.Order.Order_id" asp-route-seller_id="@sellerId">
-                        <div class="incoming-order-item @(incoming.Order.Order_status_id == 3 ? "order-completed" : incoming.Order.Order_status_id == 2 ? "order-delivered" : "")">
+                        <div class="incoming-order-item @statusClass">
                             <div class="incoming-order-title">@buyerDisplayName has purchased your gig @gigName, order number @orderNumber</div>
                             <div class="incoming-order-meta">Created: @incoming.Order.Order_creation_date</div>
                         </div>

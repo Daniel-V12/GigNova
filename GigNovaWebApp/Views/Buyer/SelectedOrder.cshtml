@@ -2,13 +2,22 @@
 @model CustomizeOrderViewModel
 @{
     ViewData["Title"] = "SelectedOrder";
+
+    // Pick the right layout based on the current actor.
     Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
     string actor = Context.Session.GetString("actor");
     if (actor == "seller")
     {
         Layout = "~/Views/Shared/MasterSellerPage.cshtml";
     }
-    string deliveryController = actor == "seller" ? "Seller" : "Buyer";
+
+    // The "See Delivery" button needs to route to Seller/DeliveryDetails for sellers,
+    // Buyer/DeliveryDetails for buyers.
+    string deliveryController = "Buyer";
+    if (actor == "seller")
+    {
+        deliveryController = "Seller";
+    }
 }
 <link href="~/css/buyer_pages/orders_page.css" rel="stylesheet" />
 
@@ -16,15 +25,55 @@
     <div class="orders-section">
         @if (Model != null && Model.order != null)
         {
+            // Precompute display values so the markup below stays readable.
+            string gigName = "Gig";
+            string gigDescription = "";
+            if (Model.gig != null)
+            {
+                gigName = Model.gig.Gig_name;
+                gigDescription = Model.gig.Gig_description;
+            }
+
+            string deliveryTimeText = "-";
+            if (Model.delivery_time != null)
+            {
+                deliveryTimeText = Model.delivery_time.Delivery_time_name;
+            }
+
+            string requirementsText = "No requirements provided.";
+            if (string.IsNullOrEmpty(Model.order.Order_requirements) == false)
+            {
+                requirementsText = Model.order.Order_requirements;
+            }
+
+            // Map status id -> friendly name. Prefer the name from the joined order_status row if it's there.
+            string currentStatusName = "-";
+            if (Model.order_status != null && string.IsNullOrEmpty(Model.order_status.Status_name) == false)
+            {
+                currentStatusName = Model.order_status.Status_name;
+            }
+            else if (Model.order.Order_status_id == 1)
+            {
+                currentStatusName = "In Progress";
+            }
+            else if (Model.order.Order_status_id == 2)
+            {
+                currentStatusName = "Delivered";
+            }
+            else if (Model.order.Order_status_id == 3)
+            {
+                currentStatusName = "Completed";
+            }
+
             <div class="orders-header">
                 <h2>Order #@Model.order.Order_id</h2>
             </div>
 
             <div class="selected-order-card">
                 <div class="selected-order-image-wrap">
-                    @if (Model.gig != null && Model.gig.Gig_photo != null && Model.gig.Gig_photo != "")
+                    @if (Model.gig != null && string.IsNullOrEmpty(Model.gig.Gig_photo) == false)
                     {
-                        <img class="selected-order-image" src="https://localhost:7059/Images/@Model.gig.Gig_photo" alt="@Model.gig.Gig_name" />
+                        <img class="selected-order-image" src="https://localhost:7059/Images/@Model.gig.Gig_photo" alt="@gigName" />
                     }
                     else
                     {
@@ -35,8 +84,8 @@
                 <div class="selected-order-info">
                     <div class="selected-order-top-row">
                         <div>
-                            <p class="selected-order-title">@(Model.gig != null ? Model.gig.Gig_name : "Gig")</p>
-                            <p class="selected-order-description">@(Model.gig != null ? Model.gig.Gig_description : "")</p>
+                            <p class="selected-order-title">@gigName</p>
+                            <p class="selected-order-description">@gigDescription</p>
                         </div>
                         <div class="selected-order-price-wrap">
                             <span class="selected-order-price-label">Order Total</span>
@@ -54,68 +103,43 @@
                     <div class="selected-order-meta">
                         <div class="current-status-row">
                             <strong>Current status:</strong>
-                            @{
-                                string currentStatusName = "";
-                                if (Model.order_status != null)
-                                {
-                                    if (Model.order_status.Status_name != null && Model.order_status.Status_name != "")
-                                    {
-                                        currentStatusName = Model.order_status.Status_name;
-                                    }
-                                }
-
-                                if (currentStatusName == "" && Model.order != null)
-                                {
-                                    if (Model.order.Order_status_id == 1)
-                                    {
-                                        currentStatusName = "In Progress";
-                                    }
-                                    else if (Model.order.Order_status_id == 2)
-                                    {
-                                        currentStatusName = "Delivered";
-                                    }
-                                    else if (Model.order.Order_status_id == 3)
-                                    {
-                                        currentStatusName = "Completed";
-                                    }
-                                }
-
-                                if (currentStatusName == "")
-                                {
-                                    currentStatusName = "-";
-                                }
-                            }
                             <span class="current-status-value">@currentStatusName</span>
                         </div>
                         <div><strong>Created:</strong> @Model.order.Order_creation_date</div>
-                        <div><strong>Delivery Time:</strong> @(Model.delivery_time != null ? Model.delivery_time.Delivery_time_name : "-")</div>
+                        <div><strong>Delivery Time:</strong> @deliveryTimeText</div>
                         <div>
                             <strong>Seller:</strong>
                             @if (Model.seller != null)
                             {
                                 @Model.seller.Seller_display_name
-                                if (Model.seller_person != null && Model.seller_person.Person_username != null && Model.seller_person.Person_username != "")
+                                if (Model.seller_person != null && string.IsNullOrEmpty(Model.seller_person.Person_username) == false)
                                 {
                                     <span>(@Model.seller_person.Person_username)</span>
                                 }
                             }
                             else
                             {
-                                @: -
+                                <span>-</span>
                             }
                         </div>
                     </div>
 
                     <div class="selected-order-section">
                         <div class="selected-order-section-title">Requirements</div>
-                        <p class="selected-order-description">@(Model.order.Order_requirements == null || Model.order.Order_requirements == "" ? "No requirements provided." : Model.order.Order_requirements)</p>
+                        <p class="selected-order-description">@requirementsText</p>
                     </div>
+
                     <div class="selected-order-section selected-order-actions-row">
                         <a asp-controller="Buyer" asp-action="MessagingBox" asp-route-order_id="@Model.order.Order_id" class="open-messaging-btn">Open Messaging</a>
+
+                        @* See-Delivery button is shown once the order is at least "delivered" (status 2 or 3). *@
                         @if (Model.order.Order_status_id == 2 || Model.order.Order_status_id == 3)
                         {
                             <a asp-controller="@deliveryController" asp-action="DeliveryDetails" asp-route-order_id="@Model.order.Order_id" class="open-messaging-btn secondary-order-btn">See Delivery</a>
                         }
+
+                        @* Complete-Order button is only shown while the order is "delivered" (status 2). *@
+                        @* The onclick uses the shared showSiteConfirm() helper (defined in the master layout) to ask "are you sure?" before submitting the form. *@
                         @if (Model.order.Order_status_id == 2)
                         {
                             <form id="completeOrderForm" asp-controller="Buyer" asp-action="CompleteOrder" method="post" style="display:inline;">

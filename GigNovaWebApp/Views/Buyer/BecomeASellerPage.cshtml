@@ -2,6 +2,22 @@
 @{
     ViewData["Title"] = "BecomeASellerPage";
     Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+
+    // Precompute display values so the markup below stays readable.
+    string sellerDisplayName = "";
+    string sellerDescription = "";
+    string linkButtonText = "Link Payment Account";
+    string accountStatusText = "No payment account linked";
+    if (Model != null)
+    {
+        sellerDisplayName = Model.Seller_display_name;
+        sellerDescription = Model.Seller_description;
+        if (Model.Seller_is_linked)
+        {
+            linkButtonText = "Unlink Payment Account";
+            accountStatusText = "Payment account linked";
+        }
+    }
 }
 
 <link href="~/css/buyer_pages/becomeseller_page.css" rel="stylesheet" />
@@ -17,6 +33,8 @@
         }
 
         <form asp-controller="Buyer" asp-action="BecomeASeller" method="post" enctype="multipart/form-data" id="sellerForm">
+
+            <!-- Avatar picker. The image preview is updated by JS when a file is chosen. -->
             <div class="avatar-section">
                 <div class="avatar-container">
                     <div class="avatar" id="avatarPreview">📸</div>
@@ -32,7 +50,7 @@
                        name="Seller_display_name"
                        class="form-input"
                        placeholder="Enter your seller display name"
-                       value="@(Model != null ? Model.Seller_display_name : "")"
+                       value="@sellerDisplayName"
                        required>
                 <span asp-validation-for="Seller_display_name" style="color:#ff9aa8; font-size:13px;"></span>
             </div>
@@ -44,19 +62,20 @@
                           class="form-textarea"
                           placeholder="Tell potential clients about your skills, experience, and what services you offer..."
                           maxlength="500"
-                          required>@(Model != null ? Model.Seller_description : "")</textarea>
+                          required>@sellerDescription</textarea>
                 <div class="char-count"><span id="charCount">0</span>/500 characters</div>
                 <span asp-validation-for="Seller_description" style="color:#ff9aa8; font-size:13px;"></span>
             </div>
 
+            <!-- Payment account toggle. The button just flips the hidden checkbox via JS. -->
             <div class="form-group">
                 <label class="form-label">Payment Account</label>
                 <button type="button" class="link-account-btn" id="linkAccountBtn">
                     <span class="btn-icon">💳</span>
-                    <span class="btn-text" id="linkButtonText">@(Model != null && Model.Seller_is_linked ? "Unlink Payment Account" : "Link Payment Account")</span>
+                    <span class="btn-text" id="linkButtonText">@linkButtonText</span>
                 </button>
                 <input asp-for="Seller_is_linked" type="checkbox" id="Seller_is_linked" style="display:none;" />
-                <p class="account-status" id="accountStatus">@(Model != null && Model.Seller_is_linked ? "Payment account linked" : "No payment account linked")</p>
+                <p class="account-status" id="accountStatus">@accountStatusText</p>
             </div>
 
             <label class="checkbox-group">
@@ -73,63 +92,87 @@
     </div>
 </div>
 
+
+<!-- ============================== JavaScript: Char Counter + Avatar Preview + Payment Toggle ============================== -->
+@*
+    This script has THREE small features, in this order:
+      1. CHAR COUNTER  : as the user types into the Bio textarea, update the "X/500 characters" line.
+      2. AVATAR PREVIEW: when the user picks an image file, read it and show it inside the round preview circle.
+                         FileReader is a browser built-in that reads a file and gives you back its contents.
+                         readAsDataURL gives you a "data:image/..." string that can be set as a CSS background-image.
+      3. PAYMENT TOGGLE: the "Link Payment Account" button is just visual - it flips a hidden checkbox.
+                         The hidden checkbox is what the form actually submits as Seller_is_linked.
+*@
 <script>
-    (function () {
-        var bio = document.getElementById('Seller_description');
-        var count = document.getElementById('charCount');
-        if (bio && count) {
-            var updateCount = function () { count.textContent = bio.value.length; };
-            bio.addEventListener('input', updateCount);
-            updateCount();
-        }
 
-        var avatarInput = document.getElementById('sellerAvatarFile');
-        var preview = document.getElementById('avatarPreview');
-        if (avatarInput && preview) {
-            avatarInput.addEventListener('change', function () {
-                if (!avatarInput.files || avatarInput.files.length === 0) {
-                    preview.textContent = '📸';
-                    preview.style.backgroundImage = '';
-                    return;
-                }
+    // ----------- 1. CHAR COUNTER -----------
+    var bio = document.getElementById('Seller_description');
+    var count = document.getElementById('charCount');
 
-                var file = avatarInput.files[0];
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    preview.textContent = '';
-                    preview.style.backgroundImage = 'url(' + e.target.result + ')';
-                    preview.style.backgroundSize = 'cover';
-                    preview.style.backgroundPosition = 'center';
-                };
-                reader.readAsDataURL(file);
-            });
-        }
+    function updateCount() {
+        count.textContent = bio.value.length;
+    }
 
-        var linkedCheckbox = document.getElementById('Seller_is_linked');
-        var linkButton = document.getElementById('linkAccountBtn');
-        var linkButtonText = document.getElementById('linkButtonText');
-        var accountStatus = document.getElementById('accountStatus');
+    if (bio != null && count != null) {
+        bio.addEventListener('input', updateCount);
+        updateCount();
+    }
 
-        var renderPaymentState = function () {
-            if (!linkedCheckbox || !linkButtonText || !accountStatus) {
+
+    // ----------- 2. AVATAR PREVIEW -----------
+    var avatarInput = document.getElementById('sellerAvatarFile');
+    var preview = document.getElementById('avatarPreview');
+
+    if (avatarInput != null && preview != null) {
+        avatarInput.addEventListener('change', function () {
+            // If the user cleared the input or no file is selected, reset the preview to the camera emoji.
+            if (avatarInput.files == null || avatarInput.files.length == 0) {
+                preview.textContent = '📸';
+                preview.style.backgroundImage = '';
                 return;
             }
 
-            if (linkedCheckbox.checked) {
-                linkButtonText.textContent = 'Unlink Payment Account';
-                accountStatus.textContent = 'Payment account linked';
-            } else {
-                linkButtonText.textContent = 'Link Payment Account';
-                accountStatus.textContent = 'No payment account linked';
-            }
-        };
+            // Read the chosen image and use it as the preview's background.
+            var file = avatarInput.files[0];
+            var reader = new FileReader();
+            reader.onload = function () {
+                preview.textContent = '';
+                preview.style.backgroundImage = 'url(' + reader.result + ')';
+                preview.style.backgroundSize = 'cover';
+                preview.style.backgroundPosition = 'center';
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 
-        if (linkButton && linkedCheckbox) {
-            linkButton.addEventListener('click', function () {
-                linkedCheckbox.checked = !linkedCheckbox.checked;
-                renderPaymentState();
-            });
-            renderPaymentState();
+
+    // ----------- 3. PAYMENT TOGGLE -----------
+    var linkedCheckbox = document.getElementById('Seller_is_linked');
+    var linkButton = document.getElementById('linkAccountBtn');
+    var linkButtonTextSpan = document.getElementById('linkButtonText');
+    var accountStatus = document.getElementById('accountStatus');
+
+    // Updates the button label and the status text based on whether the hidden checkbox is checked.
+    function renderPaymentState() {
+        if (linkedCheckbox == null || linkButtonTextSpan == null || accountStatus == null) {
+            return;
         }
-    })();
+        if (linkedCheckbox.checked) {
+            linkButtonTextSpan.textContent = 'Unlink Payment Account';
+            accountStatus.textContent = 'Payment account linked';
+        }
+        else {
+            linkButtonTextSpan.textContent = 'Link Payment Account';
+            accountStatus.textContent = 'No payment account linked';
+        }
+    }
+
+    if (linkButton != null && linkedCheckbox != null) {
+        linkButton.addEventListener('click', function () {
+            // Flip the checkbox's checked state, then refresh the button label/status text.
+            linkedCheckbox.checked = !linkedCheckbox.checked;
+            renderPaymentState();
+        });
+        renderPaymentState();
+    }
 </script>

@@ -3,6 +3,8 @@
 @model CustomizeOrderViewModel
 @{
     ViewData["Title"] = "DeliveryDetails";
+
+    // Pick the right layout based on the current actor.
     Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
     string actor = Context.Session.GetString("actor");
     if (actor == "seller")
@@ -10,15 +12,37 @@
         Layout = "~/Views/Shared/MasterSellerPage.cshtml";
     }
 
+    // Read out the values the controller passed via ViewData.
     Delivery selectedDelivery = ViewData["SelectedDelivery"] as Delivery;
     List<string> deliveryFiles = ViewData["DeliveryFiles"] as List<string>;
-    int deliveryIndex = ViewData["DeliveryIndex"] != null ? Convert.ToInt32(ViewData["DeliveryIndex"]) : 0;
-    int deliveryCount = ViewData["DeliveryCount"] != null ? Convert.ToInt32(ViewData["DeliveryCount"]) : 0;
-    string orderId = ViewData["OrderId"] != null ? ViewData["OrderId"].ToString() : "";
+
+    int deliveryIndex = 0;
+    if (ViewData["DeliveryIndex"] != null)
+    {
+        deliveryIndex = Convert.ToInt32(ViewData["DeliveryIndex"]);
+    }
+
+    int deliveryCount = 0;
+    if (ViewData["DeliveryCount"] != null)
+    {
+        deliveryCount = Convert.ToInt32(ViewData["DeliveryCount"]);
+    }
+
+    string orderId = "";
+    if (ViewData["OrderId"] != null)
+    {
+        orderId = ViewData["OrderId"].ToString();
+    }
 
     bool hasPrevious = deliveryIndex < deliveryCount - 1;
-    string deliveryController = actor == "seller" ? "Seller" : "Buyer";
 
+    string deliveryController = "Buyer";
+    if (actor == "seller")
+    {
+        deliveryController = "Seller";
+    }
+
+    // Title depends on which delivery in the chain we are looking at.
     string deliveryTitle = "Delivered";
     if (deliveryIndex == 0 && deliveryCount > 1)
     {
@@ -27,6 +51,13 @@
     else if (deliveryIndex > 0)
     {
         deliveryTitle = "Initial Delivery";
+    }
+
+    // Body text for the "Delivery Text" section.
+    string deliveryTextValue = "No delivery text was provided.";
+    if (selectedDelivery != null && string.IsNullOrWhiteSpace(selectedDelivery.Delivery_text) == false)
+    {
+        deliveryTextValue = selectedDelivery.Delivery_text;
     }
 }
 <link href="~/css/buyer_pages/deliverydetails_page.css" rel="stylesheet" />
@@ -49,7 +80,7 @@
     <div class="delivery-card">
         <div class="delivery-section">
             <h3>Delivery Text</h3>
-            <p>@(selectedDelivery != null && string.IsNullOrWhiteSpace(selectedDelivery.Delivery_text) == false ? selectedDelivery.Delivery_text : "No delivery text was provided.")</p>
+            <p>@deliveryTextValue</p>
         </div>
 
         <div class="delivery-section">

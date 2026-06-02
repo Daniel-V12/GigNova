@@ -4,25 +4,31 @@
 @{
     ViewData["Title"] = "SelectedIncomingOrder";
     Layout = "~/Views/Shared/MasterSellerPage.cshtml";
+
+    // Pull ViewData values into typed locals.
     CustomizeOrderViewModel orderDetails = null;
     if (ViewData["OrderDetails"] is CustomizeOrderViewModel details)
     {
         orderDetails = details;
     }
+
     List<Delivery> deliveries = new List<Delivery>();
     if (ViewData["Deliveries"] is List<Delivery> list)
     {
         deliveries = list;
     }
+
     List<Order_file> buyerFiles = new List<Order_file>();
     if (orderDetails != null && orderDetails.order_files != null)
     {
         buyerFiles = orderDetails.order_files;
     }
+
+    // Default display values, filled in from orderDetails (or Model.Order) below.
     string sellerId = "";
     string gigName = "Gig";
     string gigPhoto = "";
-    string requirements = "";
+    string requirements = "No requirements provided.";
     string statusName = "";
 
     if (orderDetails != null)
@@ -38,18 +44,17 @@
                 gigPhoto = orderDetails.gig.Gig_photo;
             }
         }
-
         if (orderDetails.order != null && string.IsNullOrWhiteSpace(orderDetails.order.Order_requirements) == false)
         {
             requirements = orderDetails.order.Order_requirements;
         }
-
         if (orderDetails.order_status != null && string.IsNullOrWhiteSpace(orderDetails.order_status.Status_name) == false)
         {
             statusName = orderDetails.order_status.Status_name;
         }
     }
 
+    // Fallback status name based on the order status id if the joined row didn't give us one.
     if (Model != null && Model.Order != null && string.IsNullOrWhiteSpace(statusName))
     {
         if (Model.Order.Order_status_id == 1)
@@ -66,6 +71,7 @@
         }
     }
 
+    // Buyer display name with fallback.
     string buyerDisplayName = "Buyer";
     if (Model != null && Model.Buyer != null)
     {
@@ -121,11 +127,14 @@
                         <div><strong>Created:</strong> @Model.Order.Order_creation_date</div>
                         <div><strong>Status:</strong> @statusName</div>
                     </div>
+
                     <div class="selected-incoming-section">
                         <div class="selected-incoming-section-title">Requirements</div>
-                        <p class="selected-incoming-description">@(string.IsNullOrWhiteSpace(requirements) ? "No requirements provided." : requirements)</p>
+                        <p class="selected-incoming-description">@requirements</p>
                     </div>
 
+
+                    <!-- ============================== Buyer Files ============================== -->
                     <div class="selected-incoming-section">
                         <div class="selected-incoming-section-title">Buyer Files</div>
                         @if (buyerFiles != null && buyerFiles.Count > 0)
@@ -133,14 +142,14 @@
                             int buyerFileNumber = 1;
                             foreach (Order_file buyerFile in buyerFiles)
                             {
-                                if (buyerFile != null && string.IsNullOrWhiteSpace(buyerFile.Order_file_path) == false)
+                                if (buyerFile == null || string.IsNullOrWhiteSpace(buyerFile.Order_file_path))
                                 {
-                                    <div class="delivery-history-files">
-                                        <a href="https://localhost:7059/@buyerFile.Order_file_path" target="_blank">File #@buyerFileNumber (@System.IO.Path.GetFileName(buyerFile.Order_file_path))</a>
-                                    </div>
-
-                                    buyerFileNumber++;
+                                    continue;
                                 }
+                                <div class="delivery-history-files">
+                                    <a href="https://localhost:7059/@buyerFile.Order_file_path" target="_blank">File #@buyerFileNumber (@System.IO.Path.GetFileName(buyerFile.Order_file_path))</a>
+                                </div>
+                                buyerFileNumber++;
                             }
                         }
                         else
@@ -149,6 +158,8 @@
                         }
                     </div>
 
+
+                    <!-- ============================== Delivery History ============================== -->
                     <div class="selected-incoming-section">
                         <div class="selected-incoming-section-title">Delivery History</div>
                         @if (deliveries != null && deliveries.Count > 0)
@@ -156,9 +167,16 @@
                             int deliveryNumber = 1;
                             foreach (Delivery delivery in deliveries)
                             {
+                                // Display text for THIS delivery row, with a fallback.
+                                string deliveryText = "No delivery text";
+                                if (string.IsNullOrWhiteSpace(delivery.Delivery_text) == false)
+                                {
+                                    deliveryText = delivery.Delivery_text;
+                                }
+
                                 <div class="delivery-history-item">
                                     <div class="delivery-history-title">Delivery #@deliveryNumber</div>
-                                    <div class="delivery-history-text">@(string.IsNullOrWhiteSpace(delivery.Delivery_text) ? "No delivery text" : delivery.Delivery_text)</div>
+                                    <div class="delivery-history-text">@deliveryText</div>
                                     @if (string.IsNullOrWhiteSpace(delivery.Delivery_file) == false)
                                     {
                                         <div class="delivery-history-files">
@@ -170,7 +188,6 @@
                                         </div>
                                     }
                                 </div>
-
                                 deliveryNumber++;
                             }
                         }
@@ -191,6 +208,8 @@
                 </div>
             </div>
 
+
+            <!-- ============================== Send Delivery Popup (hidden by default) ============================== -->
             <div id="deliveryModalOverlay" class="delivery-modal-overlay" onclick="closeDeliveryModal(event)">
                 <div class="delivery-modal">
                     <h3>Send Delivery</h3>
@@ -226,27 +245,44 @@
     </div>
 </div>
 
+
+<!-- ============================== JavaScript: Open / Close Delivery Popup + File Validation ============================== -->
+@*
+    Two features:
+      1. POPUP OPEN/CLOSE: simple show/hide of the delivery modal. closeDeliveryModal uses the
+         standard "only close on backdrop click" pattern.
+      2. FILE VALIDATION : right when the user picks the delivery file, check its extension
+         (.rar or .zip only) and its size (<= 100MB). If it fails, alert and clear the input.
+*@
 <script>
+    // Show the delivery popup.
     function openDeliveryModal() {
         document.getElementById('deliveryModalOverlay').style.display = 'flex';
     }
 
+    // Hide the delivery popup. Only close on backdrop clicks (clicking inside the popup keeps it open).
     function closeDeliveryModal(event) {
-        if (event && event.target.id != 'deliveryModalOverlay') {
+        if (event != null && event.target.id != 'deliveryModalOverlay') {
             return;
         }
         document.getElementById('deliveryModalOverlay').style.display = 'none';
     }
 
-    const deliveryFileInput = document.getElementById("deliveryFiles");
-    if (deliveryFileInput) {
+    // File picker validation.
+    var deliveryFileInput = document.getElementById("deliveryFiles");
+    if (deliveryFileInput != null) {
         deliveryFileInput.addEventListener("change", function () {
-            const file = deliveryFileInput.files && deliveryFileInput.files[0];
-            if (!file) {
+            // No file was actually picked - nothing to check.
+            if (deliveryFileInput.files == null || deliveryFileInput.files.length == 0) {
                 return;
             }
-            const ext = file.name.split(".").pop().toLowerCase();
-            if (ext !== "rar" && ext !== "zip") {
+            var file = deliveryFileInput.files[0];
+
+            // Get the extension - last piece after the last '.', lowercased.
+            var parts = file.name.split(".");
+            var ext = parts[parts.length - 1].toLowerCase();
+
+            if (ext != "rar" && ext != "zip") {
                 alert("Delivery file must be .rar or .zip only.");
                 deliveryFileInput.value = "";
                 return;

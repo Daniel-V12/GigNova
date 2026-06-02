@@ -10,8 +10,13 @@ namespace GigNovaWPFApp.UserControls
 {
     public partial class SelectedGigPage : UserControl
     {
+        // Where all gig / seller images are served from (the WS's /Images folder).
         private const string ImagesBaseUrl = "http://localhost:7059/Images/";
+
         private string gigId;
+
+
+        // ============================== Initialization ==============================
 
         public SelectedGigPage(string gigId)
         {
@@ -20,13 +25,13 @@ namespace GigNovaWPFApp.UserControls
             LoadGig();
         }
 
+
+        // ============================== Loading + Rendering ==============================
+
+        // Fetch the gig from the WS and fill the UI elements.
         private async void LoadGig()
         {
-            ApiClient<SelectedGigViewModel> client = new ApiClient<SelectedGigViewModel>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Guest/GetSelectedGigViewModel";
+            ApiClient<SelectedGigViewModel> client = WpfHelpers.BuildClient<SelectedGigViewModel>("api/Guest/GetSelectedGigViewModel");
             client.AddParameter("gig_id", gigId);
 
             SelectedGigViewModel model = await client.GetAsync();
@@ -41,6 +46,7 @@ namespace GigNovaWPFApp.UserControls
             GigPriceText.Text = "$" + model.gig.Gig_price.ToString("0");
             GigImageBorder.Background = MakeImageBrush(model.gig.Gig_photo);
 
+            // Render the comma-separated category ids as chips (one chip per id).
             CategoriesWrap.Children.Clear();
             if (model.gig.Category_id != null && model.gig.Category_id.Trim() != "")
             {
@@ -48,10 +54,14 @@ namespace GigNovaWPFApp.UserControls
                 foreach (string part in parts)
                 {
                     string t = part.Trim();
-                    if (t != "") CategoriesWrap.Children.Add(MakeChip(t));
+                    if (t != "")
+                    {
+                        CategoriesWrap.Children.Add(MakeChip(t));
+                    }
                 }
             }
 
+            // Seller side card.
             if (model.seller != null)
             {
                 SellerNameText.Text = model.seller.Seller_display_name;
@@ -59,26 +69,35 @@ namespace GigNovaWPFApp.UserControls
             }
         }
 
+        // Navigate to the reviews page for this gig (handled by the MainWindow).
         private void ReviewsButton_Click(object sender, RoutedEventArgs e)
         {
             MainWindow main = (MainWindow)Window.GetWindow(this);
             main.OpenGigReviews(this.gigId);
         }
 
+
+        // ============================== Helpers ==============================
+
+        // Builds an ImageBrush from a filename in the WS's /Images folder. Returns null if no filename.
         private ImageBrush MakeImageBrush(string fileName)
         {
-            if (fileName == null || fileName.Trim() == "") return null;
+            if (fileName == null || fileName.Trim() == "")
+            {
+                return null;
+            }
             BitmapImage bmp = new BitmapImage(new Uri(ImagesBaseUrl + fileName, UriKind.Absolute));
             ImageBrush brush = new ImageBrush(bmp);
             brush.Stretch = Stretch.UniformToFill;
             return brush;
         }
 
+        // Builds one category chip (dark pill with white text) for the categories row.
         private Border MakeChip(string text)
         {
             Border chip = new Border();
-            chip.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2A2A"));
-            chip.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#B83C5A"));
+            chip.Background = WpfHelpers.Brush("#2A2A2A");
+            chip.BorderBrush = WpfHelpers.Brush("#B83C5A");
             chip.BorderThickness = new Thickness(1);
             chip.CornerRadius = new CornerRadius(10);
             chip.Padding = new Thickness(10, 4, 10, 4);

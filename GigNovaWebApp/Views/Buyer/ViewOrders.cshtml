@@ -2,11 +2,36 @@
 @model List<CustomizeOrderViewModel>
 @{
     ViewData["Title"] = "ViewOrders";
+
+    // Pick the right layout based on the current actor.
     Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
     string actor = Context.Session.GetString("actor");
     if (actor == "seller")
     {
         Layout = "~/Views/Shared/MasterSellerPage.cshtml";
+    }
+
+    // Pagination values come from ViewData (set by the controller).
+    int currentPage = 1;
+    int totalPages = 1;
+    string buyerIdForPaging = "";
+    if (ViewData["CurrentPage"] != null)
+    {
+        currentPage = Convert.ToInt32(ViewData["CurrentPage"]);
+    }
+    if (ViewData["TotalPages"] != null)
+    {
+        totalPages = Convert.ToInt32(ViewData["TotalPages"]);
+    }
+    if (ViewData["BuyerIdForPaging"] != null)
+    {
+        buyerIdForPaging = ViewData["BuyerIdForPaging"].ToString();
+    }
+
+    int ordersCount = 0;
+    if (Model != null)
+    {
+        ordersCount = Model.Count;
     }
 }
 <link href="~/css/buyer_pages/orders_page.css" rel="stylesheet" />
@@ -21,7 +46,7 @@
 
             <div class="orders-header">
                 <h2>My Orders</h2>
-                <p>@(Model != null ? Model.Count : 0) order(s)</p>
+                <p>@ordersCount order(s)</p>
             </div>
 
             <div class="orders-grid">
@@ -29,31 +54,62 @@
                 {
                     foreach (CustomizeOrderViewModel thisOrder in Model)
                     {
-                        if (thisOrder != null && thisOrder.order != null)
+                        if (thisOrder == null || thisOrder.order == null)
                         {
-                            <div class="order-card @(thisOrder.order.Order_status_id == 3 ? "order-completed" : thisOrder.order.Order_status_id == 2 ? "order-delivered" : "")">
-                                <a asp-controller="Buyer" asp-action="SelectedOrder" asp-route-order_id="@thisOrder.order.Order_id" class="order-card-link">
-                                    <div class="order-image-wrap">
-                                        @if (thisOrder.gig != null && thisOrder.gig.Gig_photo != null && thisOrder.gig.Gig_photo != "")
-                                        {
-                                            <img class="order-image" src="https://localhost:7059/Images/@thisOrder.gig.Gig_photo" alt="@thisOrder.gig.Gig_name" />
-                                        }
-                                        else
-                                        {
-                                            <div class="order-image empty-image">No image</div>
-                                        }
-                                    </div>
-                                    <div class="order-info">
-                                        <p class="order-title">@((thisOrder.gig != null && thisOrder.gig.Gig_name != null && thisOrder.gig.Gig_name != "") ? thisOrder.gig.Gig_name : ("Order #" + thisOrder.order.Order_id))</p>
-                                        <p class="order-description">@(thisOrder.order.Order_requirements == null || thisOrder.order.Order_requirements == "" ? "No requirements provided." : thisOrder.order.Order_requirements)</p>
-                                        <div class="order-footer">
-                                            <div><strong>Created:</strong> @thisOrder.order.Order_creation_date</div>
-                                            <div><strong>Delivery:</strong> @((thisOrder.delivery_time != null && thisOrder.delivery_time.Delivery_time_name != null && thisOrder.delivery_time.Delivery_time_name != "") ? thisOrder.delivery_time.Delivery_time_name : "-")</div>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
+                            continue;
                         }
+
+                        // Precompute the per-card display values so the HTML below stays readable.
+                        string statusClass = "";
+                        if (thisOrder.order.Order_status_id == 3)
+                        {
+                            statusClass = "order-completed";
+                        }
+                        else if (thisOrder.order.Order_status_id == 2)
+                        {
+                            statusClass = "order-delivered";
+                        }
+
+                        string orderTitle = "Order #" + thisOrder.order.Order_id;
+                        if (thisOrder.gig != null && string.IsNullOrEmpty(thisOrder.gig.Gig_name) == false)
+                        {
+                            orderTitle = thisOrder.gig.Gig_name;
+                        }
+
+                        string requirementsText = "No requirements provided.";
+                        if (string.IsNullOrEmpty(thisOrder.order.Order_requirements) == false)
+                        {
+                            requirementsText = thisOrder.order.Order_requirements;
+                        }
+
+                        string deliveryTimeText = "-";
+                        if (thisOrder.delivery_time != null && string.IsNullOrEmpty(thisOrder.delivery_time.Delivery_time_name) == false)
+                        {
+                            deliveryTimeText = thisOrder.delivery_time.Delivery_time_name;
+                        }
+
+                        <div class="order-card @statusClass">
+                            <a asp-controller="Buyer" asp-action="SelectedOrder" asp-route-order_id="@thisOrder.order.Order_id" class="order-card-link">
+                                <div class="order-image-wrap">
+                                    @if (thisOrder.gig != null && string.IsNullOrEmpty(thisOrder.gig.Gig_photo) == false)
+                                    {
+                                        <img class="order-image" src="https://localhost:7059/Images/@thisOrder.gig.Gig_photo" alt="@thisOrder.gig.Gig_name" />
+                                    }
+                                    else
+                                    {
+                                        <div class="order-image empty-image">No image</div>
+                                    }
+                                </div>
+                                <div class="order-info">
+                                    <p class="order-title">@orderTitle</p>
+                                    <p class="order-description">@requirementsText</p>
+                                    <div class="order-footer">
+                                        <div><strong>Created:</strong> @thisOrder.order.Order_creation_date</div>
+                                        <div><strong>Delivery:</strong> @deliveryTimeText</div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
                     }
                 }
                 else
@@ -65,25 +121,8 @@
                 }
             </div>
 
-            @{
-                int currentPage = 1;
-                int totalPages = 1;
-                string buyerIdForPaging = "";
 
-                if (ViewData["CurrentPage"] != null)
-                {
-                    currentPage = Convert.ToInt32(ViewData["CurrentPage"]);
-                }
-                if (ViewData["TotalPages"] != null)
-                {
-                    totalPages = Convert.ToInt32(ViewData["TotalPages"]);
-                }
-                if (ViewData["BuyerIdForPaging"] != null)
-                {
-                    buyerIdForPaging = ViewData["BuyerIdForPaging"].ToString();
-                }
-            }
-
+            <!-- ============================== Pagination ============================== -->
             @if (totalPages > 1)
             {
                 <div class="orders-pagination">

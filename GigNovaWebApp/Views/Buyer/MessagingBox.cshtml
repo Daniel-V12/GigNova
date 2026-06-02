@@ -3,12 +3,16 @@
 @model MessagesBoxViewModel
 @{
     ViewData["Title"] = "MessagingBox";
+
+    // Pick the right layout based on the current actor.
     Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
     string actor = Context.Session.GetString("actor");
     if (actor == "seller")
     {
         Layout = "~/Views/Shared/MasterSellerPage.cshtml";
     }
+
+    // Read out the ViewBag values once, with "" as a safe default.
     string fromRole = ViewBag.FromRole as string ?? "";
     string currentPersonId = ViewBag.CurrentPersonId as string ?? "";
     string orderId = ViewBag.OrderId as string ?? "";
@@ -29,6 +33,7 @@
             <div class="orders-message">@TempData["MessagingBoxMessage"]</div>
         }
 
+        <!-- "Send a Message" bar + Back-to-Order link. Only shown when we're scoped to one order. -->
         @if (hasOrder)
         {
             <div class="send-message-bar">
@@ -44,6 +49,8 @@
             </div>
         }
 
+
+        <!-- ============================== Message list ============================== -->
         @if (Model != null && Model.Messages != null && Model.Messages.Count > 0)
         {
             <div class="orders-grid" style="grid-template-columns:1fr;">
@@ -52,53 +59,54 @@
                 }
                 @foreach (Message message in Model.Messages)
                 {
-                    if (message != null)
+                    messageNumber++;
+
+                    // Decide who the message is "From": either YOU or the sender's username.
+                    string fromLabel;
+                    if (message.Sender_id.ToString() == currentPersonId)
                     {
-                        messageNumber++;
-                        string fromLabel;
-                        if (message.Sender_id.ToString() == currentPersonId)
+                        fromLabel = "YOU";
+                    }
+                    else
+                    {
+                        string senderName = "Unknown";
+                        if (Model.Senders != null)
                         {
-                            fromLabel = "YOU";
-                        }
-                        else
-                        {
-                            string senderName = "Unknown";
-                            if (Model.Senders != null)
+                            foreach (Person sender in Model.Senders)
                             {
-                                foreach (Person sender in Model.Senders)
+                                if (sender.Person_id == message.Sender_id.ToString())
                                 {
-                                    if (sender != null && sender.Person_id == message.Sender_id.ToString())
-                                    {
-                                        senderName = sender.Person_username;
-                                    }
+                                    senderName = sender.Person_username;
+                                    break;
                                 }
                             }
-                            fromLabel = senderName;
                         }
+                        fromLabel = senderName;
+                    }
 
-                        string preview = message.Message_text ?? "";
-                        if (preview.Length > 80)
-                        {
-                            preview = preview.Substring(0, 80) + "...";
-                        }
+                    // Shorten very long messages so the card preview stays readable.
+                    string preview = message.Message_text ?? "";
+                    if (preview.Length > 80)
+                    {
+                        preview = preview.Substring(0, 80) + "...";
+                    }
 
-                        <div class="order-card message-card"
-                             data-msg-number="@messageNumber"
-                             data-msg-text="@message.Message_text"
-                             data-msg-date="@message.Message_date"
-                             data-msg-from="@fromLabel"
-                             data-msg-order="@message.Order_id"
-                             onclick="openMessageView(this)">
-                            <div class="order-info">
-                                <p class="order-title" style="font-size:28px;">Message #@messageNumber</p>
-                                <p class="order-description" style="min-height:auto;">@preview</p>
-                                <div class="order-footer">
-                                    <div><strong>From:</strong> @fromLabel</div>
-                                    <div><strong>Date:</strong> @message.Message_date</div>
-                                </div>
+                    <div class="order-card message-card"
+                         data-msg-number="@messageNumber"
+                         data-msg-text="@message.Message_text"
+                         data-msg-date="@message.Message_date"
+                         data-msg-from="@fromLabel"
+                         data-msg-order="@message.Order_id"
+                         onclick="openMessageView(this)">
+                        <div class="order-info">
+                            <p class="order-title" style="font-size:28px;">Message #@messageNumber</p>
+                            <p class="order-description" style="min-height:auto;">@preview</p>
+                            <div class="order-footer">
+                                <div><strong>From:</strong> @fromLabel</div>
+                                <div><strong>Date:</strong> @message.Message_date</div>
                             </div>
                         </div>
-                    }
+                    </div>
                 }
             </div>
         }
@@ -112,6 +120,8 @@
     </div>
 </div>
 
+
+<!-- ============================== Message-View Popup (hidden by default) ============================== -->
 <div id="messageViewOverlay" class="message-modal-overlay" onclick="closeMessageView(event)">
     <div class="message-modal">
         <h3>Message <span id="msgViewId"></span></h3>
@@ -130,6 +140,8 @@
     </div>
 </div>
 
+
+<!-- ============================== Send-Message Popup (only rendered when we have an order) ============================== -->
 @if (hasOrder)
 {
     <div id="sendMessageOverlay" class="message-modal-overlay" onclick="closeSendMessage(event)">
@@ -150,33 +162,63 @@
     </div>
 }
 
+
+<!-- ============================== JavaScript: Open / Close Popups ============================== -->
+@*
+    What this script does:
+    - openMessageView(card)   : the user clicked a message card in the list, so fill in the popup
+                                with that message's details (read from the card's data-* attributes)
+                                and show it.
+    - closeMessageView(event) : called both by the "Close" button and by clicking the dark backdrop.
+                                If event is given, we only close when the click was on the backdrop
+                                itself (clicking inside the popup should NOT close it).
+    - openSendMessage()       : show the "send message" popup.
+    - closeSendMessage(event) : same backdrop-vs-popup-content check as closeMessageView.
+
+    Note about "card.dataset.msgNumber || ''":
+    Each message card carries its details in data-msg-* attributes (see the HTML above).
+    "card.dataset.msgNumber" reads the value of the "data-msg-number" attribute.
+    The "|| ''" part means: if the attribute is missing for some reason, use "" instead
+    of the literal text "undefined".
+*@
 <script>
-       function openMessageView(card) {
-        if (!card) return;
-        document.getElementById('msgViewId').innerText = '#' + (card.dataset.msgNumber || '');
-        document.getElementById('msgViewFrom').innerText = card.dataset.msgFrom || '';
-        document.getElementById('msgViewDate').innerText = card.dataset.msgDate || '';
+    // Fill the message-view popup with the clicked card's details, then show it.
+    function openMessageView(card) {
+        if (card == null) {
+            return;
+        }
+        document.getElementById('msgViewId').innerText    = '#' + (card.dataset.msgNumber || '');
+        document.getElementById('msgViewFrom').innerText  = card.dataset.msgFrom  || '';
+        document.getElementById('msgViewDate').innerText  = card.dataset.msgDate  || '';
         document.getElementById('msgViewOrder').innerText = card.dataset.msgOrder || '';
-        document.getElementById('msgViewText').innerText = card.dataset.msgText || '';
+        document.getElementById('msgViewText').innerText  = card.dataset.msgText  || '';
         document.getElementById('messageViewOverlay').style.display = 'flex';
     }
 
+    // Hide the message-view popup.
+    // When called from the backdrop click, only close if the click was on the backdrop (not inside the popup).
     function closeMessageView(event) {
-        if (event && event.target.id != 'messageViewOverlay') {
+        if (event != null && event.target.id != 'messageViewOverlay') {
             return;
         }
         document.getElementById('messageViewOverlay').style.display = 'none';
     }
 
+    // Show the send-message popup.
     function openSendMessage() {
         var overlay = document.getElementById('sendMessageOverlay');
-        if (overlay) overlay.style.display = 'flex';
+        if (overlay != null) {
+            overlay.style.display = 'flex';
+        }
     }
 
+    // Hide the send-message popup. Same backdrop check as closeMessageView.
     function closeSendMessage(event) {
         var overlay = document.getElementById('sendMessageOverlay');
-        if (!overlay) return;
-        if (event && event.target.id != 'sendMessageOverlay') {
+        if (overlay == null) {
+            return;
+        }
+        if (event != null && event.target.id != 'sendMessageOverlay') {
             return;
         }
         overlay.style.display = 'none';

@@ -1,12 +1,16 @@
-﻿@model GigNovaModels.ViewModels.CustomizeOrderViewModel
-
+﻿@using GigNovaModels.ViewModels
+@model CustomizeOrderViewModel
 @{
     ViewData["Title"] = "CustomizeOrder";
-    Layout = Context.Session.GetString("actor") == "seller"
-        ? "~/Views/Shared/MasterSellerPage.cshtml"
-        : "~/Views/Shared/MasterBuyerPage.cshtml";
-}
 
+    // Pick the right layout based on the current actor.
+    Layout = "~/Views/Shared/MasterBuyerPage.cshtml";
+    string actor = Context.Session.GetString("actor");
+    if (actor == "seller")
+    {
+        Layout = "~/Views/Shared/MasterSellerPage.cshtml";
+    }
+}
 <link href="~/css/buyer_pages/customizeorder_page.css" rel="stylesheet" />
 
 <div class="customize-order-container">
@@ -17,14 +21,50 @@
         <div class="order-message">@TempData["CustomizeOrderMessage"]</div>
     }
 
-    @if (Model?.order == null)
+    @if (Model == null || Model.order == null)
     {
         <div class="order-box">Order details were not found.</div>
     }
     else
     {
+        // Precompute a few display strings so the markup below stays readable.
+        string gigName = "Gig #" + Model.order.Gig_id;
+        if (Model.gig != null && string.IsNullOrEmpty(Model.gig.Gig_name) == false)
+        {
+            gigName = Model.gig.Gig_name;
+        }
+
+        string sellerName = "Seller #" + Model.order.Seller_id;
+        if (Model.seller != null && string.IsNullOrEmpty(Model.seller.Seller_display_name) == false)
+        {
+            sellerName = Model.seller.Seller_display_name;
+        }
+
+        string sellerUsername = "unknown";
+        if (Model.seller_person != null && string.IsNullOrEmpty(Model.seller_person.Person_username) == false)
+        {
+            sellerUsername = Model.seller_person.Person_username;
+        }
+
+        string deliveryTimeText = "Delivery ID ?";
+        if (Model.gig != null)
+        {
+            deliveryTimeText = "Delivery ID " + Model.gig.Delivery_time_id.ToString();
+        }
+        if (Model.delivery_time != null && string.IsNullOrEmpty(Model.delivery_time.Delivery_time_name) == false)
+        {
+            deliveryTimeText = Model.delivery_time.Delivery_time_name;
+        }
+
+        double gigPrice = 0;
+        if (Model.gig != null)
+        {
+            gigPrice = Model.gig.Gig_price;
+        }
+
         <div class="customize-grid">
 
+            <!-- ============================== Order Requirements Form ============================== -->
             <form asp-controller="Buyer"
                   asp-action="CustomizeOrder"
                   method="post"
@@ -33,15 +73,10 @@
 
                 <h2 class="section-title">Order Requirements</h2>
 
-                <!-- DTO: CustomizeOrderModel.Gig_id -->
-                <input type="hidden"
-                       name="Gig_id"
-                       value="@Model.order.Gig_id" />
+                <input type="hidden" name="Gig_id" value="@Model.order.Gig_id" />
 
-                <!-- DTO: CustomizeOrderModel.requirements -->
                 <div class="form-group">
                     <label class="form-label" for="requirements">Describe what you need</label>
-
                     <textarea id="requirements"
                           name="requirements"
                           class="form-textarea"
@@ -49,16 +84,13 @@
                           maxlength="2000">@Model.order.Order_requirements</textarea>
                 </div>
 
-                <!-- DTO: CustomizeOrderModel.Files -->
                 <div class="form-group">
                     <label class="form-label" for="Files">Upload files (optional)</label>
-
                     <input id="Files"
                            name="Files"
                            type="file"
                            class="form-file"
                            multiple />
-
                     <p class="help-text">Up to 5 files. Max 50MB per file. Blocked types: exe, bat, cmd, sh, ps1, msi, dll, vbs.</p>
                     <p id="selectedFilesText" class="help-text"></p>
                 </div>
@@ -67,11 +99,10 @@
                 {
                     <div class="form-group">
                         <p class="form-label">Uploaded files on this order</p>
-
                         <ul class="uploaded-files-list">
                             @foreach (var file in Model.order_files)
                             {
-                                if (!string.IsNullOrEmpty(file?.Order_file_path))
+                                if (file != null && string.IsNullOrEmpty(file.Order_file_path) == false)
                                 {
                                     <li>@System.IO.Path.GetFileName(file.Order_file_path)</li>
                                 }
@@ -83,22 +114,20 @@
                 <button type="submit" class="pay-btn">Pay & Create Order</button>
             </form>
 
+
+            <!-- ============================== Order Summary (right side) ============================== -->
             <aside class="summary-box">
                 <h2 class="section-title">Order Summary</h2>
 
                 <div class="summary-gig">
-                    @if (!string.IsNullOrEmpty(Model.gig?.Gig_photo))
+                    @if (Model.gig != null && string.IsNullOrEmpty(Model.gig.Gig_photo) == false)
                     {
-                        <img src="https://localhost:7059/Images/@Model.gig.Gig_photo" alt="@Model.gig?.Gig_name"
-                             class="summary-image" />
+                        <img src="https://localhost:7059/Images/@Model.gig.Gig_photo" alt="@gigName" class="summary-image" />
                     }
 
                     <div>
-                        <p class="summary-gig-name">
-                            @(Model.gig?.Gig_name ?? $"Gig #{Model.order.Gig_id}")
-                        </p>
-
-                        @if (!string.IsNullOrEmpty(Model.gig?.Gig_description))
+                        <p class="summary-gig-name">@gigName</p>
+                        @if (Model.gig != null && string.IsNullOrEmpty(Model.gig.Gig_description) == false)
                         {
                             <p class="summary-description">@Model.gig.Gig_description</p>
                         }
@@ -112,17 +141,12 @@
 
                 <div class="summary-row">
                     <span>Seller</span>
-                    <strong>
-                        @(Model.seller?.Seller_display_name ?? $"Seller #{Model.order.Seller_id}")
-                        (@(Model.seller_person?.Person_username ?? "unknown"))
-                    </strong>
+                    <strong>@sellerName (@sellerUsername)</strong>
                 </div>
 
                 <div class="summary-row">
                     <span>Delivery Time</span>
-                    <strong>
-                        @(Model.delivery_time?.Delivery_time_name ?? $"Delivery ID {Model.gig?.Delivery_time_id}")
-                    </strong>
+                    <strong>@deliveryTimeText</strong>
                 </div>
 
                 <div class="summary-row">
@@ -132,7 +156,7 @@
 
                 <div class="summary-row total">
                     <span>Total</span>
-                    <strong>$@(Model.gig?.Gig_price ?? 0)</strong>
+                    <strong>$@gigPrice</strong>
                 </div>
             </aside>
 
@@ -140,23 +164,87 @@
     }
 </div>
 
+
+<!-- ============================== JavaScript: File Picker Validation + Preview ============================== -->
+@*
+    What this script does (overview):
+    The user picks files in the <input type="file" id="Files" multiple>. We want to:
+      1. Reject files with blocked extensions (.exe, .bat, ...) with an alert.
+      2. Reject files bigger than 50MB with an alert.
+      3. Reject duplicates (same name + size).
+      4. Stop at 5 files total.
+      5. Show a "Selected files (N): a.png, b.zip" preview line under the input.
+
+    Why we use DataTransfer:
+    A browser file input cannot have its file list edited piece by piece. The only way
+    to change which files are attached is to assign a brand new FileList to it.
+    DataTransfer is a built-in browser object whose .files property IS a valid FileList,
+    so we build the cleaned list inside dataTransfer, then assign dataTransfer.files
+    back to the input.
+*@
 <script>
-    const fileInput = document.getElementById("Files");
-    const selectedFilesText = document.getElementById("selectedFilesText");
-    const dataTransfer = new DataTransfer();
-    const blockedExtensions = ["exe", "bat", "cmd", "sh", "ps1", "msi", "dll", "vbs"];
-    const maxFileSize = 50 * 1024 * 1024;
-    const maxFileCount = 5;
+    // Settings.
+    var blockedExtensions = ["exe", "bat", "cmd", "sh", "ps1", "msi", "dll", "vbs"];
+    var maxFileSize = 50 * 1024 * 1024; // 50 MB in bytes
+    var maxFileCount = 5;
 
-    if (fileInput && selectedFilesText) {
+    // Grab the file input and the "Selected files..." text element.
+    var fileInput = document.getElementById("Files");
+    var selectedFilesText = document.getElementById("selectedFilesText");
+
+    // dataTransfer is our staging area - see the doc block above for the explanation.
+    var dataTransfer = new DataTransfer();
+
+
+    // Returns true if the file's extension is in the blocked list.
+    function isBlockedExtension(file) {
+        var parts = file.name.split(".");
+        var ext = parts[parts.length - 1].toLowerCase();
+        for (var i = 0; i < blockedExtensions.length; i++) {
+            if (blockedExtensions[i] == ext) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Returns true if a file with the same name AND same size is already in dataTransfer.
+    function isAlreadyAdded(file) {
+        for (var j = 0; j < dataTransfer.files.length; j++) {
+            if (dataTransfer.files[j].name == file.name && dataTransfer.files[j].size == file.size) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Rebuild the "Selected files (N): a.png, b.zip, ..." text below the input.
+    function refreshSelectedFilesText() {
+        var files = fileInput.files;
+        if (files.length == 0) {
+            selectedFilesText.innerText = "";
+            return;
+        }
+        var names = "";
+        for (var i = 0; i < files.length; i++) {
+            if (i > 0) {
+                names = names + ", ";
+            }
+            names = names + files[i].name;
+        }
+        selectedFilesText.innerText = "Selected files (" + files.length + "): " + names;
+    }
+
+
+    // Main: every time the user picks files, validate them and update the preview.
+    if (fileInput != null && selectedFilesText != null) {
         fileInput.addEventListener("change", function () {
-            const newFiles = Array.from(fileInput.files || []);
+            var newFiles = fileInput.files;
 
-            for (let i = 0; i < newFiles.length; i++) {
-                const file = newFiles[i];
-                const ext = file.name.split(".").pop().toLowerCase();
+            for (var i = 0; i < newFiles.length; i++) {
+                var file = newFiles[i];
 
-                if (blockedExtensions.indexOf(ext) !== -1) {
+                if (isBlockedExtension(file)) {
                     alert(file.name + " is a blocked file type. Blocked: exe, bat, cmd, sh, ps1, msi, dll, vbs.");
                     continue;
                 }
@@ -164,18 +252,9 @@
                     alert(file.name + " is larger than 50MB and cannot be uploaded.");
                     continue;
                 }
-
-                let alreadyAdded = false;
-                for (let j = 0; j < dataTransfer.files.length; j++) {
-                    if (dataTransfer.files[j].name === file.name && dataTransfer.files[j].size === file.size) {
-                        alreadyAdded = true;
-                        break;
-                    }
-                }
-                if (alreadyAdded) {
+                if (isAlreadyAdded(file)) {
                     continue;
                 }
-
                 if (dataTransfer.files.length >= maxFileCount) {
                     alert("You can only upload up to " + maxFileCount + " files.");
                     break;
@@ -184,14 +263,9 @@
                 dataTransfer.items.add(file);
             }
 
+            // Replace the input's file list with our cleaned, deduplicated list.
             fileInput.files = dataTransfer.files;
-
-            const allFiles = Array.from(fileInput.files);
-            if (allFiles.length === 0) {
-                selectedFilesText.innerText = "";
-            } else {
-                selectedFilesText.innerText = "Selected files (" + allFiles.length + "): " + allFiles.map(f => f.name).join(", ");
-            }
+            refreshSelectedFilesText();
         });
     }
 </script>

@@ -1,13 +1,15 @@
-﻿using GigNovaModels;
-using GigNovaModels.Models;
+﻿using GigNovaModels.Models;
 using GigNovaModels.ViewModels;
 using GigNovaWSClient;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+
 namespace GigNovaWebApp.Controllers
 {
     public class GuestController : Controller
     {
+        // ============================== Home & Browsing ==============================
+
+        // Guest landing page.
         [HttpGet]
         public IActionResult HomePage()
         {
@@ -16,22 +18,17 @@ namespace GigNovaWebApp.Controllers
             return View("~/Views/Shared/HomePage.cshtml");
         }
 
-        [HttpGet]
-        public IActionResult GuestHomePage()
-        {
-            return RedirectToAction("HomePage");
-        }
-
+        // Shows the gig catalog with filters and currency conversion. Calls the WS for gigs and (if needed) for the exchange rate.
         [HttpGet]
         public async Task<IActionResult> ViewCatalogPage(
-    string categories = null,
-    int page = 1,
-    double min_price = 0,
-    double max_price = 0,
-    int delivery_time_id = 0,
-    int language_id = 0,
-    double min_rating = 0,
-    string currency = "USD")
+            string categories = null,
+            int page = 1,
+            double min_price = 0,
+            double max_price = 0,
+            int delivery_time_id = 0,
+            int language_id = 0,
+            double min_rating = 0,
+            string currency = "USD")
         {
             Dictionary<string, string> currencySymbols = new Dictionary<string, string>
             {
@@ -41,19 +38,16 @@ namespace GigNovaWebApp.Controllers
                 { "GBP", "£" },
                 { "JPY", "¥" }
             };
-            if (string.IsNullOrWhiteSpace(currency) || !currencySymbols.ContainsKey(currency))
+            if (string.IsNullOrWhiteSpace(currency) || currencySymbols.ContainsKey(currency) == false)
             {
                 currency = "USD";
             }
 
+            // If currency is not USD, fetch the exchange rate from the WS.
             double exchangeRate = 1.0;
             if (currency != "USD")
             {
-                ApiClient<double> rateClient = new ApiClient<double>();
-                rateClient.Scheme = "https";
-                rateClient.Host = "localhost";
-                rateClient.Port = 7059;
-                rateClient.Path = "api/Guest/GetExchangeRate";
+                ApiClient<double> rateClient = BuildClient<double>("api/Guest/GetExchangeRate");
                 rateClient.AddParameter("from", "USD");
                 rateClient.AddParameter("to", currency);
                 exchangeRate = await rateClient.GetAsync();
@@ -64,19 +58,23 @@ namespace GigNovaWebApp.Controllers
                 }
             }
 
+            // Convert min/max price from the chosen currency back to USD before sending to the WS.
             double minPriceUsd = min_price;
             double maxPriceUsd = max_price;
             if (currency != "USD" && exchangeRate > 0)
             {
-                if (min_price > 0) minPriceUsd = min_price / exchangeRate;
-                if (max_price > 0) maxPriceUsd = max_price / exchangeRate;
+                if (min_price > 0)
+                {
+                    minPriceUsd = min_price / exchangeRate;
+                }
+                if (max_price > 0)
+                {
+                    maxPriceUsd = max_price / exchangeRate;
+                }
             }
 
-            ApiClient<CatalogViewModel> client = new ApiClient<CatalogViewModel>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Guest/GetCatalogViewModel";
+            // Call the WS catalog endpoint with whichever filters are set.
+            ApiClient<CatalogViewModel> client = BuildClient<CatalogViewModel>("api/Guest/GetCatalogViewModel");
             if (categories != null)
             {
                 client.AddParameter("categories", categories);
@@ -107,6 +105,7 @@ namespace GigNovaWebApp.Controllers
             }
             CatalogViewModel catalogViewModel = await client.GetAsync();
 
+            // Attach currency display info so the view can format prices correctly.
             if (catalogViewModel != null)
             {
                 catalogViewModel.currency_code = currency;
@@ -118,14 +117,11 @@ namespace GigNovaWebApp.Controllers
             return View(catalogViewModel);
         }
 
+        // Shows a single gig's full details (gig + seller + average rating).
         [HttpGet]
         public async Task<IActionResult> ViewSelectedGig(string gig_id = null)
         {
-            ApiClient<SelectedGigViewModel> client = new ApiClient<SelectedGigViewModel>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Guest/GetSelectedGigViewModel";
+            ApiClient<SelectedGigViewModel> client = BuildClient<SelectedGigViewModel>("api/Guest/GetSelectedGigViewModel");
             if (gig_id != null)
             {
                 client.AddParameter("gig_id", gig_id);
@@ -134,14 +130,11 @@ namespace GigNovaWebApp.Controllers
             return View(selectedGigViewModel);
         }
 
+        // Shows all reviews left on a gig.
         [HttpGet]
         public async Task<IActionResult> ViewGigReviews(string gig_id)
         {
-            ApiClient<List<Review>> client = new ApiClient<List<Review>>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Guest/ViewGigReviews";
+            ApiClient<List<Review>> client = BuildClient<List<Review>>("api/Guest/ViewGigReviews");
             if (gig_id != null)
             {
                 client.AddParameter("gig_id", gig_id);
@@ -151,6 +144,23 @@ namespace GigNovaWebApp.Controllers
             return View(reviews);
         }
 
+        // Shows a seller's public profile (their info + their gigs + their average rating).
+        [HttpGet]
+        public async Task<IActionResult> ViewSellerProfile(string seller_id)
+        {
+            ApiClient<SellerPublicProfileViewModel> client = BuildClient<SellerPublicProfileViewModel>("api/Guest/GetSellerPublicProfileViewModel");
+            if (seller_id != null)
+            {
+                client.AddParameter("seller_id", seller_id);
+            }
+            SellerPublicProfileViewModel viewModel = await client.GetAsync();
+            return View(viewModel);
+        }
+
+
+        // ============================== Account (Sign Up / Log In) ==============================
+
+        // Buy gate: a guest who clicks "Buy" is bounced to the login page (we remember which gig they wanted).
         [HttpGet]
         public IActionResult CustomizeOrder(string order_id = null, string gig_id = null)
         {
@@ -163,22 +173,7 @@ namespace GigNovaWebApp.Controllers
             return RedirectToAction("LogInPage", "Guest");
         }
 
-        [HttpGet]
-        public async Task<IActionResult> ViewSellerProfile(string seller_id)
-        {
-            ApiClient<SellerPublicProfileViewModel> client = new ApiClient<SellerPublicProfileViewModel>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Guest/GetSellerPublicProfileViewModel";
-            if (seller_id != null)
-            {
-                client.AddParameter("seller_id", seller_id);
-            }
-            SellerPublicProfileViewModel viewModel = await client.GetAsync();
-            return View(viewModel);
-        }
-
+        // Renders the sign-up form.
         [HttpGet]
         public IActionResult SignUpPage(Buyer buyer = null)
         {
@@ -186,55 +181,45 @@ namespace GigNovaWebApp.Controllers
             return View(buyer);
         }
 
+        // Handles the sign-up POST: validates, creates the buyer via the WS, then auto-logs them in.
         [HttpPost]
         public async Task<IActionResult> SignUp(Buyer buyer)
         {
-            if (buyer != null && buyer.Buyer_description == null)
-            {
-                buyer.Buyer_description = "";
-            }
-            if (buyer != null)
-            {
-                buyer.Person_join_date = DateTime.Now.ToShortDateString();
-            }
-            if (ModelState.IsValid == false)
+            if (buyer == null || ModelState.IsValid == false)
             {
                 ViewBag.ErrorMessage = "The data you inserted is incorrect";
                 return View("SignUpPage", buyer);
             }
-            ApiClient<Buyer> client = new ApiClient<Buyer>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Guest/SignUpPage";
+
+            buyer.Buyer_description = buyer.Buyer_description ?? "";
+            buyer.Person_join_date = DateTime.Now.ToShortDateString();
+
+            ApiClient<Buyer> client = BuildClient<Buyer>("api/Guest/SignUpPage");
             bool response = await client.PostAsync(buyer);
-            if (response)
+            if (response == false)
             {
-                ApiClient<LoginRequestViewModel> loginClient = new ApiClient<LoginRequestViewModel>();
-                loginClient.Scheme = "https";
-                loginClient.Host = "localhost";
-                loginClient.Port = 7059;
-                loginClient.Path = "api/Guest/LogIn";
-
-                LoginRequestViewModel loginRequest = new LoginRequestViewModel();
-                loginRequest.identifier = buyer.Person_email;
-                loginRequest.password = buyer.Person_password;
-
-                int loginResult = await loginClient.PostAsyncReturn<LoginRequestViewModel, int>(loginRequest);
-                if (loginResult != 0)
-                {
-                    HttpContext.Session.SetString("person_id", loginResult.ToString());
-                    HttpContext.Session.SetString("actor", "buyer");
-                    return RedirectToAction("HomePage", "Buyer");
-
-                }
-
-                return RedirectToAction("LogInPage");
+                ViewBag.ErrorMessage = "Server problem, try again later";
+                return View("SignUpPage", buyer);
             }
-            ViewBag.ErrorMessage = "Server problem, try again later";
-            return View("SignUpPage", buyer);
+
+            // Sign-up succeeded - now auto-log the buyer in using their email + password.
+            ApiClient<LoginRequestViewModel> loginClient = BuildClient<LoginRequestViewModel>("api/Guest/LogIn");
+            LoginRequestViewModel loginRequest = new LoginRequestViewModel();
+            loginRequest.identifier = buyer.Person_email;
+            loginRequest.password = buyer.Person_password;
+
+            int loginResult = await loginClient.PostAsyncReturn<LoginRequestViewModel, int>(loginRequest);
+            if (loginResult != 0)
+            {
+                HttpContext.Session.SetString("person_id", loginResult.ToString());
+                HttpContext.Session.SetString("actor", "buyer");
+                return RedirectToAction("HomePage", "Buyer");
+            }
+
+            return RedirectToAction("LogInPage");
         }
 
+        // Renders the login page. If a session already exists, redirect straight to the right home page.
         [HttpGet]
         public async Task<IActionResult> LogInPage()
         {
@@ -251,6 +236,7 @@ namespace GigNovaWebApp.Controllers
                     return RedirectToAction("HomePage", "Buyer");
                 }
 
+                // Session has a person_id but no actor set yet - ask the WS what they are.
                 bool isSeller = await CheckIfSeller(personId);
                 if (isSeller)
                 {
@@ -262,6 +248,7 @@ namespace GigNovaWebApp.Controllers
                 return RedirectToAction("HomePage", "Buyer");
             }
 
+            // Clear the "wanted to buy gig X" remembered state if the pending-purchase flag is gone.
             if (TempData["PendingPurchase"] == null)
             {
                 TempData.Remove("PurchaseGigId");
@@ -270,8 +257,7 @@ namespace GigNovaWebApp.Controllers
             return View();
         }
 
-
-
+        // Handles the login POST. After login, if they were trying to buy a gig, jump straight back into that flow.
         [HttpPost]
         public async Task<IActionResult> LogIn(string identifier, string password)
         {
@@ -281,12 +267,7 @@ namespace GigNovaWebApp.Controllers
                 return View("LogInPage");
             }
 
-            ApiClient<LoginRequestViewModel> client = new ApiClient<LoginRequestViewModel>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Guest/LogIn";
-
+            ApiClient<LoginRequestViewModel> client = BuildClient<LoginRequestViewModel>("api/Guest/LogIn");
             LoginRequestViewModel loginRequest = new LoginRequestViewModel();
             loginRequest.identifier = identifier;
             loginRequest.password = password;
@@ -300,6 +281,7 @@ namespace GigNovaWebApp.Controllers
 
             HttpContext.Session.SetString("person_id", loginResult.ToString());
 
+            // If they came from a "Buy" click, send them straight to CustomizeOrder for that gig.
             string pendingPurchase = TempData["PendingPurchase"] as string;
             if (pendingPurchase == "1")
             {
@@ -310,6 +292,7 @@ namespace GigNovaWebApp.Controllers
                 }
             }
 
+            // Otherwise route them to the right home page based on whether they're a seller.
             bool sellerAfterLogin = await CheckIfSeller(loginResult.ToString());
             if (sellerAfterLogin)
             {
@@ -319,21 +302,31 @@ namespace GigNovaWebApp.Controllers
 
             HttpContext.Session.SetString("actor", "buyer");
             return RedirectToAction("HomePage", "Buyer");
-
         }
 
+
+        // ============================== Helpers ==============================
+
+        // Builds an ApiClient<T> pointing at our WS (https://localhost:7059) at the given path. Saves repeating 4 lines per call.
+        private ApiClient<T> BuildClient<T>(string path)
+        {
+            ApiClient<T> client = new ApiClient<T>();
+            client.Scheme = "https";
+            client.Host = "localhost";
+            client.Port = 7059;
+            client.Path = path;
+            return client;
+        }
+
+        // Asks the WS whether a given person id is registered as a seller. Returns false on any error.
         private async Task<bool> CheckIfSeller(string personId)
         {
-            if (personId == null || personId == "")
+            if (string.IsNullOrEmpty(personId))
             {
                 return false;
             }
 
-            ApiClient<bool> client = new ApiClient<bool>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Guest/IsSeller";
+            ApiClient<bool> client = BuildClient<bool>("api/Guest/IsSeller");
             client.AddParameter("person_id", personId);
 
             try
@@ -345,6 +338,5 @@ namespace GigNovaWebApp.Controllers
                 return false;
             }
         }
-
     }
 }

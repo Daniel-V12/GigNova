@@ -1,4 +1,11 @@
-﻿<style>
+﻿@*
+    Site-wide alert and confirm popup. Included from each master layout.
+    Other pages call into this from their own scripts:
+      showSiteAlert("Done")                       - shows OK-only popup
+      showSiteConfirm("Are you sure?", function() {...})  - shows OK/Cancel popup; the callback runs on OK
+*@
+
+<style>
     .site-modal-overlay {
         position: fixed;
         inset: 0;
@@ -52,6 +59,7 @@
         }
 </style>
 
+
 <div id="siteModalOverlay" class="site-modal-overlay">
     <div class="site-modal">
         <p id="siteModalText" class="site-modal-text"></p>
@@ -62,27 +70,40 @@
     </div>
 </div>
 
+
 <script>
+    // _siteModalCb holds the callback that should run when the user clicks OK on a confirm popup.
+    // It's null when showing a plain alert (OK is the only button and does nothing extra).
     var _siteModalCb = null;
+
+    // Show as an ALERT - just one OK button. The Cancel button is hidden.
     function showSiteAlert(msg) {
         document.getElementById('siteModalText').textContent = msg;
         document.getElementById('siteModalCancel').style.display = 'none';
         _siteModalCb = null;
         document.getElementById('siteModalOverlay').style.display = 'flex';
     }
+
+    // Show as a CONFIRM - OK + Cancel. The given onConfirm function runs only if the user clicks OK.
     function showSiteConfirm(msg, onConfirm) {
         document.getElementById('siteModalText').textContent = msg;
         document.getElementById('siteModalCancel').style.display = 'inline-block';
         _siteModalCb = onConfirm;
         document.getElementById('siteModalOverlay').style.display = 'flex';
     }
+
+    // Hide the popup. Called by the Cancel button and when finishing a confirm.
     function hideSiteModal() {
         document.getElementById('siteModalOverlay').style.display = 'none';
         _siteModalCb = null;
     }
+
+    // OK button. If a callback was set (confirm mode), hide first then run it.
     function siteModalConfirmOk() {
         var cb = _siteModalCb;
         hideSiteModal();
-        if (cb) cb();
+        if (cb != null) {
+            cb();
+        }
     }
 </script>

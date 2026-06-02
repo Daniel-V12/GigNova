@@ -1,9 +1,7 @@
 ﻿using GigNovaModels.Models;
-using System.Linq;
 using GigNovaModels.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using System.Globalization;
 
 namespace GigNovaWS.Controllers
 {
@@ -12,67 +10,16 @@ namespace GigNovaWS.Controllers
     public class SellerController : ControllerBase
     {
         RepositoryUOW repositoryUOW;
+
         public SellerController()
         {
             this.repositoryUOW = new RepositoryUOW();
         }
 
-        [HttpGet]
-        public ManageGigsViewModel GetManageGigsViewModel(string seller_id, int page = 0)
-        {
-            ManageGigsViewModel manageGigsViewModel = new ManageGigsViewModel();
-            manageGigsViewModel.Gigs = new List<Gig>();
-            manageGigsViewModel.DeliveryTimes = new List<Delivery_time>();
-            manageGigsViewModel.AllCategories = new List<Category>();
 
-            try
-            {
-                this.repositoryUOW.DbHelperOledb.OpenConnection();
-                if (page == 0)
-                {
-                    manageGigsViewModel.Gigs = this.repositoryUOW.GigRepository.GetGigsBySeller(seller_id);
-                }
-                else
-                {
-                    manageGigsViewModel.Gigs = this.repositoryUOW.GigRepository.GetGigsBySellerByPage(seller_id, page);
-                }
+        // ============================== Profile ==============================
 
-                manageGigsViewModel.DeliveryTimes = this.repositoryUOW.Delivery_timeRepository.GetAll();
-                manageGigsViewModel.AllCategories = this.repositoryUOW.CategoryRepository.GetAll();
-
-                foreach (Gig gig in manageGigsViewModel.Gigs)
-                {
-                    if (gig == null || string.IsNullOrWhiteSpace(gig.Gig_id))
-                    {
-                        continue;
-                    }
-                    List<Category> categories = this.repositoryUOW.GigRepository.GetCategoriesByGigId(gig.Gig_id);
-                    gig.Category_ids = new List<string>();
-                    if (categories != null)
-                    {
-                        foreach (Category category in categories)
-                        {
-                            if (category != null && string.IsNullOrWhiteSpace(category.Category_id) == false)
-                            {
-                                gig.Category_ids.Add(category.Category_id);
-                            }
-                        }
-                    }
-                }
-
-                return manageGigsViewModel;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return manageGigsViewModel;
-            }
-            finally
-            {
-                this.repositoryUOW.DbHelperOledb.CloseConnection();
-            }
-        }
-
+        // Returns the seller profile (seller row + matching person row).
         [HttpGet]
         public SellerProfileViewModel GetSellerProfileViewModel(string seller_id)
         {
@@ -95,36 +42,11 @@ namespace GigNovaWS.Controllers
             }
         }
 
-        [HttpPost]
-        public bool UpdateSellerProfile(SellerProfileViewModel viewModel)
-        {
-            if (viewModel == null || viewModel.seller == null || viewModel.seller_person == null)
-            {
-                return false;
-            }
-            try
-            {
-                this.repositoryUOW.DbHelperOledb.OpenConnection();
-                bool sellerUpdated = this.repositoryUOW.SellerRepository.Update(viewModel.seller);
-                bool personUpdated = this.repositoryUOW.PersonRepository.Update(viewModel.seller_person);
-                return sellerUpdated && personUpdated;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return false;
-            }
-            finally
-            {
-                this.repositoryUOW.DbHelperOledb.CloseConnection();
-            }
-        }
-
-
+        // Changes the seller's password after the repository verifies the current password.
         [HttpPost]
         public bool ChangeSellerPassword(string seller_id, string current_password, string new_password)
         {
-            if (seller_id == null || seller_id == "" || current_password == null || current_password == "" || new_password == null || new_password == "")
+            if (string.IsNullOrEmpty(seller_id) || string.IsNullOrEmpty(current_password) || string.IsNullOrEmpty(new_password))
             {
                 return false;
             }
@@ -144,7 +66,7 @@ namespace GigNovaWS.Controllers
             }
         }
 
-
+        // Streams the seller's avatar image file by id. Used as an <img src> by the WebApp.
         [HttpGet]
         public IActionResult GetPhoto(string seller_id)
         {
@@ -181,28 +103,53 @@ namespace GigNovaWS.Controllers
             }
         }
 
+
+        // ============================== Gigs Management ==============================
+
+        // Returns the seller's gigs (paginated if page > 0) plus all delivery times and all categories for the edit UI.
         [HttpGet]
-        public OrdersViewModel GetOrdersViewModel(string seller_id)
+        public ManageGigsViewModel GetManageGigsViewModel(string seller_id, int page = 0)
         {
-            OrdersViewModel ordersViewModel = new OrdersViewModel
-            {
-                Orders = new List<Order>(),
-                Buyers = new List<Buyer>()
-            };
+            ManageGigsViewModel manageGigsViewModel = new ManageGigsViewModel();
+            manageGigsViewModel.Gigs = new List<Gig>();
+            manageGigsViewModel.DeliveryTimes = new List<Delivery_time>();
+            manageGigsViewModel.AllCategories = new List<Category>();
+
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
-                ordersViewModel.Orders = this.repositoryUOW.OrderRepository.GetOrderBySellerId(seller_id);
-                foreach (Order order in ordersViewModel.Orders)
+                if (page == 0)
                 {
-                    ordersViewModel.Buyers.Add(this.repositoryUOW.BuyerRepository.GetById(order.Buyer_id.ToString()));
+                    manageGigsViewModel.Gigs = this.repositoryUOW.GigRepository.GetGigsBySeller(seller_id);
                 }
-                return ordersViewModel;
+                else
+                {
+                    manageGigsViewModel.Gigs = this.repositoryUOW.GigRepository.GetGigsBySellerByPage(seller_id, page);
+                }
+
+                manageGigsViewModel.DeliveryTimes = this.repositoryUOW.Delivery_timeRepository.GetAll();
+                manageGigsViewModel.AllCategories = this.repositoryUOW.CategoryRepository.GetAll();
+
+                // Attach the linked category ids for each gig.
+                foreach (Gig gig in manageGigsViewModel.Gigs)
+                {
+                    List<Category> categories = this.repositoryUOW.GigRepository.GetCategoriesByGigId(gig.Gig_id);
+                    gig.Category_ids = new List<string>();
+                    foreach (Category category in categories)
+                    {
+                        if (string.IsNullOrWhiteSpace(category.Category_id) == false)
+                        {
+                            gig.Category_ids.Add(category.Category_id);
+                        }
+                    }
+                }
+
+                return manageGigsViewModel;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                return ordersViewModel;
+                return manageGigsViewModel;
             }
             finally
             {
@@ -210,7 +157,7 @@ namespace GigNovaWS.Controllers
             }
         }
 
-
+        // Creates a new gig (with optional photo + linked categories) inside a transaction.
         [HttpPost]
         public async Task<bool> AddGig()
         {
@@ -268,6 +215,7 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Updates an existing gig (only if the gig belongs to this seller). Replaces all linked categories.
         [HttpPost]
         public async Task<bool> EditGig()
         {
@@ -286,6 +234,8 @@ namespace GigNovaWS.Controllers
                     return false;
                 }
 
+                // Default to the existing photo, override only if a new photo was uploaded and saved.
+                gig.Gig_photo = existingGig.Gig_photo;
                 if (gigPhotoFile != null)
                 {
                     string photoPath = SaveGigPhoto(gigPhotoFile, gig.Gig_id);
@@ -293,14 +243,6 @@ namespace GigNovaWS.Controllers
                     {
                         gig.Gig_photo = photoPath;
                     }
-                    else
-                    {
-                        gig.Gig_photo = existingGig.Gig_photo;
-                    }
-                }
-                else
-                {
-                    gig.Gig_photo = existingGig.Gig_photo;
                 }
 
                 bool updated = this.repositoryUOW.GigRepository.UpdateBySeller(gig);
@@ -309,6 +251,7 @@ namespace GigNovaWS.Controllers
                     return false;
                 }
 
+                // Replace the gig's category links with the new list.
                 this.repositoryUOW.GigRepository.DeleteGigCategories(gig.Gig_id);
                 if (gig.Category_ids != null)
                 {
@@ -334,6 +277,7 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Deletes a gig (and its category links). Refuses if the gig already has orders.
         [HttpPost]
         public IActionResult DeleteGig(string seller_id, string gig_id)
         {
@@ -370,6 +314,7 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Publishes the gig. Refuses if the gig has validation errors, no photo, or no categories.
         [HttpPost]
         public IActionResult PublishGig(string seller_id, string gig_id)
         {
@@ -433,6 +378,7 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Unpublishes the gig (sets Is_publish back to false). Only allowed for the owning seller.
         [HttpPost]
         public bool UnpublishGig(string seller_id, string gig_id)
         {
@@ -456,69 +402,7 @@ namespace GigNovaWS.Controllers
             }
         }
 
-        private async Task<(Gig, IFormFile)> ReadGigFromRequestAsync()
-        {
-            if (Request.HasFormContentType)
-            {
-                IFormCollection form = await Request.ReadFormAsync();
-                string modelJson = form["model"];
-                if (string.IsNullOrWhiteSpace(modelJson))
-                {
-                    return (null, null);
-                }
-
-                JsonSerializerOptions options = new JsonSerializerOptions();
-                options.PropertyNameCaseInsensitive = true;
-                Gig formGig = JsonSerializer.Deserialize<Gig>(modelJson, options);
-                IFormFile gigPhotoFile = null;
-                if (form.Files != null && form.Files.Count > 0)
-                {
-                    gigPhotoFile = form.Files[0];
-                }
-                return (formGig, gigPhotoFile);
-            }
-
-            Gig jsonGig = await Request.ReadFromJsonAsync<Gig>();
-            return (jsonGig, null);
-        }
-
-        private string SaveGigPhoto(IFormFile file, string gigId)
-        {
-            if (file == null || file.Length == 0)
-            {
-                return null;
-            }
-
-            string extension = Path.GetExtension(file.FileName);
-            if (string.IsNullOrWhiteSpace(extension))
-            {
-                return null;
-            }
-            extension = extension.TrimStart('.').ToLower();
-
-            string[] allowed = new string[] { "jpg", "jpeg", "png", "gif", "webp", "bmp" };
-            if (allowed.Contains(extension) == false)
-            {
-                return null;
-            }
-
-            string folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", "Gigs");
-            if (Directory.Exists(folder) == false)
-            {
-                Directory.CreateDirectory(folder);
-            }
-
-            string fileName = "gig" + gigId + "." + extension;
-            string fullPath = Path.Combine(folder, fileName);
-            using (FileStream stream = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
-            {
-                file.CopyTo(stream);
-            }
-            return "Gigs/" + fileName;
-        }
-
-
-
+        // Returns one gig if it belongs to the given seller, otherwise null.
         [HttpGet]
         public Gig SelectGig(string gig_id, string seller_id)
         {
@@ -547,7 +431,112 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Reads either a multipart form (model JSON + optional photo file) or a plain JSON body into a Gig.
+        private async Task<(Gig, IFormFile)> ReadGigFromRequestAsync()
+        {
+            if (Request.HasFormContentType)
+            {
+                IFormCollection form = await Request.ReadFormAsync();
+                string modelJson = form["model"];
+                if (string.IsNullOrWhiteSpace(modelJson))
+                {
+                    return (null, null);
+                }
 
+                JsonSerializerOptions options = new JsonSerializerOptions();
+                options.PropertyNameCaseInsensitive = true;
+                Gig formGig = JsonSerializer.Deserialize<Gig>(modelJson, options);
+                IFormFile gigPhotoFile = null;
+                if (form.Files.Count > 0)
+                {
+                    gigPhotoFile = form.Files[0];
+                }
+                return (formGig, gigPhotoFile);
+            }
+
+            Gig jsonGig = await Request.ReadFromJsonAsync<Gig>();
+            return (jsonGig, null);
+        }
+
+        // Saves an uploaded gig photo to wwwroot/Images/Gigs. Returns the relative path, or null if rejected.
+        private string SaveGigPhoto(IFormFile file, string gigId)
+        {
+            if (file.Length == 0)
+            {
+                return null;
+            }
+
+            string extension = Path.GetExtension(file.FileName);
+            if (string.IsNullOrWhiteSpace(extension))
+            {
+                return null;
+            }
+            extension = extension.TrimStart('.').ToLower();
+
+            string[] allowed = new string[] { "jpg", "jpeg", "png", "gif", "webp", "bmp" };
+            bool isAllowed = false;
+            for (int i = 0; i < allowed.Length; i++)
+            {
+                if (allowed[i] == extension)
+                {
+                    isAllowed = true;
+                    break;
+                }
+            }
+            if (isAllowed == false)
+            {
+                return null;
+            }
+
+            string folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", "Gigs");
+            if (Directory.Exists(folder) == false)
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            string fileName = "gig" + gigId + "." + extension;
+            string fullPath = Path.Combine(folder, fileName);
+            using (FileStream stream = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
+            {
+                file.CopyTo(stream);
+            }
+            return "Gigs/" + fileName;
+        }
+
+
+        // ============================== Orders & Delivery ==============================
+
+        // Returns the seller's orders and, in parallel, the buyer info for each order.
+        [HttpGet]
+        public OrdersViewModel GetOrdersViewModel(string seller_id)
+        {
+            OrdersViewModel ordersViewModel = new OrdersViewModel
+            {
+                Orders = new List<Order>(),
+                Buyers = new List<Buyer>()
+            };
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                ordersViewModel.Orders = this.repositoryUOW.OrderRepository.GetOrderBySellerId(seller_id);
+                foreach (Order order in ordersViewModel.Orders)
+                {
+                    ordersViewModel.Buyers.Add(this.repositoryUOW.BuyerRepository.GetById(order.Buyer_id.ToString()));
+                }
+                return ordersViewModel;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return ordersViewModel;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+        // Returns one order (with the buyer attached) if it belongs to the given seller, otherwise null.
         [HttpGet]
         public SelectedOrderViewModel SelectOrder(string order_id, string seller_id)
         {
@@ -578,6 +567,7 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Creates a delivery record, saves the uploaded delivery file, and moves the order to "delivered" (status 2). All in one transaction.
         [HttpPost]
         public async Task<IActionResult> DeliverGig()
         {
@@ -599,16 +589,12 @@ namespace GigNovaWS.Controllers
                 }
 
                 // Delivery file rules: exactly 1 file, max 100MB, only .rar or .zip.
-                if (form.Files == null || form.Files.Count != 1)
+                if (form.Files.Count != 1)
                 {
                     return BadRequest();
                 }
                 IFormFile deliveryFile = form.Files[0];
-                if (deliveryFile == null || deliveryFile.Length == 0)
-                {
-                    return BadRequest();
-                }
-                if (deliveryFile.Length > 100 * 1024 * 1024)
+                if (deliveryFile.Length == 0 || deliveryFile.Length > 100 * 1024 * 1024)
                 {
                     return BadRequest();
                 }
@@ -618,18 +604,11 @@ namespace GigNovaWS.Controllers
                     return BadRequest();
                 }
 
-                if (delivery.Delivery_text == null)
-                {
-                    delivery.Delivery_text = "";
-                }
+                delivery.Delivery_text = delivery.Delivery_text ?? "";
+                delivery.Delivery_file = delivery.Delivery_file ?? "";
 
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
                 this.repositoryUOW.DbHelperOledb.OpenTransaction();
-
-                if (delivery.Delivery_file == null)
-                {
-                    delivery.Delivery_file = "";
-                }
 
                 bool deliveryCreated = this.repositoryUOW.DeliveryRepository.Create(delivery);
                 if (deliveryCreated == false)
@@ -645,7 +624,6 @@ namespace GigNovaWS.Controllers
                     return BadRequest();
                 }
 
-                List<string> uploadedFileNames = new List<string>();
                 string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "DeliveryFiles");
                 if (Directory.Exists(uploadsFolder) == false)
                 {
@@ -659,9 +637,8 @@ namespace GigNovaWS.Controllers
                 {
                     await deliveryFile.CopyToAsync(stream);
                 }
-                uploadedFileNames.Add("DeliveryFiles/" + savedFileName);
 
-                string deliveryFilesValue = string.Join("|", uploadedFileNames);
+                string deliveryFilesValue = "DeliveryFiles/" + savedFileName;
                 bool fileUpdated = this.repositoryUOW.DeliveryRepository.UpdateFileById(deliveryId, deliveryFilesValue);
                 if (fileUpdated == false)
                 {
@@ -690,7 +667,7 @@ namespace GigNovaWS.Controllers
             }
         }
 
-
+        // Returns all deliveries (files uploaded by the seller) attached to the given order.
         [HttpGet]
         public List<Delivery> GetDeliveriesByOrder(string order_id)
         {
@@ -714,6 +691,5 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
-
     }
 }

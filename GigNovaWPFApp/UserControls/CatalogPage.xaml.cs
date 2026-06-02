@@ -19,6 +19,9 @@ namespace GigNovaWPFApp.UserControls
         List<string> selectedCategoryIds;
         bool isEditMode;
 
+
+        // ============================== Initialization ==============================
+
         public CatalogPage()
         {
             InitializeComponent();
@@ -32,20 +35,25 @@ namespace GigNovaWPFApp.UserControls
             LoadCatalog(1);
         }
 
+
+        // ============================== Edit Mode (admin) ==============================
+
+        // Toggle between normal viewing mode and admin edit mode.
+        // In edit mode, "Add Category" and "View Blocked" buttons appear, and gig/category styles change.
         private void EditModeButton_Click(object sender, RoutedEventArgs e)
         {
             isEditMode = !isEditMode;
             if (isEditMode)
             {
                 EditModeButton.Content = "Exit Edit Mode";
-                EditModeButton.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
+                EditModeButton.Background = WpfHelpers.Brush("#E94560");
                 AddCategoryButton.Visibility = Visibility.Visible;
                 ViewBlockedButton.Visibility = Visibility.Visible;
             }
             else
             {
                 EditModeButton.Content = "Edit Mode";
-                EditModeButton.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3A3A3A"));
+                EditModeButton.Background = WpfHelpers.Brush("#3A3A3A");
                 AddCategoryButton.Visibility = Visibility.Collapsed;
                 ViewBlockedButton.Visibility = Visibility.Collapsed;
             }
@@ -53,46 +61,78 @@ namespace GigNovaWPFApp.UserControls
             UpdateCategoryStyles();
         }
 
+        // Re-skin all gig cards based on the current edit mode.
+        private void UpdateGigStyles()
+        {
+            Style s;
+            if (isEditMode)
+            {
+                s = (Style)FindResource("GigCardEditStyle");
+            }
+            else
+            {
+                s = (Style)FindResource("GigCardStyle");
+            }
+            foreach (object child in GigsWrapPanel.Children)
+            {
+                Button btn = child as Button;
+                if (btn != null)
+                {
+                    btn.Style = s;
+                }
+            }
+        }
+
+        // Re-skin all category chips based on the current edit mode.
+        private void UpdateCategoryStyles()
+        {
+            Style s;
+            if (isEditMode)
+            {
+                s = (Style)FindResource("CategoryChipEditStyle");
+            }
+            else
+            {
+                s = (Style)FindResource("CategoryChipStyle");
+            }
+            foreach (object child in CategoryWrapPanel.Children)
+            {
+                CheckBox cb = child as CheckBox;
+                if (cb != null)
+                {
+                    cb.Style = s;
+                }
+            }
+        }
+
+        // Open the "Blocked items" dialog. If something was unblocked, reload the catalog.
         private void ViewBlockedButton_Click(object sender, RoutedEventArgs e)
         {
             BlockedListDialog dialog = new BlockedListDialog();
             dialog.Owner = Window.GetWindow(this);
             dialog.ShowDialog();
-            if (dialog.DidChange) LoadCatalog(1);
-        }
-
-        private void UpdateGigStyles()
-        {
-            Style s;
-            if (isEditMode) s = (Style)FindResource("GigCardEditStyle");
-            else s = (Style)FindResource("GigCardStyle");
-            foreach (object child in GigsWrapPanel.Children)
+            if (dialog.DidChange)
             {
-                Button btn = child as Button;
-                if (btn != null) btn.Style = s;
+                LoadCatalog(1);
             }
         }
 
-        private void UpdateCategoryStyles()
-        {
-            Style s;
-            if (isEditMode) s = (Style)FindResource("CategoryChipEditStyle");
-            else s = (Style)FindResource("CategoryChipStyle");
-            foreach (object child in CategoryWrapPanel.Children)
-            {
-                CheckBox cb = child as CheckBox;
-                if (cb != null) cb.Style = s;
-            }
-        }
-
+        // Open the "Create Category" dialog. If one was created, reload the catalog so it appears.
         private void AddCategoryButton_Click(object sender, RoutedEventArgs e)
         {
             CategoryDialog dialog = new CategoryDialog();
             dialog.Owner = Window.GetWindow(this);
             bool? result = dialog.ShowDialog();
-            if (result == true) LoadCatalog(1);
+            if (result == true)
+            {
+                LoadCatalog(1);
+            }
         }
 
+
+        // ============================== Filter Inputs ==============================
+
+        // Clear the placeholder text ("Min $" / "Max $") when the user clicks into the box.
         private void PriceBox_GotFocus(object sender, RoutedEventArgs e)
         {
             TextBox box = sender as TextBox;
@@ -102,16 +142,24 @@ namespace GigNovaWPFApp.UserControls
             }
         }
 
+        // Restore the placeholder if the user leaves the box empty.
         private void PriceBox_LostFocus(object sender, RoutedEventArgs e)
         {
             TextBox box = sender as TextBox;
             if (box.Text.Trim() == "")
             {
-                if (box == MinPriceTextBox) box.Text = "Min $";
-                if (box == MaxPriceTextBox) box.Text = "Max $";
+                if (box == MinPriceTextBox)
+                {
+                    box.Text = "Min $";
+                }
+                if (box == MaxPriceTextBox)
+                {
+                    box.Text = "Max $";
+                }
             }
         }
 
+        // Reads which category chips are checked right now into selectedCategoryIds.
         private void CollectSelectedCategoriesFromUI()
         {
             selectedCategoryIds.Clear();
@@ -125,38 +173,79 @@ namespace GigNovaWPFApp.UserControls
             }
         }
 
+        // Apply button: pick up the chip selections and reload from page 1.
+        private void ApplyFilters_Click(object sender, RoutedEventArgs e)
+        {
+            CollectSelectedCategoriesFromUI();
+            LoadCatalog(1);
+        }
+
+        // Clear button: reset all filters back to defaults and reload.
+        private void ClearFilters_Click(object sender, RoutedEventArgs e)
+        {
+            selectedCategoryIds.Clear();
+            MinPriceTextBox.Text = "Min $";
+            MaxPriceTextBox.Text = "Max $";
+            DeliveryComboBox.SelectedIndex = 0;
+            LanguageComboBox.SelectedIndex = 0;
+            RatingComboBox.SelectedIndex = 0;
+            LoadCatalog(1);
+        }
+
+
+        // ============================== Loading Data ==============================
+
+        // Calls the WS for the catalog view model, then refreshes the chips / dropdowns / gig grid / pagination.
         private async void LoadCatalog(int page)
         {
             try
             {
-                ApiClient<CatalogViewModel> client = new ApiClient<CatalogViewModel>();
-                client.Scheme = "https";
-                client.Host = "localhost";
-                client.Port = 7059;
-                client.Path = "api/Guest/GetCatalogViewModel";
+                ApiClient<CatalogViewModel> client = WpfHelpers.BuildClient<CatalogViewModel>("api/Guest/GetCatalogViewModel");
 
+                // Build the categories CSV from the currently selected ids.
                 string categories = "";
                 for (int i = 0; i < selectedCategoryIds.Count; i++)
                 {
-                    if (i > 0) categories += ",";
+                    if (i > 0)
+                    {
+                        categories += ",";
+                    }
                     categories += selectedCategoryIds[i];
                 }
-
-                if (categories != "") client.AddParameter("categories", categories);
+                if (categories != "")
+                {
+                    client.AddParameter("categories", categories);
+                }
 
                 client.AddParameter("page", page.ToString());
 
+                // Read the other filter values from the UI.
                 double minPrice = ParseDouble(MinPriceTextBox.Text);
                 double maxPrice = ParseDouble(MaxPriceTextBox.Text);
                 int deliveryTimeId = ParseInt(GetComboTag(DeliveryComboBox));
                 int languageId = ParseInt(GetComboTag(LanguageComboBox));
                 int minRating = ParseInt(GetComboTag(RatingComboBox));
 
-                if (minPrice > 0) client.AddParameter("min_price", minPrice.ToString(CultureInfo.InvariantCulture));
-                if (maxPrice > 0) client.AddParameter("max_price", maxPrice.ToString(CultureInfo.InvariantCulture));
-                if (deliveryTimeId > 0) client.AddParameter("delivery_time_id", deliveryTimeId.ToString());
-                if (languageId > 0) client.AddParameter("language_id", languageId.ToString());
-                if (minRating > 0) client.AddParameter("min_rating", minRating.ToString());
+                if (minPrice > 0)
+                {
+                    client.AddParameter("min_price", minPrice.ToString(CultureInfo.InvariantCulture));
+                }
+                if (maxPrice > 0)
+                {
+                    client.AddParameter("max_price", maxPrice.ToString(CultureInfo.InvariantCulture));
+                }
+                if (deliveryTimeId > 0)
+                {
+                    client.AddParameter("delivery_time_id", deliveryTimeId.ToString());
+                }
+                if (languageId > 0)
+                {
+                    client.AddParameter("language_id", languageId.ToString());
+                }
+                if (minRating > 0)
+                {
+                    client.AddParameter("min_rating", minRating.ToString());
+                }
 
                 catalogViewModel = await client.GetAsync();
                 if (catalogViewModel == null)
@@ -177,33 +266,57 @@ namespace GigNovaWPFApp.UserControls
             }
         }
 
+        // After a reload, refresh selectedCategoryIds from what the server says is selected (string from URL).
         private void SyncSelectedCategories()
         {
             selectedCategoryIds.Clear();
-            if (catalogViewModel.GigCategories == null || catalogViewModel.GigCategories.Trim() == "") return;
+            if (catalogViewModel.GigCategories == null || catalogViewModel.GigCategories.Trim() == "")
+            {
+                return;
+            }
             string[] split = catalogViewModel.GigCategories.Split(',');
             for (int i = 0; i < split.Length; i++)
             {
                 string id = split[i].Trim();
-                if (id != "") selectedCategoryIds.Add(id);
+                if (id != "")
+                {
+                    selectedCategoryIds.Add(id);
+                }
             }
         }
 
+
+        // ============================== Rendering ==============================
+
+        // Build the category chip row using checkboxes. Chips are checked if their id is in selectedCategoryIds.
         private void FillCategoryFilters()
         {
             CategoryWrapPanel.Children.Clear();
-            if (catalogViewModel.Categories == null) return;
+            if (catalogViewModel.Categories == null)
+            {
+                return;
+            }
 
             Style chipStyle;
-            if (isEditMode) chipStyle = (Style)FindResource("CategoryChipEditStyle");
-            else chipStyle = (Style)FindResource("CategoryChipStyle");
+            if (isEditMode)
+            {
+                chipStyle = (Style)FindResource("CategoryChipEditStyle");
+            }
+            else
+            {
+                chipStyle = (Style)FindResource("CategoryChipStyle");
+            }
 
             foreach (Category category in catalogViewModel.Categories)
             {
                 bool isSelected = false;
                 foreach (string id in selectedCategoryIds)
                 {
-                    if (id == category.Category_id) isSelected = true;
+                    if (id == category.Category_id)
+                    {
+                        isSelected = true;
+                        break;
+                    }
                 }
 
                 CheckBox checkBox = new CheckBox();
@@ -216,60 +329,22 @@ namespace GigNovaWPFApp.UserControls
             }
         }
 
-        private async void Category_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        // Fill the three dropdowns (Delivery / Language / Rating) and pre-select whatever the server says is active.
+        private void FillDropDownFilters()
         {
-            if (!isEditMode) return;
-            e.Handled = true;
-
-            CheckBox cb = sender as CheckBox;
-            string id = cb.Tag.ToString();
-            string name = cb.Content.ToString();
-
-            MessageBoxResult choice = MessageBox.Show(
-                "Category '" + name + "'\n\nYes  =  Edit name\nNo  =  Block category\nCancel  =  Cancel",
-                "Edit or Block",
-                MessageBoxButton.YesNoCancel);
-
-            if (choice == MessageBoxResult.Yes)
+            if (catalogViewModel == null)
             {
-                CategoryDialog dialog = new CategoryDialog(id, name);
-                dialog.Owner = Window.GetWindow(this);
-                bool? result = dialog.ShowDialog();
-                if (result == true) LoadCatalog(1);
                 return;
             }
 
-            if (choice == MessageBoxResult.No)
+            if (catalogViewModel.min_price > 0)
             {
-                MessageBoxResult confirm = MessageBox.Show(
-                    "Are you sure you want to block the category '" + name + "'?",
-                    "Confirm Block",
-                    MessageBoxButton.YesNo);
-                if (confirm != MessageBoxResult.Yes) return;
-
-                ApiClient<bool> client = new ApiClient<bool>();
-                client.Scheme = "https";
-                client.Host = "localhost";
-                client.Port = 7059;
-                client.Path = "api/Admin/BlockCategory";
-                client.AddParameter("category_id", id);
-
-                bool ok = await client.PostAsync(false);
-                if (!ok)
-                {
-                    MessageBox.Show("Failed to block category.", "GigNova");
-                    return;
-                }
-                LoadCatalog(1);
+                MinPriceTextBox.Text = catalogViewModel.min_price.ToString(CultureInfo.InvariantCulture);
             }
-        }
-
-        private void FillDropDownFilters()
-        {
-            if (catalogViewModel == null) return;
-
-            if (catalogViewModel.min_price > 0) MinPriceTextBox.Text = catalogViewModel.min_price.ToString(CultureInfo.InvariantCulture);
-            if (catalogViewModel.max_price > 0) MaxPriceTextBox.Text = catalogViewModel.max_price.ToString(CultureInfo.InvariantCulture);
+            if (catalogViewModel.max_price > 0)
+            {
+                MaxPriceTextBox.Text = catalogViewModel.max_price.ToString(CultureInfo.InvariantCulture);
+            }
 
             DeliveryComboBox.Items.Clear();
             DeliveryComboBox.Items.Add(new ComboBoxItem { Content = "Any Time", Tag = "0" });
@@ -303,6 +378,7 @@ namespace GigNovaWPFApp.UserControls
             SelectComboByTag(RatingComboBox, ((int)catalogViewModel.min_rating).ToString());
         }
 
+        // Helper: find the item in a ComboBox whose Tag matches tagValue and select it. Falls back to index 0.
         private void SelectComboByTag(ComboBox comboBox, string tagValue)
         {
             for (int i = 0; i < comboBox.Items.Count; i++)
@@ -310,27 +386,38 @@ namespace GigNovaWPFApp.UserControls
                 ComboBoxItem item = comboBox.Items[i] as ComboBoxItem;
                 if (item != null)
                 {
-                    string tag;
-                    if (item.Tag == null) tag = "0";
-                    else tag = item.Tag.ToString();
-                    if (tag == tagValue) { comboBox.SelectedIndex = i; return; }
+                    string tag = "0";
+                    if (item.Tag != null)
+                    {
+                        tag = item.Tag.ToString();
+                    }
+                    if (tag == tagValue)
+                    {
+                        comboBox.SelectedIndex = i;
+                        return;
+                    }
                 }
             }
             comboBox.SelectedIndex = 0;
         }
 
+        // Build the gig cards grid. Each card is a clickable Button styled as a card.
         private void ShowGigs()
         {
             GigsWrapPanel.Children.Clear();
             int count = 0;
-            if (catalogViewModel.Gigs != null) count = catalogViewModel.Gigs.Count;
+            if (catalogViewModel.Gigs != null)
+            {
+                count = catalogViewModel.Gigs.Count;
+            }
             ResultsTextBlock.Text = "Available Gigs (" + count + " on this page)";
 
+            // Empty state - one big "no results" card.
             if (catalogViewModel.Gigs == null || catalogViewModel.Gigs.Count == 0)
             {
                 Border emptyState = new Border();
-                emptyState.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#111111"));
-                emptyState.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
+                emptyState.Background = WpfHelpers.Brush("#111111");
+                emptyState.BorderBrush = WpfHelpers.Brush("#E94560");
                 emptyState.BorderThickness = new Thickness(1);
                 emptyState.CornerRadius = new CornerRadius(10);
                 emptyState.Padding = new Thickness(20);
@@ -346,13 +433,22 @@ namespace GigNovaWPFApp.UserControls
                 return;
             }
 
+            // Style depends on edit mode (normal cards vs edit-mode cards).
             Style cardStyle;
-            if (isEditMode) cardStyle = (Style)FindResource("GigCardEditStyle");
-            else cardStyle = (Style)FindResource("GigCardStyle");
+            if (isEditMode)
+            {
+                cardStyle = (Style)FindResource("GigCardEditStyle");
+            }
+            else
+            {
+                cardStyle = (Style)FindResource("GigCardStyle");
+            }
 
+            // Build one card per gig.
             for (int i = 0; i < catalogViewModel.Gigs.Count; i++)
             {
                 Gig gig = catalogViewModel.Gigs[i];
+
                 string categoryNamesText = "";
                 if (catalogViewModel.GigCategoryNames != null && catalogViewModel.GigCategoryNames.Count > i)
                 {
@@ -372,6 +468,7 @@ namespace GigNovaWPFApp.UserControls
                 inner.Padding = new Thickness(12);
 
                 StackPanel panel = new StackPanel();
+
                 TextBlock title = new TextBlock();
                 title.Text = gig.Gig_name;
                 title.Foreground = Brushes.White;
@@ -382,12 +479,13 @@ namespace GigNovaWPFApp.UserControls
 
                 TextBlock description = new TextBlock();
                 description.Text = gig.Gig_description;
-                description.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D3D3D3"));
+                description.Foreground = WpfHelpers.Brush("#D3D3D3");
                 description.FontSize = 15;
                 description.TextWrapping = TextWrapping.Wrap;
                 description.Margin = new Thickness(0, 8, 0, 8);
                 panel.Children.Add(description);
 
+                // Category chips strip (only if this gig actually has categories).
                 if (categoryNamesText != null && categoryNamesText.Trim() != "")
                 {
                     WrapPanel chipWrap = new WrapPanel();
@@ -399,8 +497,8 @@ namespace GigNovaWPFApp.UserControls
                         if (trimmed != "")
                         {
                             Border chip = new Border();
-                            chip.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2A2A"));
-                            chip.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
+                            chip.Background = WpfHelpers.Brush("#2A2A2A");
+                            chip.BorderBrush = WpfHelpers.Brush("#E94560");
                             chip.BorderThickness = new Thickness(1);
                             chip.CornerRadius = new CornerRadius(8);
                             chip.Padding = new Thickness(6, 3, 6, 3);
@@ -419,7 +517,7 @@ namespace GigNovaWPFApp.UserControls
 
                 TextBlock priceLabel = new TextBlock();
                 priceLabel.Text = "Starting at";
-                priceLabel.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#BFBFBF"));
+                priceLabel.Foreground = WpfHelpers.Brush("#BFBFBF");
                 priceLabel.FontSize = 13;
                 priceLabel.FontWeight = FontWeights.Bold;
                 panel.Children.Add(priceLabel);
@@ -437,6 +535,7 @@ namespace GigNovaWPFApp.UserControls
             }
         }
 
+        // Clicking a gig card: in normal mode, open the gig; in edit mode, ask if the admin wants to block it.
         private async void GigCard_Click(object sender, RoutedEventArgs e)
         {
             Button btn = sender as Button;
@@ -448,17 +547,16 @@ namespace GigNovaWPFApp.UserControls
                     "Are you sure you want to block this gig?",
                     "Confirm Block",
                     MessageBoxButton.YesNo);
-                if (result != MessageBoxResult.Yes) return;
+                if (result != MessageBoxResult.Yes)
+                {
+                    return;
+                }
 
-                ApiClient<bool> client = new ApiClient<bool>();
-                client.Scheme = "https";
-                client.Host = "localhost";
-                client.Port = 7059;
-                client.Path = "api/Admin/BlockGig";
+                ApiClient<bool> client = WpfHelpers.BuildClient<bool>("api/Admin/BlockGig");
                 client.AddParameter("gig_id", gigId);
 
                 bool ok = await client.PostAsync(false);
-                if (!ok)
+                if (ok == false)
                 {
                     MessageBox.Show("Failed to block gig.", "GigNova");
                     return;
@@ -467,37 +565,59 @@ namespace GigNovaWPFApp.UserControls
             }
             else
             {
-                if (GigSelected != null) GigSelected(gigId);
+                if (GigSelected != null)
+                {
+                    GigSelected(gigId);
+                }
             }
         }
 
+
+        // ============================== Pagination ==============================
+
+        // Build Previous / page-number / Next buttons. Click handlers go through PageButton_Click
+        // and read the target page from the button's Tag (avoids lambda event handlers).
         private void ShowPagination()
         {
             PaginationPanel.Children.Clear();
-            if (catalogViewModel == null || catalogViewModel.TotalPages <= 1) return;
+            if (catalogViewModel == null || catalogViewModel.TotalPages <= 1)
+            {
+                return;
+            }
 
             Button prev = CreatePageButton("Previous", catalogViewModel.Page > 1);
-            prev.Click += (s, e) => LoadCatalog(catalogViewModel.Page - 1);
+            prev.Tag = catalogViewModel.Page - 1;
+            prev.Click += PageButton_Click;
             PaginationPanel.Children.Add(prev);
 
             for (int i = 1; i <= catalogViewModel.TotalPages; i++)
             {
-                int pageNumber = i;
-                Button pageBtn = CreatePageButton(pageNumber.ToString(), true);
-                if (catalogViewModel.Page == pageNumber)
+                Button pageBtn = CreatePageButton(i.ToString(), true);
+                pageBtn.Tag = i;
+                if (catalogViewModel.Page == i)
                 {
-                    pageBtn.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
-                    pageBtn.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E94560"));
+                    pageBtn.Background = WpfHelpers.Brush("#E94560");
+                    pageBtn.BorderBrush = WpfHelpers.Brush("#E94560");
                 }
-                pageBtn.Click += (s, e) => LoadCatalog(pageNumber);
+                pageBtn.Click += PageButton_Click;
                 PaginationPanel.Children.Add(pageBtn);
             }
 
             Button next = CreatePageButton("Next", catalogViewModel.Page < catalogViewModel.TotalPages);
-            next.Click += (s, e) => LoadCatalog(catalogViewModel.Page + 1);
+            next.Tag = catalogViewModel.Page + 1;
+            next.Click += PageButton_Click;
             PaginationPanel.Children.Add(next);
         }
 
+        // Shared click handler for every page button. The target page is stored in the button's Tag.
+        private void PageButton_Click(object sender, RoutedEventArgs e)
+        {
+            Button btn = sender as Button;
+            int page = (int)btn.Tag;
+            LoadCatalog(page);
+        }
+
+        // Helper that creates a styled pagination button. isEnabled=false greys it out.
         private Button CreatePageButton(string text, bool isEnabled)
         {
             Button button = new Button();
@@ -505,49 +625,114 @@ namespace GigNovaWPFApp.UserControls
             button.Content = text;
             button.Margin = new Thickness(4, 0, 4, 0);
             button.IsEnabled = isEnabled;
-            if (isEnabled) button.Opacity = 1.0;
-            else button.Opacity = 0.5;
+            if (isEnabled)
+            {
+                button.Opacity = 1.0;
+            }
+            else
+            {
+                button.Opacity = 0.5;
+            }
             return button;
         }
 
-        private void ApplyFilters_Click(object sender, RoutedEventArgs e)
+
+        // ============================== Admin: long-press a category to edit or block it ==============================
+
+        // In edit mode, clicking a category chip opens a Yes/No/Cancel popup:
+        //   Yes -> rename the category   No -> block the category   Cancel -> do nothing
+        private async void Category_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            CollectSelectedCategoriesFromUI();
-            LoadCatalog(1);
+            if (isEditMode == false)
+            {
+                return;
+            }
+            e.Handled = true;
+
+            CheckBox cb = sender as CheckBox;
+            string id = cb.Tag.ToString();
+            string name = cb.Content.ToString();
+
+            MessageBoxResult choice = MessageBox.Show(
+                "Category '" + name + "'\n\nYes  =  Edit name\nNo  =  Block category\nCancel  =  Cancel",
+                "Edit or Block",
+                MessageBoxButton.YesNoCancel);
+
+            if (choice == MessageBoxResult.Yes)
+            {
+                CategoryDialog dialog = new CategoryDialog(id, name);
+                dialog.Owner = Window.GetWindow(this);
+                bool? result = dialog.ShowDialog();
+                if (result == true)
+                {
+                    LoadCatalog(1);
+                }
+                return;
+            }
+
+            if (choice == MessageBoxResult.No)
+            {
+                MessageBoxResult confirm = MessageBox.Show(
+                    "Are you sure you want to block the category '" + name + "'?",
+                    "Confirm Block",
+                    MessageBoxButton.YesNo);
+                if (confirm != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+
+                ApiClient<bool> client = WpfHelpers.BuildClient<bool>("api/Admin/BlockCategory");
+                client.AddParameter("category_id", id);
+
+                bool ok = await client.PostAsync(false);
+                if (ok == false)
+                {
+                    MessageBox.Show("Failed to block category.", "GigNova");
+                    return;
+                }
+                LoadCatalog(1);
+            }
         }
 
-        private void ClearFilters_Click(object sender, RoutedEventArgs e)
-        {
-            selectedCategoryIds.Clear();
-            MinPriceTextBox.Text = "Min $";
-            MaxPriceTextBox.Text = "Max $";
-            DeliveryComboBox.SelectedIndex = 0;
-            LanguageComboBox.SelectedIndex = 0;
-            RatingComboBox.SelectedIndex = 0;
-            LoadCatalog(1);
-        }
 
+        // ============================== Parsing Helpers ==============================
+
+        // Parses a price text box. Returns 0 if the text is the "Min $" / "Max $" placeholder or otherwise invalid.
         private double ParseDouble(string text)
         {
-            if (text == "Min $" || text == "Max $") return 0;
+            if (text == "Min $" || text == "Max $")
+            {
+                return 0;
+            }
             double value;
             bool ok = double.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out value);
-            if (ok) return value;
+            if (ok)
+            {
+                return value;
+            }
             return 0;
         }
 
+        // Parses any int-like string. Returns 0 if the parse fails.
         private int ParseInt(string text)
         {
             int value;
             bool ok = int.TryParse(text, out value);
-            if (ok) return value;
+            if (ok)
+            {
+                return value;
+            }
             return 0;
         }
 
+        // Reads the Tag of the currently selected item in a ComboBox. Returns "0" if nothing is selected.
         private string GetComboTag(ComboBox comboBox)
         {
             ComboBoxItem item = comboBox.SelectedItem as ComboBoxItem;
-            if (item != null && item.Tag != null) return item.Tag.ToString();
+            if (item != null && item.Tag != null)
+            {
+                return item.Tag.ToString();
+            }
             return "0";
         }
     }

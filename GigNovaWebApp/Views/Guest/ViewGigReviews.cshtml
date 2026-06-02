@@ -2,6 +2,8 @@
 @model List<Review>
 @{
     ViewData["Title"] = "ViewGigReviews";
+
+    // Pick the right layout based on the current session.
     Layout = "~/Views/Shared/MasterGuestPage.cshtml";
     string personId = Context.Session.GetString("person_id");
     string actor = Context.Session.GetString("actor");
@@ -17,8 +19,9 @@
         }
     }
 
-    double averageRating = 0;
+    // Compute the average rating across all the reviews for this gig.
     string gigId = Convert.ToString(ViewData["GigId"]);
+    double averageRating = 0;
     if (Model != null && Model.Count > 0)
     {
         double sum = 0;
@@ -28,6 +31,12 @@
         }
         averageRating = sum / Model.Count;
     }
+
+    int reviewsCount = 0;
+    if (Model != null)
+    {
+        reviewsCount = Model.Count;
+    }
 }
 <link href="~/css/guest_pages/catalog_page.css" rel="stylesheet" />
 
@@ -35,7 +44,7 @@
     <div class="gigs-section">
         <div class="gigs-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
             <div>
-                <h2>Gig Reviews (@(Model == null ? 0 : Model.Count))</h2>
+                <h2>Gig Reviews (@reviewsCount)</h2>
                 <p class="price-label review-average-text" style="margin-top:6px;">Overall average rating: @averageRating</p>
             </div>
             <button type="button" class="action-btn" style="background:#19a64b; color:white; max-width:260px; min-width:190px;" onclick="openReviewPopup()">
@@ -65,6 +74,8 @@
     </div>
 </div>
 
+
+<!-- ============================== Review Popup (hidden by default) ============================== -->
 <div id="reviewPopup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:2000;">
     <div style="max-width:520px; margin:8% auto; background:#1f244e; border:1px solid #3f477f; border-radius:10px; padding:22px; color:#f2f3ff;">
         <h3 style="margin-top:0; color:#f2f3ff;">Upload Gig Review</h3>
@@ -85,23 +96,44 @@
     </div>
 </div>
 
+
+<!-- ============================== JavaScript: Open / Close Popup + Submit Review ============================== -->
+@*
+    What this script does:
+    - openReviewPopup() and closeReviewPopup() just show/hide the <div id="reviewPopup">.
+    - submitReview() sends the rating + comment to the server WITHOUT a full page reload
+      (called an "AJAX" request). The server replies with JSON like { success: true, message: "..." }.
+      We show the message in the site alert popup, and if it worked we reload the page so
+      the new review appears in the list.
+*@
 <script>
+    // Open the review popup. If nobody is logged in, send the user to the sign-up page instead.
     function openReviewPopup() {
+        // Razor pastes the current actor here when it renders the page. It will be 'buyer', 'seller', or '' (empty).
         var actor = '@(actor ?? "")';
-        if (!actor) {
+        if (actor == "") {
             window.location.href = '/Guest/SignUpPage';
             return;
         }
         document.getElementById('reviewPopup').style.display = 'block';
     }
+
+    // Hide the review popup.
     function closeReviewPopup() {
         document.getElementById('reviewPopup').style.display = 'none';
     }
+
+    // Send the review to the server, show the response message, and reload the page on success.
+    // The word "async" lets us use "await" below - it means "wait for this step to finish before moving on".
     async function submitReview() {
-        const rating = parseInt(document.getElementById('reviewRating').value);
-        const comment = document.getElementById('reviewComment').value;
-        const gigId = '@gigId';
-        const response = await fetch('/Buyer/UploadGigReview', {
+        // Read the rating, comment and gig id out of the form.
+        var rating = parseInt(document.getElementById('reviewRating').value);
+        var comment = document.getElementById('reviewComment').value;
+        var gigId = '@gigId';
+
+        // Send a POST to /Buyer/UploadGigReview with the three fields as standard form data.
+        // "await" pauses here until the server replies.
+        var response = await fetch('/Buyer/UploadGigReview', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
             body: new URLSearchParams({
@@ -110,8 +142,14 @@
                 Gig_id: gigId
             })
         });
-        const result = await response.json();
+
+        // The server replies with JSON: { success: true/false, message: "..." }.
+        var result = await response.json();
+
+        // Show the message inside the site alert popup (defined in the shared layout).
         showSiteAlert(result.message);
+
+        // If the upload succeeded, reload the page so the new review shows up in the list.
         if (result.success) {
             window.location.reload();
         }

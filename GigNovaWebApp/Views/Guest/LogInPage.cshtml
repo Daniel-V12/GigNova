@@ -1,6 +1,4 @@
-﻿@using GigNovaModels.ViewModels
-@using GigNovaModels.Models
-@{
+﻿@{
     ViewData["Title"] = "LogInPage";
     Layout = "~/Views/Shared/MasterGuestPage.cshtml";
 }
@@ -13,12 +11,11 @@
 
         @if (TempData["AuthMessage"] != null)
         {
-            <p style="background:#2b3052;color:#ffffff;padding:10px 12px;border-radius:8px;margin-bottom:12px;">@TempData["AuthMessage"]</p>
+            <p class="auth-info-message" style="background:#2b3052;color:#ffffff;padding:10px 12px;border-radius:8px;margin-bottom:12px;">@TempData["AuthMessage"]</p>
         }
-
         @if (ViewBag.ErrorMessage != null)
         {
-            <p style="background:#8b1f2f;color:#ffffff;padding:10px 12px;border-radius:8px;margin-bottom:12px;">@ViewBag.ErrorMessage</p>
+            <p class="auth-error-message" style="background:#8b1f2f;color:#ffffff;padding:10px 12px;border-radius:8px;margin-bottom:12px;">@ViewBag.ErrorMessage</p>
         }
 
         <form asp-controller="Guest" asp-action="LogIn" method="post" id="loginForm">
@@ -47,7 +44,7 @@
             <button type="submit" class="submit-btn">Log In</button>
 
             <div class="signup-link">
-                Don't have an account? <a href="http://localhost:5172/Guest/SignUpPage">Sign Up</a>
+                Don't have an account? <a asp-controller="Guest" asp-action="SignUpPage">Sign Up</a>
             </div>
         </form>
     </div>

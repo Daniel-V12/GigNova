@@ -2,6 +2,10 @@
 @model SelectedGigViewModel
 @{
     ViewData["Title"] = "ViewSelectedGig";
+
+    // Pick the right layout based on the current session, and decide which controller
+    // the "Continue to Purchase" link goes to (a logged-in buyer goes to Buyer/CustomizeOrder;
+    // a guest gets bounced through Guest/CustomizeOrder which redirects to login first).
     Layout = "~/Views/Shared/MasterGuestPage.cshtml";
     string personId = Context.Session.GetString("person_id");
     string actor = Context.Session.GetString("actor");

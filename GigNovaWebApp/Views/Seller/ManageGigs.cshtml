@@ -1,5 +1,4 @@
 ﻿@using GigNovaModels.Models
-@using System.Linq
 @using GigNovaModels.ViewModels
 @model ManageGigsViewModel
 @{
@@ -12,43 +11,68 @@
         sellerId = ViewData["SellerId"].ToString();
     }
 
+    // Build the gigs list (filter out any null items from the model).
     List<Gig> gigs = new List<Gig>();
     if (Model != null && Model.Gigs != null)
     {
-        gigs = Model.Gigs.Where(x => x != null).ToList();
+        foreach (Gig g in Model.Gigs)
+        {
+            if (g != null)
+            {
+                gigs.Add(g);
+            }
+        }
     }
 
+    // Selected gig (the one being edited / created).
     Gig selectedGig = new Gig();
     if (Model != null && Model.SelectedGig != null)
     {
         selectedGig = Model.SelectedGig;
     }
 
+    // Build the delivery times list (filter out nulls).
     List<Delivery_time> deliveryTimes = new List<Delivery_time>();
     if (Model != null && Model.DeliveryTimes != null)
     {
-        deliveryTimes = Model.DeliveryTimes.Where(x => x != null).ToList();
+        foreach (Delivery_time dt in Model.DeliveryTimes)
+        {
+            if (dt != null)
+            {
+                deliveryTimes.Add(dt);
+            }
+        }
     }
 
+    // Build the categories list (filter out nulls).
     List<Category> allCategories = new List<Category>();
     if (Model != null && Model.AllCategories != null)
     {
-        allCategories = Model.AllCategories.Where(x => x != null).ToList();
+        foreach (Category c in Model.AllCategories)
+        {
+            if (c != null)
+            {
+                allCategories.Add(c);
+            }
+        }
     }
 
+    // Build a quick lookup: delivery_time_id -> delivery_time_name.
     Dictionary<string, string> deliveryNameById = new Dictionary<string, string>();
     foreach (Delivery_time deliveryTime in deliveryTimes)
     {
-        if (deliveryTime != null && string.IsNullOrWhiteSpace(deliveryTime.Delivery_time_id) == false)
+        if (string.IsNullOrWhiteSpace(deliveryTime.Delivery_time_id) == false)
         {
             deliveryNameById[deliveryTime.Delivery_time_id] = deliveryTime.Delivery_time_name;
         }
     }
 
+    // Flags + display values.
     bool isDraftGig = selectedGig != null && selectedGig.Gig_id == "__new";
     bool isEditing = string.IsNullOrWhiteSpace(selectedGig.Gig_id) == false && isDraftGig == false;
     string selectedPhoto = selectedGig.Gig_photo ?? "";
 
+    // Selected category ids (used to pre-fill the category dropdowns).
     List<string> selectedCategoryIds = new List<string>();
     if (selectedGig.Category_ids != null && selectedGig.Category_ids.Count > 0)
     {
@@ -60,12 +84,40 @@
             }
         }
     }
+    // Always show at least one (empty) dropdown row.
     if (selectedCategoryIds.Count == 0)
     {
         selectedCategoryIds.Add("");
     }
-}
 
+    // Header text + form action name based on whether we're editing an existing gig or creating a draft.
+    string editorTitle = "Create Gig Draft";
+    string editorAction = "AddGig";
+    string editorSubmitText = "Create This Gig";
+    if (isEditing)
+    {
+        editorTitle = "Edit Gig";
+        editorAction = "EditGig";
+        editorSubmitText = "Save Changes";
+    }
+
+    // Hidden-input values for the editor form.
+    string formGigId = selectedGig.Gig_id;
+    if (isDraftGig)
+    {
+        formGigId = "";
+    }
+    int formLanguageId = 1;
+    if (selectedGig.Language_id > 0)
+    {
+        formLanguageId = selectedGig.Language_id;
+    }
+    double formGigPrice = 5;
+    if (selectedGig.Gig_price > 0)
+    {
+        formGigPrice = selectedGig.Gig_price;
+    }
+}
 
 <link href="~/css/seller_pages/managegigs_page.css" rel="stylesheet" />
 
@@ -75,6 +127,7 @@
         <div class="manage-gig-message">@TempData["ManageGigMessage"]</div>
     }
 
+    <!-- ============================== Left Panel: Gig List ============================== -->
     <section class="manage-gigs-list-panel">
         <div class="panel-header-row">
             <h2>Manage Gigs</h2>
@@ -94,49 +147,61 @@
             {
                 foreach (Gig gig in gigs)
                 {
-                    <a class="gig-row @(gig.Gig_id == selectedGig.Gig_id ? "active" : "")"
+                    // Per-row precomputes so the markup stays readable.
+                    string rowActiveClass = "";
+                    if (gig.Gig_id == selectedGig.Gig_id)
+                    {
+                        rowActiveClass = "active";
+                    }
+
+                    string gigDeliveryName = "Delivery ID " + gig.Delivery_time_id;
+                    if (deliveryNameById.ContainsKey(gig.Delivery_time_id.ToString()))
+                    {
+                        gigDeliveryName = deliveryNameById[gig.Delivery_time_id.ToString()];
+                    }
+
+                    string statusBadgeClass = "draft";
+                    string statusBadgeText = "Draft";
+                    if (gig.Gig_id != "__new")
+                    {
+                        if (gig.Is_publish)
+                        {
+                            statusBadgeClass = "published";
+                            statusBadgeText = "Published";
+                        }
+                        else
+                        {
+                            statusBadgeClass = "unpublished";
+                            statusBadgeText = "Unpublished";
+                        }
+                    }
+
+                    <a class="gig-row @rowActiveClass"
                        asp-controller="Seller"
                        asp-action="ManageGigs"
                        asp-route-seller_id="@sellerId"
                        asp-route-gig_id="@gig.Gig_id">
                         <div class="gig-main">
                             <p class="gig-title">@gig.Gig_name</p>
-                            <p class="gig-meta">
-                                $@gig.Gig_price ·
-                                @if (deliveryNameById.ContainsKey(gig.Delivery_time_id.ToString()))
-                                {
-                                    @deliveryNameById[gig.Delivery_time_id.ToString()]
-                                }
-                                else
-                                {
-                                    @:Delivery ID @gig.Delivery_time_id
-                                }
-                            </p>
+                            <p class="gig-meta">$@gig.Gig_price · @gigDeliveryName</p>
                         </div>
-                        @if (gig.Gig_id == "__new")
-                        {
-                            <span class="gig-status draft">Draft</span>
-                        }
-                        else
-                        {
-                            <span class="gig-status @(gig.Is_publish ? "published" : "unpublished")">
-                                @(gig.Is_publish ? "Published" : "Unpublished")
-                            </span>
-                        }
+                        <span class="gig-status @statusBadgeClass">@statusBadgeText</span>
                     </a>
                 }
             }
         </div>
     </section>
 
-    <section class="manage-gigs-editor-panel">
-        <h2>@(isEditing ? "Edit Gig" : "Create Gig Draft")</h2>
 
-        <form asp-controller="Seller" asp-action="@(isEditing ? "EditGig" : "AddGig")" method="post" enctype="multipart/form-data" class="gig-editor-form">
-            <input type="hidden" name="Gig_id" value="@(isDraftGig ? "" : selectedGig.Gig_id)" />
+    <!-- ============================== Right Panel: Gig Editor ============================== -->
+    <section class="manage-gigs-editor-panel">
+        <h2>@editorTitle</h2>
+
+        <form asp-controller="Seller" asp-action="@editorAction" method="post" enctype="multipart/form-data" class="gig-editor-form">
+            <input type="hidden" name="Gig_id" value="@formGigId" />
             <input type="hidden" name="Seller_id" value="@sellerId" />
             <input type="hidden" name="Gig_photo" value="@selectedPhoto" />
-            <input type="hidden" name="Language_id" value="@(selectedGig.Language_id > 0 ? selectedGig.Language_id : 1)" />
+            <input type="hidden" name="Language_id" value="@formLanguageId" />
 
             <label class="field-label" for="Gig_name">Title</label>
             <input class="field-input" id="Gig_name" name="Gig_name" value="@selectedGig.Gig_name" maxlength="100" required />
@@ -144,7 +209,7 @@
             <div class="field-row-two">
                 <div>
                     <label class="field-label" for="Gig_price">Price ($)</label>
-                    <input class="field-input" id="Gig_price" name="Gig_price" type="number" min="1" step="0.01" value="@(selectedGig.Gig_price > 0 ? selectedGig.Gig_price : 5)" required />
+                    <input class="field-input" id="Gig_price" name="Gig_price" type="number" min="1" step="0.01" value="@formGigPrice" required />
                 </div>
                 <div>
                     <label class="field-label" for="Delivery_time_id">Delivery Time</label>
@@ -211,6 +276,7 @@
                 <p class="photo-label">Current photo:</p>
                 <button type="button" class="outline-btn" onclick="openGigPhotoPopup()">Show Photo</button>
 
+                <!-- Full-screen photo popup (hidden by default) -->
                 <div id="gigPhotoPopup"
                      style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 3000; padding: 40px;"
                      onclick="closeGigPhotoPopup(event)">
@@ -222,17 +288,26 @@
             }
 
             <div class="editor-buttons">
-                <button type="submit" class="primary-btn">@(isEditing ? "Save Changes" : "Create This Gig")</button>
+                <button type="submit" class="primary-btn">@editorSubmitText</button>
             </div>
         </form>
 
+        @* Publish / unpublish / delete buttons - only shown when editing a real (saved) gig. *@
         @if (isEditing)
         {
+            string publishAction = "PublishGig";
+            string publishButtonText = "Publish Gig";
+            if (selectedGig.Is_publish)
+            {
+                publishAction = "UnpublishGig";
+                publishButtonText = "Unpublish Gig";
+            }
+
             <div class="editor-buttons split">
-                <form asp-controller="Seller" asp-action="@(selectedGig.Is_publish ? "UnpublishGig" : "PublishGig")" method="post">
+                <form asp-controller="Seller" asp-action="@publishAction" method="post">
                     <input type="hidden" name="seller_id" value="@sellerId" />
                     <input type="hidden" name="gig_id" value="@selectedGig.Gig_id" />
-                    <button type="submit" class="outline-btn wide">@(selectedGig.Is_publish ? "Unpublish Gig" : "Publish Gig")</button>
+                    <button type="submit" class="outline-btn wide">@publishButtonText</button>
                 </form>
 
                 <form id="deleteGigForm" asp-controller="Seller" asp-action="DeleteGig" method="post">
@@ -245,7 +320,28 @@
     </section>
 </div>
 
+
+<!-- ============================== JavaScript: Dynamic Category Rows + Photo Popup ============================== -->
+@*
+    Two features:
+
+    1. CATEGORY ROWS - the user can pick multiple categories for a gig. We start with one
+       <select> dropdown (added by Razor) and let the user click "+ Add another category"
+       to clone another dropdown. The "x" button on each row removes it.
+       buildCategoryOptionsHtml() grabs the <option>s from the FIRST dropdown so the new
+       one has the same options.
+       row.innerHTML = '<select...>...' is the simplest way to put a brand new chunk of
+       HTML into the page from JavaScript - the browser parses the string into real elements.
+
+    2. PHOTO POPUP - open/close the full-screen image preview. closeGigPhotoPopup uses
+       the standard "only close on backdrop click" pattern, plus also closes when the
+       click is on the Close button (which has class "primary-btn").
+*@
 <script>
+
+    // ----------- 1. CATEGORY ROWS -----------
+
+    // Build the <option> tags HTML by copying them from the very first dropdown on the page.
     function buildCategoryOptionsHtml() {
         var picker = document.getElementById('categoryPicker');
         var firstSelect = picker.querySelector('select.category-select');
@@ -255,11 +351,12 @@
         var optionsHtml = '';
         for (var i = 0; i < firstSelect.options.length; i++) {
             var option = firstSelect.options[i];
-            optionsHtml += '<option value="' + option.value + '">' + option.text + '</option>';
+            optionsHtml = optionsHtml + '<option value="' + option.value + '">' + option.text + '</option>';
         }
         return optionsHtml;
     }
 
+    // Add a new (empty) category dropdown row at the bottom of the picker.
     function addCategoryRow() {
         var picker = document.getElementById('categoryPicker');
         var row = document.createElement('div');
@@ -272,6 +369,8 @@
         picker.appendChild(row);
     }
 
+    // Remove the row that owns the given "x" button.
+    // If only one row is left, we keep it but reset its selection to "Select category".
     function removeCategoryRow(button) {
         var picker = document.getElementById('categoryPicker');
         var rows = picker.querySelectorAll('.category-row');
@@ -285,15 +384,31 @@
         button.parentElement.remove();
     }
 
+
+    // ----------- 2. PHOTO POPUP -----------
+
+    // Show the full-screen photo popup.
     function openGigPhotoPopup() {
         var popup = document.getElementById('gigPhotoPopup');
-        if (popup) popup.style.display = 'flex';
+        if (popup != null) {
+            popup.style.display = 'flex';
+        }
     }
 
+    // Hide the full-screen photo popup.
+    // Close when the click is on the backdrop itself OR on the Close button.
     function closeGigPhotoPopup(event) {
         var popup = document.getElementById('gigPhotoPopup');
-        if (!popup) return;
-        if (event && event.target.id !== 'gigPhotoPopup' && !event.target.classList.contains('primary-btn')) return;
+        if (popup == null) {
+            return;
+        }
+        if (event != null) {
+            var clickedBackdrop = event.target.id == 'gigPhotoPopup';
+            var clickedCloseButton = event.target.classList.contains('primary-btn');
+            if (clickedBackdrop == false && clickedCloseButton == false) {
+                return;
+            }
+        }
         popup.style.display = 'none';
     }
 </script>

@@ -1,6 +1,5 @@
 ﻿using GigNovaModels.Models;
 using GigNovaModels.ViewModels;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GigNovaWS.Controllers
@@ -10,49 +9,16 @@ namespace GigNovaWS.Controllers
     public class AdminController : ControllerBase
     {
         RepositoryUOW repositoryUOW;
+
         public AdminController()
         {
             this.repositoryUOW = new RepositoryUOW();
         }
 
-        [HttpPost]
-        public bool BlockGig(string gig_id)
-        {
-            try
-            {
-                this.repositoryUOW.DbHelperOledb.OpenConnection();
-                return this.repositoryUOW.GigRepository.Block(gig_id);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return false;
-            }
-            finally
-            {
-                this.repositoryUOW.DbHelperOledb.CloseConnection();
-            }
-        }
 
-        [HttpPost]
-        public bool RemoveGigReview(string review_id)
-        {
-            try
-            {
-                this.repositoryUOW.DbHelperOledb.OpenConnection();
-                return this.repositoryUOW.ReviewRepository.Delete(review_id);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return false;
-            }
-            finally
-            {
-                this.repositoryUOW.DbHelperOledb.CloseConnection();
-            }
-        }
+        // ============================== Categories Management ==============================
 
+        // Creates a new category from a name.
         [HttpPost]
         public bool AddCategory(string category_name)
         {
@@ -76,6 +42,36 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Renames an existing category by id.
+        [HttpPost]
+        public bool UpdateCategory(string category_id, string category_name)
+        {
+            if (category_id == null)
+            {
+                return false;
+            }
+            try
+            {
+                Category category = new Category
+                {
+                    Category_id = category_id,
+                    Category_name = category_name
+                };
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                return this.repositoryUOW.CategoryRepository.Update(category);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+        // Marks a category as blocked (hidden from buyers).
         [HttpPost]
         public bool BlockCategory(string category_id)
         {
@@ -95,25 +91,7 @@ namespace GigNovaWS.Controllers
             }
         }
 
-        [HttpPost]
-        public bool UnblockGig(string gig_id)
-        {
-            try
-            {
-                this.repositoryUOW.DbHelperOledb.OpenConnection();
-                return this.repositoryUOW.GigRepository.Unblock(gig_id);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return false;
-            }
-            finally
-            {
-                this.repositoryUOW.DbHelperOledb.CloseConnection();
-            }
-        }
-
+        // Unblocks a previously blocked category.
         [HttpPost]
         public bool UnblockCategory(string category_id)
         {
@@ -133,11 +111,78 @@ namespace GigNovaWS.Controllers
             }
         }
 
+
+        // ============================== Gig & Review Moderation ==============================
+
+        // Marks a gig as blocked (hidden from buyers).
+        [HttpPost]
+        public bool BlockGig(string gig_id)
+        {
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                return this.repositoryUOW.GigRepository.Block(gig_id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+        // Unblocks a previously blocked gig.
+        [HttpPost]
+        public bool UnblockGig(string gig_id)
+        {
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                return this.repositoryUOW.GigRepository.Unblock(gig_id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+        // Permanently deletes a review.
+        [HttpPost]
+        public bool RemoveGigReview(string review_id)
+        {
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                return this.repositoryUOW.ReviewRepository.Delete(review_id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+
+        // ============================== Blocked Items List ==============================
+
+        // Returns the list of blocked gigs OR blocked categories (chosen by `type`), filtered by search text and paginated.
         [HttpGet]
         public BlockedListViewModel GetBlockedListViewModel(string type = "gig", string search = "", int page = 1)
         {
             BlockedListViewModel viewModel = new BlockedListViewModel();
-            if (search == null) search = "";
+            search = search ?? "";
             viewModel.Search = search;
             string searchLower = search.Trim().ToLower();
 
@@ -171,9 +216,13 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Keeps only the gigs whose name contains the (already lower-cased) search text.
         private List<Gig> FilterGigsBySearch(List<Gig> gigs, string searchLower)
         {
-            if (searchLower == "") return gigs;
+            if (searchLower == "")
+            {
+                return gigs;
+            }
             List<Gig> result = new List<Gig>();
             foreach (Gig gig in gigs)
             {
@@ -185,9 +234,13 @@ namespace GigNovaWS.Controllers
             return result;
         }
 
+        // Keeps only the categories whose name contains the (already lower-cased) search text.
         private List<Category> FilterCategoriesBySearch(List<Category> categories, string searchLower)
         {
-            if (searchLower == "") return categories;
+            if (searchLower == "")
+            {
+                return categories;
+            }
             List<Category> result = new List<Category>();
             foreach (Category category in categories)
             {
@@ -199,6 +252,7 @@ namespace GigNovaWS.Controllers
             return result;
         }
 
+        // Calculates total page count and clamps the current page to a valid value.
         private void UpdateBlockedPagination(BlockedListViewModel viewModel, int itemsCount, ref int page)
         {
             int perPage = viewModel.ItemsPerPageCount;
@@ -214,37 +268,15 @@ namespace GigNovaWS.Controllers
                     viewModel.TotalPages++;
                 }
             }
-            if (page < 1) page = 1;
-            if (viewModel.TotalPages > 0 && page > viewModel.TotalPages) page = viewModel.TotalPages;
+            if (page < 1)
+            {
+                page = 1;
+            }
+            if (viewModel.TotalPages > 0 && page > viewModel.TotalPages)
+            {
+                page = viewModel.TotalPages;
+            }
             viewModel.Page = page;
-        }
-
-        [HttpPost]
-        public bool UpdateCategory(string category_id, string category_name)
-        {
-            if (category_id == null)
-            {
-                return false;
-            }
-            try
-            {
-                Category category = new Category
-                {
-                    Category_id = category_id,
-                    Category_name = category_name
-                };
-                this.repositoryUOW.DbHelperOledb.OpenConnection();
-                return this.repositoryUOW.CategoryRepository.Update(category);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return false;
-            }
-            finally
-            {
-                this.repositoryUOW.DbHelperOledb.CloseConnection();
-            }
         }
     }
 }

@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-using GigNovaModels.Models;
+﻿using GigNovaModels.Models;
 using GigNovaModels.ViewModels;
 using GigNovaWSClient;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
 namespace GigNovaWebApp.Controllers
 {
     public class SellerController : Controller
     {
+        // ============================== Home & Profile ==============================
+
+        // Seller landing page. Tries to fetch the display name from the WS to show "Welcome, X".
         [HttpGet]
         public async Task<IActionResult> HomePage()
         {
@@ -19,11 +21,7 @@ namespace GigNovaWebApp.Controllers
             {
                 try
                 {
-                    ApiClient<SellerProfileViewModel> client = new ApiClient<SellerProfileViewModel>();
-                    client.Scheme = "https";
-                    client.Host = "localhost";
-                    client.Port = 7059;
-                    client.Path = "api/Seller/GetSellerProfileViewModel";
+                    ApiClient<SellerProfileViewModel> client = BuildClient<SellerProfileViewModel>("api/Seller/GetSellerProfileViewModel");
                     client.AddParameter("seller_id", sellerId);
 
                     SellerProfileViewModel viewModel = await client.GetAsync();
@@ -40,122 +38,31 @@ namespace GigNovaWebApp.Controllers
             return View("~/Views/Shared/HomePage.cshtml");
         }
 
-        [HttpGet]
-        public IActionResult SellerHomePage()
-        {
-            return RedirectToAction("HomePage");
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> ManageGigs(string seller_id, string gig_id = null, bool create_new = false, int page = 0)
-        {
-            if (string.IsNullOrWhiteSpace(seller_id))
-            {
-                seller_id = HttpContext.Session.GetString("person_id");
-            }
-
-            if (string.IsNullOrWhiteSpace(seller_id))
-            {
-                return RedirectToAction("HomePage", "Guest");
-            }
-
-            ApiClient<ManageGigsViewModel> client = new ApiClient<ManageGigsViewModel>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Seller/GetManageGigsViewModel";
-            client.AddParameter("seller_id", seller_id);
-            if (page != 0)
-            {
-                client.AddParameter("page", page.ToString());
-            }
-
-            ManageGigsViewModel viewModel = await client.GetAsync();
-            if (viewModel == null)
-            {
-                viewModel = new ManageGigsViewModel();
-            }
-            if (viewModel.Gigs == null)
-            {
-                viewModel.Gigs = new List<Gig>();
-            }
-            if (viewModel.DeliveryTimes == null)
-            {
-                viewModel.DeliveryTimes = new List<Delivery_time>();
-            }
-
-            int sellerIdValue = int.TryParse(seller_id, out int parsedSellerId) ? parsedSellerId : 0;
-            if (create_new || gig_id == "__new")
-            {
-                Gig draftGig = new Gig();
-                draftGig.Gig_id = "__new";
-                draftGig.Seller_id = sellerIdValue;
-                draftGig.Gig_name = "New Gig Draft";
-                draftGig.Gig_description = "Example: I will create a clean, professional result based on your brief. Tell me your goals, style, and deadline.";
-                draftGig.Gig_price = 50;
-                draftGig.Delivery_time_id = 1;
-                draftGig.Is_publish = false;
-                viewModel.Gigs.Insert(0, draftGig);
-                gig_id = "__new";
-            }
-
-            Gig selectedGig = null;
-            if (string.IsNullOrWhiteSpace(gig_id) == false)
-            {
-                selectedGig = viewModel.Gigs.FirstOrDefault(x => x != null && x.Gig_id == gig_id);
-            }
-            if (selectedGig == null)
-            {
-                selectedGig = viewModel.Gigs.FirstOrDefault(x => x != null);
-            }
-
-            if (selectedGig == null)
-            {
-                selectedGig = new Gig();
-                selectedGig.Seller_id = sellerIdValue;
-            }
-
-            viewModel.SelectedGig = selectedGig;
-            ViewData["SellerId"] = seller_id;
-            return View(viewModel);
-        }
-
+        // Shows the seller's profile page. Falls back to the session id if no id is in the URL.
         [HttpGet]
         public async Task<IActionResult> SellerProfile(string seller_id)
         {
-            if (seller_id == null || seller_id == "")
+            if (string.IsNullOrEmpty(seller_id))
             {
                 seller_id = HttpContext.Session.GetString("person_id");
             }
-
-            if (seller_id == null || seller_id == "")
+            if (string.IsNullOrEmpty(seller_id))
             {
                 return RedirectToAction("HomePage", "Guest");
             }
 
-            ApiClient<SellerProfileViewModel> client = new ApiClient<SellerProfileViewModel>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Seller/GetSellerProfileViewModel";
+            ApiClient<SellerProfileViewModel> client = BuildClient<SellerProfileViewModel>("api/Seller/GetSellerProfileViewModel");
             client.AddParameter("seller_id", seller_id);
 
             SellerProfileViewModel viewModel = await client.GetAsync();
-            if (viewModel == null)
-            {
-                viewModel = new SellerProfileViewModel();
-            }
-            if (viewModel.seller == null)
-            {
-                viewModel.seller = new Seller();
-            }
-            if (viewModel.seller_person == null)
-            {
-                viewModel.seller_person = new Person();
-            }
+
+            // Make sure none of the nested objects are null (the view assumes they exist).
+            viewModel = viewModel ?? new SellerProfileViewModel();
+            viewModel.seller = viewModel.seller ?? new Seller();
+            viewModel.seller_person = viewModel.seller_person ?? new Person();
 
             viewModel.seller.Seller_id = seller_id;
-            if (viewModel.seller_person.Person_id == null || viewModel.seller_person.Person_id == "")
+            if (string.IsNullOrEmpty(viewModel.seller_person.Person_id))
             {
                 viewModel.seller_person.Person_id = seller_id;
             }
@@ -163,11 +70,12 @@ namespace GigNovaWebApp.Controllers
             return View(viewModel);
         }
 
+        // Handles the seller profile update POST. Reuses the BecomeASeller WS endpoint (which handles create + update + avatar).
         [HttpPost]
         public async Task<IActionResult> SellerProfile(SellerProfileViewModel viewModel, IFormFile sellerAvatarFile)
         {
             string sellerId = HttpContext.Session.GetString("person_id");
-            if (sellerId == null || sellerId == "")
+            if (string.IsNullOrEmpty(sellerId))
             {
                 return RedirectToAction("HomePage", "Guest");
             }
@@ -177,7 +85,6 @@ namespace GigNovaWebApp.Controllers
             {
                 sellerToUpdate = viewModel.seller;
             }
-
             sellerToUpdate.Seller_id = sellerId;
 
             sellerToUpdate.Validate();
@@ -196,12 +103,9 @@ namespace GigNovaWebApp.Controllers
                 return RedirectToAction("SellerProfile", new { seller_id = sellerId });
             }
 
-            ApiClient<Seller> client = new ApiClient<Seller>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Buyer/BecomeASeller";
+            ApiClient<Seller> client = BuildClient<Seller>("api/Buyer/BecomeASeller");
 
+            // Post the seller info + optional avatar file. Always dispose the stream in finally.
             bool response = false;
             Stream avatarStream = null;
             try
@@ -240,26 +144,23 @@ namespace GigNovaWebApp.Controllers
             return RedirectToAction("SellerProfile", new { seller_id = sellerId });
         }
 
+        // Sends current + new password to the WS. The WS verifies the current password before updating.
         [HttpPost]
         public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword)
         {
             string sellerId = HttpContext.Session.GetString("person_id");
-            if (sellerId == null || sellerId == "")
+            if (string.IsNullOrEmpty(sellerId))
             {
                 return RedirectToAction("HomePage", "Guest");
             }
 
-            if (currentPassword == null || currentPassword == "" || newPassword == null || newPassword == "")
+            if (string.IsNullOrEmpty(currentPassword) || string.IsNullOrEmpty(newPassword))
             {
                 TempData["SellerProfileMessage"] = "Please enter current and new password.";
                 return RedirectToAction("SellerProfile", new { seller_id = sellerId });
             }
 
-            ApiClient<string> client = new ApiClient<string>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Seller/ChangeSellerPassword";
+            ApiClient<string> client = BuildClient<string>("api/Seller/ChangeSellerPassword");
             client.AddParameter("seller_id", sellerId);
             client.AddParameter("current_password", currentPassword);
             client.AddParameter("new_password", newPassword);
@@ -277,99 +178,88 @@ namespace GigNovaWebApp.Controllers
             return RedirectToAction("SellerProfile", new { seller_id = sellerId });
         }
 
+
+        // ============================== Gigs Management ==============================
+
+        // Renders the manage-gigs page: list of seller's gigs + the currently selected gig (or a draft if creating new).
         [HttpGet]
-        public async Task<IActionResult> IncomingOrders(string seller_id)
+        public async Task<IActionResult> ManageGigs(string seller_id, string gig_id = null, bool create_new = false, int page = 0)
         {
             if (string.IsNullOrWhiteSpace(seller_id))
             {
                 seller_id = HttpContext.Session.GetString("person_id");
             }
-
             if (string.IsNullOrWhiteSpace(seller_id))
             {
                 return RedirectToAction("HomePage", "Guest");
             }
 
-            ApiClient<OrdersViewModel> client = new ApiClient<OrdersViewModel>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Seller/GetOrdersViewModel";
+            ApiClient<ManageGigsViewModel> client = BuildClient<ManageGigsViewModel>("api/Seller/GetManageGigsViewModel");
             client.AddParameter("seller_id", seller_id);
-
-            OrdersViewModel ordersViewModel = await client.GetAsync();
-            if (ordersViewModel == null)
+            if (page != 0)
             {
-                ordersViewModel = new OrdersViewModel();
-            }
-            if (ordersViewModel.Orders == null)
-            {
-                ordersViewModel.Orders = new List<Order>();
-            }
-            if (ordersViewModel.Buyers == null)
-            {
-                ordersViewModel.Buyers = new List<Buyer>();
+                client.AddParameter("page", page.ToString());
             }
 
-            List<SelectedOrderViewModel> notifications = new List<SelectedOrderViewModel>();
-            for (int i = 0; i < ordersViewModel.Orders.Count; i++)
+            ManageGigsViewModel viewModel = await client.GetAsync();
+            viewModel = viewModel ?? new ManageGigsViewModel();
+            viewModel.Gigs = viewModel.Gigs ?? new List<Gig>();
+            viewModel.DeliveryTimes = viewModel.DeliveryTimes ?? new List<Delivery_time>();
+
+            int sellerIdValue;
+            int.TryParse(seller_id, out sellerIdValue);
+
+            // If "create new" was requested, insert a draft gig at the top of the list.
+            if (create_new || gig_id == "__new")
             {
-                Order order = ordersViewModel.Orders[i];
-                if (order == null)
+                Gig draftGig = new Gig();
+                draftGig.Gig_id = "__new";
+                draftGig.Seller_id = sellerIdValue;
+                draftGig.Gig_name = "New Gig Draft";
+                draftGig.Gig_description = "Example: I will create a clean, professional result based on your brief. Tell me your goals, style, and deadline.";
+                draftGig.Gig_price = 50;
+                draftGig.Delivery_time_id = 1;
+                draftGig.Is_publish = false;
+                viewModel.Gigs.Insert(0, draftGig);
+                gig_id = "__new";
+            }
+
+            // Find the gig that matches gig_id, or the first gig in the list, or a fresh empty Gig.
+            Gig selectedGig = null;
+            if (string.IsNullOrWhiteSpace(gig_id) == false)
+            {
+                foreach (Gig g in viewModel.Gigs)
                 {
-                    continue;
+                    if (g != null && g.Gig_id == gig_id)
+                    {
+                        selectedGig = g;
+                        break;
+                    }
                 }
-
-                Buyer buyer = null;
-                if (i < ordersViewModel.Buyers.Count)
-                {
-                    buyer = ordersViewModel.Buyers[i];
-                }
-
-                notifications.Add(new SelectedOrderViewModel
-                {
-                    Order = order,
-                    Buyer = buyer
-                });
             }
-
-            notifications = notifications
-                .OrderBy(x => x.Order.Order_status_id == 3 ? 1 : 0)
-                .ThenByDescending(x => DateTime.TryParse(x.Order.Order_creation_date, out DateTime d) ? d : DateTime.MinValue)
-                .ThenByDescending(x => int.TryParse(x.Order.Order_id, out int id) ? id : 0)
-                .ToList();
-
-            Dictionary<string, string> gigNamesByOrderId = new Dictionary<string, string>();
-            foreach (SelectedOrderViewModel notification in notifications)
+            if (selectedGig == null)
             {
-                string orderId = notification.Order.Order_id;
-                if (string.IsNullOrWhiteSpace(orderId))
+                foreach (Gig g in viewModel.Gigs)
                 {
-                    continue;
+                    if (g != null)
+                    {
+                        selectedGig = g;
+                        break;
+                    }
                 }
-
-                ApiClient<CustomizeOrderViewModel> orderClient = new ApiClient<CustomizeOrderViewModel>();
-                orderClient.Scheme = "https";
-                orderClient.Host = "localhost";
-                orderClient.Port = 7059;
-                orderClient.Path = "api/Buyer/GetCustomizeOrderViewModel";
-                orderClient.AddParameter("order_id", orderId);
-
-                CustomizeOrderViewModel details = await orderClient.GetAsync();
-                string gigName = "Gig";
-                if (details != null && details.gig != null && string.IsNullOrWhiteSpace(details.gig.Gig_name) == false)
-                {
-                    gigName = details.gig.Gig_name;
-                }
-                gigNamesByOrderId[orderId] = gigName;
+            }
+            if (selectedGig == null)
+            {
+                selectedGig = new Gig();
+                selectedGig.Seller_id = sellerIdValue;
             }
 
+            viewModel.SelectedGig = selectedGig;
             ViewData["SellerId"] = seller_id;
-            ViewData["GigNamesByOrderId"] = gigNamesByOrderId;
-            return View("~/Views/Seller/IncomingOrders.cshtml", notifications);
+            return View(viewModel);
         }
 
-
+        // Handles the "add new gig" POST. Sends the gig + required photo file to the WS.
         [HttpPost]
         public async Task<IActionResult> AddGig(Gig gig, IFormFile gigPhotoFile, List<string> Category_ids)
         {
@@ -379,19 +269,16 @@ namespace GigNovaWebApp.Controllers
                 return RedirectToAction("HomePage", "Guest");
             }
 
-            if (gig == null)
-            {
-                gig = new Gig();
-            }
+            gig = gig ?? new Gig();
 
-            gig.Seller_id = int.TryParse(sellerId, out int sellerIdValue) ? sellerIdValue : 0;
+            int sellerIdValue;
+            int.TryParse(sellerId, out sellerIdValue);
+            gig.Seller_id = sellerIdValue;
 
-            if (gig.Language_id <= 0)
-            {
-                gig.Language_id = 1;
-            }
+            // Language selection isn't implemented in the form yet, so always default to 1.
             gig.Language_id = 1;
 
+            // These fields are auto-set on the server; don't let an empty form invalidate the model.
             ModelState.Remove("Gig_id");
             ModelState.Remove("Gig_date");
             ModelState.Remove("Gig_photo");
@@ -419,6 +306,7 @@ namespace GigNovaWebApp.Controllers
                 return RedirectToAction("ManageGigs", new { seller_id = sellerId });
             }
 
+            // De-duplicate the posted category ids.
             gig.Category_ids = new List<string>();
             if (Category_ids != null)
             {
@@ -431,11 +319,7 @@ namespace GigNovaWebApp.Controllers
                 }
             }
 
-            ApiClient<Gig> client = new ApiClient<Gig>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Seller/AddGig";
+            ApiClient<Gig> client = BuildClient<Gig>("api/Seller/AddGig");
 
             bool response = false;
             Stream photoStream = null;
@@ -456,10 +340,18 @@ namespace GigNovaWebApp.Controllers
                 }
             }
 
-            TempData["ManageGigMessage"] = response ? "Gig created successfully." : "Failed to create gig.";
+            if (response)
+            {
+                TempData["ManageGigMessage"] = "Gig created successfully.";
+            }
+            else
+            {
+                TempData["ManageGigMessage"] = "Failed to create gig.";
+            }
             return RedirectToAction("ManageGigs", new { seller_id = sellerId });
         }
 
+        // Handles the "edit existing gig" POST. Photo upload is optional - if no new photo is sent, the WS keeps the existing one.
         [HttpPost]
         public async Task<IActionResult> EditGig(Gig gig, IFormFile gigPhotoFile, List<string> Category_ids)
         {
@@ -475,7 +367,9 @@ namespace GigNovaWebApp.Controllers
                 return RedirectToAction("ManageGigs", new { seller_id = sellerId });
             }
 
-            gig.Seller_id = int.TryParse(sellerId, out int sellerIdValue) ? sellerIdValue : 0;
+            int sellerIdValue;
+            int.TryParse(sellerId, out sellerIdValue);
+            gig.Seller_id = sellerIdValue;
 
             if (gig.Language_id <= 0)
             {
@@ -501,6 +395,7 @@ namespace GigNovaWebApp.Controllers
                 return RedirectToAction("ManageGigs", new { seller_id = sellerId, gig_id = gig.Gig_id });
             }
 
+            // De-duplicate the posted category ids.
             gig.Category_ids = new List<string>();
             if (Category_ids != null)
             {
@@ -513,11 +408,7 @@ namespace GigNovaWebApp.Controllers
                 }
             }
 
-            ApiClient<Gig> client = new ApiClient<Gig>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Seller/EditGig";
+            ApiClient<Gig> client = BuildClient<Gig>("api/Seller/EditGig");
 
             bool response = false;
             Stream photoStream = null;
@@ -545,10 +436,18 @@ namespace GigNovaWebApp.Controllers
                 }
             }
 
-            TempData["ManageGigMessage"] = response ? "Gig updated successfully." : "Failed to update gig.";
+            if (response)
+            {
+                TempData["ManageGigMessage"] = "Gig updated successfully.";
+            }
+            else
+            {
+                TempData["ManageGigMessage"] = "Failed to update gig.";
+            }
             return RedirectToAction("ManageGigs", new { seller_id = sellerId, gig_id = gig.Gig_id });
         }
 
+        // Deletes a gig via the WS. The WS refuses if the gig already has orders.
         [HttpPost]
         public async Task<IActionResult> DeleteGig(string seller_id, string gig_id)
         {
@@ -558,11 +457,7 @@ namespace GigNovaWebApp.Controllers
                 sellerId = seller_id;
             }
 
-            ApiClient<string> client = new ApiClient<string>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Seller/DeleteGig";
+            ApiClient<string> client = BuildClient<string>("api/Seller/DeleteGig");
             client.AddParameter("seller_id", sellerId);
             client.AddParameter("gig_id", gig_id);
 
@@ -578,6 +473,7 @@ namespace GigNovaWebApp.Controllers
             return RedirectToAction("ManageGigs", new { seller_id = sellerId });
         }
 
+        // Publishes a gig (makes it visible in the buyer catalog). The WS sends back an error message if validation fails.
         [HttpPost]
         public async Task<IActionResult> PublishGig(string seller_id, string gig_id)
         {
@@ -587,11 +483,7 @@ namespace GigNovaWebApp.Controllers
                 sellerId = seller_id;
             }
 
-            ApiClient<string> client = new ApiClient<string>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Seller/PublishGig";
+            ApiClient<string> client = BuildClient<string>("api/Seller/PublishGig");
             client.AddParameter("seller_id", sellerId);
             client.AddParameter("gig_id", gig_id);
 
@@ -607,6 +499,7 @@ namespace GigNovaWebApp.Controllers
             return RedirectToAction("ManageGigs", new { seller_id = sellerId, gig_id = gig_id });
         }
 
+        // Unpublishes a gig (hides it from the buyer catalog).
         [HttpPost]
         public async Task<IActionResult> UnpublishGig(string seller_id, string gig_id)
         {
@@ -616,39 +509,146 @@ namespace GigNovaWebApp.Controllers
                 sellerId = seller_id;
             }
 
-            ApiClient<string> client = new ApiClient<string>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Seller/UnpublishGig";
+            ApiClient<string> client = BuildClient<string>("api/Seller/UnpublishGig");
             client.AddParameter("seller_id", sellerId);
             client.AddParameter("gig_id", gig_id);
 
             bool response = await client.PostAsyncReturn<string, bool>("");
-            TempData["ManageGigMessage"] = response ? "Gig unpublished from catalog." : "Failed to unpublish gig.";
+            if (response)
+            {
+                TempData["ManageGigMessage"] = "Gig unpublished from catalog.";
+            }
+            else
+            {
+                TempData["ManageGigMessage"] = "Failed to unpublish gig.";
+            }
             return RedirectToAction("ManageGigs", new { seller_id = sellerId, gig_id = gig_id });
         }
 
+
+        // ============================== Incoming Orders & Delivery ==============================
+
+        // Shows the seller's incoming orders: pairs each order with its buyer, sorts non-completed first newest first, and fetches each gig's name.
         [HttpGet]
-        public async Task<IActionResult> SelectGig(string gig_id, string seller_id)
+        public async Task<IActionResult> IncomingOrders(string seller_id)
         {
-            ApiClient<Gig> client = new ApiClient<Gig>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Seller/SelectGig";
-            if (gig_id != null)
+            if (string.IsNullOrWhiteSpace(seller_id))
             {
-                client.AddParameter("gig_id", gig_id);
+                seller_id = HttpContext.Session.GetString("person_id");
             }
-            if (seller_id != null)
+            if (string.IsNullOrWhiteSpace(seller_id))
             {
-                client.AddParameter("seller_id", seller_id);
+                return RedirectToAction("HomePage", "Guest");
             }
-            Gig gig = await client.GetAsync();
-            return View(gig);
+
+            ApiClient<OrdersViewModel> client = BuildClient<OrdersViewModel>("api/Seller/GetOrdersViewModel");
+            client.AddParameter("seller_id", seller_id);
+
+            OrdersViewModel ordersViewModel = await client.GetAsync();
+            ordersViewModel = ordersViewModel ?? new OrdersViewModel();
+            ordersViewModel.Orders = ordersViewModel.Orders ?? new List<Order>();
+            ordersViewModel.Buyers = ordersViewModel.Buyers ?? new List<Buyer>();
+
+            // Pair each order with the buyer at the same index.
+            List<SelectedOrderViewModel> notifications = new List<SelectedOrderViewModel>();
+            for (int i = 0; i < ordersViewModel.Orders.Count; i++)
+            {
+                Order order = ordersViewModel.Orders[i];
+                if (order == null)
+                {
+                    continue;
+                }
+
+                Buyer buyer = null;
+                if (i < ordersViewModel.Buyers.Count)
+                {
+                    buyer = ordersViewModel.Buyers[i];
+                }
+
+                notifications.Add(new SelectedOrderViewModel
+                {
+                    Order = order,
+                    Buyer = buyer
+                });
+            }
+
+            // Step 1: split into "non-completed" and "completed" groups.
+            List<SelectedOrderViewModel> nonCompleted = new List<SelectedOrderViewModel>();
+            List<SelectedOrderViewModel> completed = new List<SelectedOrderViewModel>();
+            foreach (SelectedOrderViewModel n in notifications)
+            {
+                if (n.Order.Order_status_id == 3)
+                {
+                    completed.Add(n);
+                }
+                else
+                {
+                    nonCompleted.Add(n);
+                }
+            }
+
+            // Step 2: sort each group so the newest order id comes first.
+            SortNotificationsByOrderIdDescending(nonCompleted);
+            SortNotificationsByOrderIdDescending(completed);
+
+            // Step 3: combine (non-completed first, completed last).
+            notifications = new List<SelectedOrderViewModel>();
+            foreach (SelectedOrderViewModel n in nonCompleted)
+            {
+                notifications.Add(n);
+            }
+            foreach (SelectedOrderViewModel n in completed)
+            {
+                notifications.Add(n);
+            }
+
+            // Look up each order's gig name so the view can show it.
+            Dictionary<string, string> gigNamesByOrderId = new Dictionary<string, string>();
+            foreach (SelectedOrderViewModel notification in notifications)
+            {
+                string orderId = notification.Order.Order_id;
+                if (string.IsNullOrWhiteSpace(orderId))
+                {
+                    continue;
+                }
+
+                ApiClient<CustomizeOrderViewModel> orderClient = BuildClient<CustomizeOrderViewModel>("api/Buyer/GetCustomizeOrderViewModel");
+                orderClient.AddParameter("order_id", orderId);
+
+                CustomizeOrderViewModel details = await orderClient.GetAsync();
+                string gigName = "Gig";
+                if (details != null && details.gig != null && string.IsNullOrWhiteSpace(details.gig.Gig_name) == false)
+                {
+                    gigName = details.gig.Gig_name;
+                }
+                gigNamesByOrderId[orderId] = gigName;
+            }
+
+            ViewData["SellerId"] = seller_id;
+            ViewData["GigNamesByOrderId"] = gigNamesByOrderId;
+            return View("~/Views/Seller/IncomingOrders.cshtml", notifications);
         }
 
+        // Bubble sort: arranges the list so the highest numeric Order_id comes first.
+        private void SortNotificationsByOrderIdDescending(List<SelectedOrderViewModel> list)
+        {
+            for (int i = 0; i < list.Count - 1; i++)
+            {
+                for (int j = 0; j < list.Count - 1 - i; j++)
+                {
+                    int idA = Convert.ToInt32(list[j].Order.Order_id);
+                    int idB = Convert.ToInt32(list[j + 1].Order.Order_id);
+                    if (idA < idB)
+                    {
+                        SelectedOrderViewModel temp = list[j];
+                        list[j] = list[j + 1];
+                        list[j + 1] = temp;
+                    }
+                }
+            }
+        }
+
+        // Shows the detail page for one incoming order (with buyer, gig details, and any deliveries the seller already sent).
         [HttpGet]
         public async Task<IActionResult> SelectedIncomingOrder(string order_id, string seller_id)
         {
@@ -656,39 +656,24 @@ namespace GigNovaWebApp.Controllers
             {
                 seller_id = HttpContext.Session.GetString("person_id");
             }
-
             if (string.IsNullOrWhiteSpace(order_id) || string.IsNullOrWhiteSpace(seller_id))
             {
                 return RedirectToAction("IncomingOrders", new { seller_id = seller_id });
             }
 
-            void ConfigureLocalApi<T>(ApiClient<T> apiClient, string path)
-            {
-                apiClient.Scheme = "https";
-                apiClient.Host = "localhost";
-                apiClient.Port = 7059;
-                apiClient.Path = path;
-            }
-
-            ApiClient<SelectedOrderViewModel> client = new ApiClient<SelectedOrderViewModel>();
-            ConfigureLocalApi(client, "api/Seller/SelectOrder");
+            ApiClient<SelectedOrderViewModel> client = BuildClient<SelectedOrderViewModel>("api/Seller/SelectOrder");
             client.AddParameter("order_id", order_id);
             client.AddParameter("seller_id", seller_id);
             SelectedOrderViewModel viewModel = await client.GetAsync();
 
-            ApiClient<CustomizeOrderViewModel> orderClient = new ApiClient<CustomizeOrderViewModel>();
-            ConfigureLocalApi(orderClient, "api/Buyer/GetCustomizeOrderViewModel");
+            ApiClient<CustomizeOrderViewModel> orderClient = BuildClient<CustomizeOrderViewModel>("api/Buyer/GetCustomizeOrderViewModel");
             orderClient.AddParameter("order_id", order_id);
             CustomizeOrderViewModel orderDetails = await orderClient.GetAsync();
 
-            ApiClient<List<Delivery>> deliveriesClient = new ApiClient<List<Delivery>>();
-            ConfigureLocalApi(deliveriesClient, "api/Seller/GetDeliveriesByOrder");
+            ApiClient<List<Delivery>> deliveriesClient = BuildClient<List<Delivery>>("api/Seller/GetDeliveriesByOrder");
             deliveriesClient.AddParameter("order_id", order_id);
             List<Delivery> deliveries = await deliveriesClient.GetAsync();
-            if (deliveries == null)
-            {
-                deliveries = new List<Delivery>();
-            }
+            deliveries = deliveries ?? new List<Delivery>();
 
             ViewData["OrderDetails"] = orderDetails;
             ViewData["SellerId"] = seller_id;
@@ -696,6 +681,7 @@ namespace GigNovaWebApp.Controllers
             return View("~/Views/Seller/SelectedIncomingOrder.cshtml", viewModel);
         }
 
+        // Handles the "deliver gig" POST. Validates the delivery file then sends it to the WS.
         [HttpPost]
         public async Task<IActionResult> DeliverGig(string order_id, string seller_id, string delivery_text, List<IFormFile> deliveryFiles)
         {
@@ -703,21 +689,15 @@ namespace GigNovaWebApp.Controllers
             {
                 seller_id = HttpContext.Session.GetString("person_id");
             }
-
             if (string.IsNullOrWhiteSpace(order_id) || string.IsNullOrWhiteSpace(seller_id))
             {
                 return RedirectToAction("IncomingOrders", new { seller_id = seller_id });
             }
 
             // Delivery file rules: exactly 1 file, max 100MB, only .rar or .zip.
-            if (deliveryFiles == null || deliveryFiles.Count == 0)
+            if (deliveryFiles == null || deliveryFiles.Count != 1)
             {
-                TempData["SellerIncomingOrderMessage"] = "Please upload a delivery file (.rar or .zip).";
-                return RedirectToAction("SelectedIncomingOrder", new { order_id = order_id, seller_id = seller_id });
-            }
-            if (deliveryFiles.Count != 1)
-            {
-                TempData["SellerIncomingOrderMessage"] = "You can only upload one delivery file (.rar or .zip).";
+                TempData["SellerIncomingOrderMessage"] = "Please upload exactly one delivery file (.rar or .zip).";
                 return RedirectToAction("SelectedIncomingOrder", new { order_id = order_id, seller_id = seller_id });
             }
             IFormFile singleDeliveryFile = deliveryFiles[0];
@@ -748,11 +728,7 @@ namespace GigNovaWebApp.Controllers
             fileStreams.Add(singleDeliveryFile.OpenReadStream());
             fileNames.Add(singleDeliveryFile.FileName);
 
-            ApiClient<Delivery> client = new ApiClient<Delivery>();
-            client.Scheme = "https";
-            client.Host = "localhost";
-            client.Port = 7059;
-            client.Path = "api/Seller/DeliverGig";
+            ApiClient<Delivery> client = BuildClient<Delivery>("api/Seller/DeliverGig");
 
             bool response = false;
             try
@@ -777,10 +753,10 @@ namespace GigNovaWebApp.Controllers
             {
                 TempData["SellerIncomingOrderMessage"] = "Failed to send delivery.";
             }
-
             return RedirectToAction("SelectedIncomingOrder", new { order_id = order_id, seller_id = seller_id });
         }
 
+        // Shows the delivery files (and seller-side message) attached to an order. Same view as the buyer's, with Actor = "seller".
         [HttpGet]
         public async Task<IActionResult> DeliveryDetails(string order_id, int delivery_index = 0)
         {
@@ -789,15 +765,10 @@ namespace GigNovaWebApp.Controllers
                 return RedirectToAction("ViewOrders", "Buyer");
             }
 
+            // Load order details (for the gig info).
             CustomizeOrderViewModel orderDetails = null;
-
-            ApiClient<CustomizeOrderViewModel> orderClient = new ApiClient<CustomizeOrderViewModel>();
-            orderClient.Scheme = "https";
-            orderClient.Host = "localhost";
-            orderClient.Port = 7059;
-            orderClient.Path = "api/Buyer/GetCustomizeOrderViewModel";
+            ApiClient<CustomizeOrderViewModel> orderClient = BuildClient<CustomizeOrderViewModel>("api/Buyer/GetCustomizeOrderViewModel");
             orderClient.AddParameter("order_id", order_id);
-
             try
             {
                 orderDetails = await orderClient.GetAsync();
@@ -806,7 +777,6 @@ namespace GigNovaWebApp.Controllers
             {
                 orderDetails = null;
             }
-
             if (orderDetails == null)
             {
                 orderDetails = new CustomizeOrderViewModel();
@@ -814,18 +784,11 @@ namespace GigNovaWebApp.Controllers
                 orderDetails.order.Order_id = order_id;
             }
 
-            ApiClient<List<Delivery>> deliveriesClient = new ApiClient<List<Delivery>>();
-            deliveriesClient.Scheme = "https";
-            deliveriesClient.Host = "localhost";
-            deliveriesClient.Port = 7059;
-            deliveriesClient.Path = "api/Seller/GetDeliveriesByOrder";
+            // Load the deliveries for this order.
+            ApiClient<List<Delivery>> deliveriesClient = BuildClient<List<Delivery>>("api/Seller/GetDeliveriesByOrder");
             deliveriesClient.AddParameter("order_id", order_id);
-
             List<Delivery> deliveries = await deliveriesClient.GetAsync();
-            if (deliveries == null)
-            {
-                deliveries = new List<Delivery>();
-            }
+            deliveries = deliveries ?? new List<Delivery>();
 
             if (deliveries.Count == 0)
             {
@@ -840,6 +803,7 @@ namespace GigNovaWebApp.Controllers
                 return View("~/Views/Buyer/DeliveryDetails.cshtml", orderDetails);
             }
 
+            // Clamp delivery_index to a valid range.
             if (delivery_index < 0)
             {
                 delivery_index = 0;
@@ -849,6 +813,7 @@ namespace GigNovaWebApp.Controllers
                 delivery_index = deliveries.Count - 1;
             }
 
+            // Split the pipe-separated file paths on the selected delivery into a list.
             Delivery selectedDelivery = deliveries[delivery_index];
             List<string> files = new List<string>();
             if (selectedDelivery != null && string.IsNullOrWhiteSpace(selectedDelivery.Delivery_file) == false)
@@ -871,6 +836,20 @@ namespace GigNovaWebApp.Controllers
             ViewData["DeliveryFiles"] = files;
             ViewData["Gig"] = orderDetails.gig;
             return View("~/Views/Buyer/DeliveryDetails.cshtml", orderDetails);
+        }
+
+
+        // ============================== Helpers ==============================
+
+        // Builds an ApiClient<T> pointing at our WS (https://localhost:7059) at the given path. Saves repeating 4 lines per call.
+        private ApiClient<T> BuildClient<T>(string path)
+        {
+            ApiClient<T> client = new ApiClient<T>();
+            client.Scheme = "https";
+            client.Host = "localhost";
+            client.Port = 7059;
+            client.Path = path;
+            return client;
         }
     }
 }

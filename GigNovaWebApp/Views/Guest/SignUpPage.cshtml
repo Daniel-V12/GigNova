@@ -1,5 +1,4 @@
-﻿@using GigNovaModels.ViewModels
-@using GigNovaModels.Models
+﻿@using GigNovaModels.Models
 @model Buyer
 @{
     ViewData["Title"] = "SignUpPage";
@@ -11,12 +10,12 @@
     <div class="signup-card">
         <h1 class="signup-title">Create Account</h1>
         <p class="signup-subtitle">Join GigNova and start your journey</p>
+
         @if (ViewBag.ErrorMessage != null)
         {
-            <h1 class="errorMessage">
-                @ViewBag.ErrorMessage.ToString()
-            </h1>
+            <h1 class="errorMessage">@ViewBag.ErrorMessage.ToString()</h1>
         }
+
         <form asp-controller="Guest" asp-action="SignUp" method="post" id="signupForm">
             <div class="form-group">
                 <label class="form-label" for="Person_username">Username</label>
@@ -56,7 +55,7 @@
 
             <button type="submit" class="submit-btn">Sign Up</button>
             <div class="login-link">
-                Already have an account? <a href="http://localhost:5172/Guest/LogInPage">Log In</a>
+                Already have an account? <a asp-controller="Guest" asp-action="LogInPage">Log In</a>
             </div>
         </form>
     </div>

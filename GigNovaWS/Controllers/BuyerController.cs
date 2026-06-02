@@ -10,11 +10,16 @@ namespace GigNovaWS.Controllers
     public class BuyerController : ControllerBase
     {
         RepositoryUOW repositoryUOW;
+
         public BuyerController()
         {
             this.repositoryUOW = new RepositoryUOW();
         }
 
+
+        // ============================== Profile ==============================
+
+        // Returns the buyer profile (buyer row + matching person row, with join date copied across).
         [HttpGet]
         public BuyerProfileViewmodel GetBuyerProfileViewModel(string buyer_id)
         {
@@ -42,10 +47,11 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Updates the buyer's display name and description. Returns true on success.
         [HttpPost]
         public bool UpdateBuyerProfile(BuyerProfileUpdateViewModel viewModel)
         {
-            if (viewModel == null || viewModel.Person_id == null || viewModel.Person_id == "")
+            if (viewModel == null || string.IsNullOrEmpty(viewModel.Person_id))
             {
                 return false;
             }
@@ -55,41 +61,10 @@ namespace GigNovaWS.Controllers
 
                 Buyer buyer = new Buyer();
                 buyer.Person_id = viewModel.Person_id;
-                if (viewModel.Buyer_display_name == null)
-                {
-                    buyer.Buyer_display_name = "";
-                }
-                else
-                {
-                    buyer.Buyer_display_name = viewModel.Buyer_display_name;
-                }
+                buyer.Buyer_display_name = viewModel.Buyer_display_name ?? "";
+                buyer.Buyer_description = viewModel.Buyer_description ?? "";
 
-                if (viewModel.Buyer_description == null)
-                {
-                    buyer.Buyer_description = "";
-                }
-                else
-                {
-                    buyer.Buyer_description = viewModel.Buyer_description;
-                }
-
-                bool buyerUpdated = this.repositoryUOW.BuyerRepository.Update(buyer);
-                if (buyerUpdated == true)
-                {
-                    return true;
-                }
-
-                Buyer currentBuyer = this.repositoryUOW.BuyerRepository.GetById(viewModel.Person_id);
-                if (currentBuyer != null)
-                {
-                    if (currentBuyer.Buyer_display_name == buyer.Buyer_display_name &&
-                        currentBuyer.Buyer_description == buyer.Buyer_description)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
+                return this.repositoryUOW.BuyerRepository.Update(buyer);
             }
             catch (Exception ex)
             {
@@ -102,10 +77,11 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Changes the buyer's password after the repository verifies the current password.
         [HttpPost]
         public bool ChangeBuyerPassword(string buyer_id, string current_password, string new_password)
         {
-            if (buyer_id == null || buyer_id == "" || current_password == null || current_password == "" || new_password == null || new_password == "")
+            if (string.IsNullOrEmpty(buyer_id) || string.IsNullOrEmpty(current_password) || string.IsNullOrEmpty(new_password))
             {
                 return false;
             }
@@ -125,29 +101,10 @@ namespace GigNovaWS.Controllers
             }
         }
 
-        [HttpPost]
-        public bool PlaceOrder(Order order)
-        {
-            if (order == null)
-            {
-                return false;
-            }
-            try
-            {
-                this.repositoryUOW.DbHelperOledb.OpenConnection();
-                return this.repositoryUOW.OrderRepository.Create(order);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return false;
-            }
-            finally
-            {
-                this.repositoryUOW.DbHelperOledb.CloseConnection();
-            }
-        }
 
+        // ============================== Orders (View / Customize / Create) ==============================
+
+        // Returns a CustomizeOrderViewModel filled from either an existing order id, or from a gig id (for a brand new order).
         [HttpGet]
         public CustomizeOrderViewModel GetCustomizeOrderViewModel(string order_id = null, string gig_id = null, string buyer_id = null)
         {
@@ -180,6 +137,7 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Returns the buyer's orders: non-completed first, newest order id first inside each group, paginated.
         [HttpGet]
         public List<CustomizeOrderViewModel> GetOrderedGigsDetailsViewModel(string buyerId, int page = 1, int pageSize = 6)
         {
@@ -207,23 +165,47 @@ namespace GigNovaWS.Controllers
                     pageSize = 6;
                 }
 
-                List<Order> pagedOrders = orders
-                    .OrderBy(order => order.Order_status_id == 3 ? 1 : 0)
-                    .ThenByDescending(order => DateTime.TryParse(order.Order_creation_date, out DateTime d) ? d : DateTime.MinValue)
-                    .ThenByDescending(order => int.TryParse(order.Order_id, out int id) ? id : 0)
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
-
-                foreach (Order order in pagedOrders)
+                // Step 1: split orders into "non-completed" and "completed" groups.
+                List<Order> nonCompleted = new List<Order>();
+                List<Order> completed = new List<Order>();
+                foreach (Order order in orders)
                 {
-                    if (order == null || string.IsNullOrWhiteSpace(order.Order_id))
+                    if (order.Order_status_id == 3)
                     {
-                        continue;
+                        completed.Add(order);
                     }
+                    else
+                    {
+                        nonCompleted.Add(order);
+                    }
+                }
 
+                // Step 2: sort each group so the newest order id comes first.
+                SortOrdersByIdDescending(nonCompleted);
+                SortOrdersByIdDescending(completed);
+
+                // Step 3: combine the groups (non-completed first, completed last).
+                List<Order> sortedOrders = new List<Order>();
+                foreach (Order order in nonCompleted)
+                {
+                    sortedOrders.Add(order);
+                }
+                foreach (Order order in completed)
+                {
+                    sortedOrders.Add(order);
+                }
+
+                // Step 4: take only the requested page using simple index math.
+                int start = (page - 1) * pageSize;
+                int end = start + pageSize;
+                if (end > sortedOrders.Count)
+                {
+                    end = sortedOrders.Count;
+                }
+                for (int i = start; i < end; i++)
+                {
                     CustomizeOrderViewModel current = CreateEmptyCustomizeOrderViewModel();
-                    FillCustomizeOrderFromOrderId(current, order.Order_id);
+                    FillCustomizeOrderFromOrderId(current, sortedOrders[i].Order_id);
                     viewModels.Add(current);
                 }
 
@@ -240,7 +222,26 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Bubble sort: arranges the list so the highest numeric Order_id comes first.
+        private void SortOrdersByIdDescending(List<Order> list)
+        {
+            for (int i = 0; i < list.Count - 1; i++)
+            {
+                for (int j = 0; j < list.Count - 1 - i; j++)
+                {
+                    int idA = Convert.ToInt32(list[j].Order_id);
+                    int idB = Convert.ToInt32(list[j + 1].Order_id);
+                    if (idA < idB)
+                    {
+                        Order temp = list[j];
+                        list[j] = list[j + 1];
+                        list[j + 1] = temp;
+                    }
+                }
+            }
+        }
 
+        // Builds an empty CustomizeOrderViewModel with each nested object pre-initialized to avoid null references.
         private CustomizeOrderViewModel CreateEmptyCustomizeOrderViewModel()
         {
             CustomizeOrderViewModel viewModel = new CustomizeOrderViewModel();
@@ -255,6 +256,7 @@ namespace GigNovaWS.Controllers
             return viewModel;
         }
 
+        // Fills the view model from an existing order id (loads order, files, gig, seller, status, delivery time).
         private void FillCustomizeOrderFromOrderId(CustomizeOrderViewModel viewModel, string orderId)
         {
             Order foundOrder = this.repositoryUOW.OrderRepository.GetById(orderId);
@@ -315,6 +317,7 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Fills the view model for a brand new order built from a gig id (no order saved in DB yet).
         private void FillCustomizeOrderFromGigId(CustomizeOrderViewModel viewModel, string gigId, string buyerId)
         {
             Gig gig = this.repositoryUOW.GigRepository.GetById(gigId);
@@ -365,7 +368,7 @@ namespace GigNovaWS.Controllers
             }
         }
 
-
+        // Creates the order, validates uploaded requirement files (max 5, 50MB each, no blocked extensions), and saves them.
         [HttpPost]
         public async Task<bool> CreateOrderAndPayWithFiles()
         {
@@ -386,34 +389,31 @@ namespace GigNovaWS.Controllers
                     return false;
                 }
 
-                // Order file rules: max 5 files, max 50MB each, no blocked extensions.
-                if (form.Files != null && form.Files.Count > 0)
+                // File rules: max 5 files, max 50MB each, no blocked extensions.
+                if (form.Files.Count > 5)
                 {
-                    if (form.Files.Count > 5)
+                    return false;
+                }
+
+                string[] blockedExtensions = new string[] { ".exe", ".bat", ".cmd", ".sh", ".ps1", ".msi", ".dll", ".vbs" };
+                long maxFileSize = 50 * 1024 * 1024;
+
+                foreach (IFormFile uploadedFile in form.Files)
+                {
+                    if (uploadedFile.Length == 0)
+                    {
+                        continue;
+                    }
+                    if (uploadedFile.Length > maxFileSize)
                     {
                         return false;
                     }
-
-                    string[] blockedExtensions = new string[] { ".exe", ".bat", ".cmd", ".sh", ".ps1", ".msi", ".dll", ".vbs" };
-                    long maxFileSize = 50 * 1024 * 1024;
-
-                    foreach (IFormFile uploadedFile in form.Files)
+                    string ext = Path.GetExtension(uploadedFile.FileName).ToLower();
+                    for (int i = 0; i < blockedExtensions.Length; i++)
                     {
-                        if (uploadedFile == null || uploadedFile.Length == 0)
-                        {
-                            continue;
-                        }
-                        if (uploadedFile.Length > maxFileSize)
+                        if (blockedExtensions[i] == ext)
                         {
                             return false;
-                        }
-                        string ext = Path.GetExtension(uploadedFile.FileName).ToLower();
-                        for (int i = 0; i < blockedExtensions.Length; i++)
-                        {
-                            if (blockedExtensions[i] == ext)
-                            {
-                                return false;
-                            }
                         }
                     }
                 }
@@ -456,7 +456,7 @@ namespace GigNovaWS.Controllers
                 int fileCounter = 1;
                 foreach (IFormFile file in form.Files)
                 {
-                    if (file != null && file.Length > 0)
+                    if (file.Length > 0)
                     {
                         string extension = Path.GetExtension(file.FileName);
                         string fileName = orderId + "_" + fileCounter + extension;
@@ -488,22 +488,39 @@ namespace GigNovaWS.Controllers
             }
         }
 
-        [HttpGet]
-        public string GetLatestOrderIdByBuyer(string buyer_id)
+
+        // ============================== Order Lifecycle (Complete / Deliveries) ==============================
+
+        // Marks an order as completed (status 3). Only allowed if the order has status 2 and belongs to this buyer.
+        [HttpPost]
+        public bool CompleteOrder(string order_id, string buyer_id)
         {
-            if (buyer_id == null || buyer_id == "")
+            if (string.IsNullOrWhiteSpace(order_id) || string.IsNullOrWhiteSpace(buyer_id))
             {
-                return "";
+                return false;
             }
             try
             {
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
-                return this.repositoryUOW.OrderRepository.GetLatestOrderIdByBuyer(buyer_id);
+                Order order = this.repositoryUOW.OrderRepository.GetById(order_id);
+                if (order == null)
+                {
+                    return false;
+                }
+                if (order.Buyer_id.ToString() != buyer_id)
+                {
+                    return false;
+                }
+                if (order.Order_status_id != 2)
+                {
+                    return false;
+                }
+                return this.repositoryUOW.OrderRepository.UpdateOrderStatus(order_id, 3);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                return "";
+                return false;
             }
             finally
             {
@@ -511,6 +528,35 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Returns all deliveries (files uploaded by the seller) attached to the given order.
+        [HttpGet]
+        public List<Delivery> GetDeliveriesByOrder(string order_id)
+        {
+            List<Delivery> deliveries = new List<Delivery>();
+            if (string.IsNullOrWhiteSpace(order_id))
+            {
+                return deliveries;
+            }
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                return this.repositoryUOW.DeliveryRepository.GetAllByOrderId(order_id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return deliveries;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
+
+        // ============================== Messaging ==============================
+
+        // Returns messages for a person (optionally filtered by order_id) and a unique list of senders.
         [HttpGet]
         public MessagesBoxViewModel MessagingBoxViewModel(string person_id, string order_id = null)
         {
@@ -529,24 +575,28 @@ namespace GigNovaWS.Controllers
                     viewModel.Messages = this.repositoryUOW.MessageRepository.GetByPersonId(person_id);
                 }
 
+                // Build a list of unique senders (one entry per sender_id).
                 foreach (Message message in viewModel.Messages)
                 {
                     Person sender = this.repositoryUOW.PersonRepository.GetById(message.Sender_id.ToString());
-                    if (sender != null)
+                    if (sender == null)
                     {
-                        bool exists = false;
-                        foreach (Person existingSender in viewModel.Senders)
-                        {
-                            if (existingSender.Person_id == sender.Person_id)
-                            {
-                                exists = true;
-                            }
-                        }
+                        continue;
+                    }
 
-                        if (exists == false)
+                    bool exists = false;
+                    foreach (Person existingSender in viewModel.Senders)
+                    {
+                        if (existingSender.Person_id == sender.Person_id)
                         {
-                            viewModel.Senders.Add(sender);
+                            exists = true;
+                            break;
                         }
+                    }
+
+                    if (exists == false)
+                    {
+                        viewModel.Senders.Add(sender);
                     }
                 }
                 return viewModel;
@@ -562,6 +612,7 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Sends a message; the receiver is auto-set based on whether the sender is the buyer or the seller on the order.
         [HttpPost]
         public bool SendMessage(Message message)
         {
@@ -602,6 +653,10 @@ namespace GigNovaWS.Controllers
             }
         }
 
+
+        // ============================== Reviews ==============================
+
+        // Saves a 1-5 star review for a gig the buyer actually completed an order for, and not on their own gig.
         [HttpPost]
         public bool UploadGigReview(Review review)
         {
@@ -611,7 +666,7 @@ namespace GigNovaWS.Controllers
             }
             try
             {
-                this.repositoryUOW.DbHelperOledb.OpenConnection(); 
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
                 Gig gig = this.repositoryUOW.GigRepository.GetById(review.Gig_id.ToString());
                 if (gig == null)
                 {
@@ -624,6 +679,7 @@ namespace GigNovaWS.Controllers
                     return false;
                 }
 
+                // Buyer must have at least one completed order for this gig.
                 List<Order> buyerOrders = this.repositoryUOW.OrderRepository.GetOrderByBuyerId(review.Buyer_id.ToString());
                 bool canReview = false;
                 foreach (Order order in buyerOrders)
@@ -634,7 +690,6 @@ namespace GigNovaWS.Controllers
                         break;
                     }
                 }
-
                 if (canReview == false)
                 {
                     return false;
@@ -655,65 +710,10 @@ namespace GigNovaWS.Controllers
             }
         }
 
-        [HttpPost]
-        public bool CommencePayment(string order_id)
-        {
-            if (order_id == null)
-            {
-                return false;
-            }
-            try
-            {
-                this.repositoryUOW.DbHelperOledb.OpenConnection();
-                return this.repositoryUOW.OrderRepository.UpdatePaymentStatus(order_id, true);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return false;
-            }
-            finally
-            {
-                this.repositoryUOW.DbHelperOledb.CloseConnection();
-            }
-        }
 
-        [HttpPost]
-        public bool CompleteOrder(string order_id, string buyer_id)
-        {
-            if (string.IsNullOrWhiteSpace(order_id) || string.IsNullOrWhiteSpace(buyer_id))
-            {
-                return false;
-            }
-            try
-            {
-                this.repositoryUOW.DbHelperOledb.OpenConnection();
-                Order order = this.repositoryUOW.OrderRepository.GetById(order_id);
-                if (order == null)
-                {
-                    return false;
-                }
-                if (order.Buyer_id.ToString() != buyer_id)
-                {
-                    return false;
-                }
-                if (order.Order_status_id != 2)
-                {
-                    return false;
-                }
-                return this.repositoryUOW.OrderRepository.UpdateOrderStatus(order_id, 3);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return false;
-            }
-            finally
-            {
-                this.repositoryUOW.DbHelperOledb.CloseConnection();
-            }
-        }
+        // ============================== Become A Seller ==============================
 
+        // Creates or updates a seller row for the current buyer and optionally saves an avatar image. Uses a transaction.
         [HttpPost]
         public async Task<bool> BecomeASeller()
         {
@@ -734,14 +734,8 @@ namespace GigNovaWS.Controllers
                     return false;
                 }
 
-                if (seller.Seller_description == null)
-                {
-                    seller.Seller_description = "";
-                }
-                if (seller.Seller_display_name == null)
-                {
-                    seller.Seller_display_name = "";
-                }
+                seller.Seller_description = seller.Seller_description ?? "";
+                seller.Seller_display_name = seller.Seller_display_name ?? "";
 
                 this.repositoryUOW.DbHelperOledb.OpenConnection();
                 this.repositoryUOW.DbHelperOledb.OpenTransaction();
@@ -758,7 +752,7 @@ namespace GigNovaWS.Controllers
                 }
                 else
                 {
-                    if (seller.Seller_avatar == null || seller.Seller_avatar == "")
+                    if (string.IsNullOrEmpty(seller.Seller_avatar))
                     {
                         seller.Seller_avatar = existingSeller.Seller_avatar;
                     }
@@ -769,10 +763,11 @@ namespace GigNovaWS.Controllers
                     }
                 }
 
-                if (form.Files != null && form.Files.Count > 0)
+                // Save uploaded avatar image, if one was sent.
+                if (form.Files.Count > 0)
                 {
                     IFormFile avatarFile = form.Files[0];
-                    if (avatarFile != null && avatarFile.Length > 0)
+                    if (avatarFile.Length > 0)
                     {
                         string extension = Path.GetExtension(avatarFile.FileName).TrimStart('.').ToLower();
                         if (string.IsNullOrWhiteSpace(extension) == false)
@@ -814,33 +809,5 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
-
-        [HttpGet]
-        public List<Delivery> GetDeliveriesByOrder(string order_id)
-        {
-            List<Delivery> deliveries = new List<Delivery>();
-            if (string.IsNullOrWhiteSpace(order_id))
-            {
-                return deliveries;
-            }
-            try
-            {
-                this.repositoryUOW.DbHelperOledb.OpenConnection();
-                return this.repositoryUOW.DeliveryRepository.GetAllByOrderId(order_id);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return deliveries;
-            }
-            finally
-            {
-                this.repositoryUOW.DbHelperOledb.CloseConnection();
-            }
-        }
-
-
-
     }
 }
-
