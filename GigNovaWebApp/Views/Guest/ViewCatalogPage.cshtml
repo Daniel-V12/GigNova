@@ -247,22 +247,11 @@
                                     <p class="gig-title">@gig.Gig_name</p>
                                     <p class="gig-description">@gig.Gig_description</p>
                                     @{
-                                        // Try the precomputed category name list first, then fall back to the single Category_id.
+                                        // Get the precomputed category name list for this gig.
                                         string categoryNamesText = "";
                                         if (Model.GigCategoryNames != null && Model.GigCategoryNames.Count > i)
                                         {
                                             categoryNamesText = Model.GigCategoryNames[i];
-                                        }
-                                        if (categoryNamesText == "" && string.IsNullOrEmpty(gig.Category_id) == false && Model.Categories != null)
-                                        {
-                                            foreach (Category category in Model.Categories)
-                                            {
-                                                if (category.Category_id == gig.Category_id)
-                                                {
-                                                    categoryNamesText = category.Category_name;
-                                                    break;
-                                                }
-                                            }
                                         }
 
                                         // Render the names as chips, one per category.

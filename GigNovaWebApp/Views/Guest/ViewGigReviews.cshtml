@@ -1,5 +1,5 @@
-﻿@using GigNovaModels.Models
-@model List<Review>
+﻿@using GigNovaModels.ViewModels
+@model List<GigReviewViewModel>
 @{
     ViewData["Title"] = "ViewGigReviews";
 
@@ -25,7 +25,7 @@
     if (Model != null && Model.Count > 0)
     {
         double sum = 0;
-        foreach (Review review in Model)
+        foreach (GigReviewViewModel review in Model)
         {
             sum += review.Review_rating;
         }
@@ -54,11 +54,25 @@
 
         @if (Model != null && Model.Count > 0)
         {
-            foreach (Review review in Model)
+            foreach (GigReviewViewModel review in Model)
             {
                 <div class="gig-card review-card" style="margin-bottom:12px;">
                     <div class="gig-info">
                         <p class="gig-title review-rating-text" style="margin-bottom:6px;">Rating: @review.Review_rating / 5</p>
+
+                        @* Clickable "By <buyer>" line. The three data-* attributes carry the buyer info
+                           so the popup can read them on click without another server roundtrip. *@
+                        <p style="margin-bottom:6px;">
+                            <span style="color:#aeb3db;">By</span>
+                            <span class="buyer-name-link"
+                                  style="color:#9fb0ff; cursor:pointer; text-decoration:underline; font-weight:700;"
+                                  data-display-name="@review.Buyer_display_name"
+                                  data-username="@review.Person_username"
+                                  data-bio="@review.Buyer_description"
+                                  data-join-date="@review.Person_join_date"
+                                  onclick="openBuyerInfoFromCard(this)">@review.Buyer_display_name</span>
+                        </p>
+
                         <p class="gig-description" style="min-height:auto; margin-bottom:8px;">@review.Review_comment</p>
                         <p class="price-label">@review.Review_creation_date</p>
                     </div>
@@ -75,7 +89,7 @@
 </div>
 
 
-<!-- ============================== Review Popup (hidden by default) ============================== -->
+<!-- ============================== Review Upload Popup (hidden by default) ============================== -->
 <div id="reviewPopup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:2000;">
     <div style="max-width:520px; margin:8% auto; background:#1f244e; border:1px solid #3f477f; border-radius:10px; padding:22px; color:#f2f3ff;">
         <h3 style="margin-top:0; color:#f2f3ff;">Upload Gig Review</h3>
@@ -97,19 +111,52 @@
 </div>
 
 
-<!-- ============================== JavaScript: Open / Close Popup + Submit Review ============================== -->
+<!-- ============================== Buyer Info Popup (hidden by default) ============================== -->
+<div id="buyerInfoPopup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:2000;">
+    <div style="max-width:480px; margin:8% auto; background:#1f244e; border:1px solid #3f477f; border-radius:10px; padding:22px; color:#f2f3ff;">
+        <h3 style="margin-top:0; color:#f2f3ff;">Buyer Info</h3>
+
+        <p style="margin:0 0 10px 0;">
+            <span style="color:#aeb3db;">Display name:</span>
+            <strong id="buyerInfoDisplayName" style="color:#ffffff; margin-left:6px;"></strong>
+        </p>
+
+        <p style="margin:0 0 10px 0;">
+            <span style="color:#aeb3db;">Username:</span>
+            <strong id="buyerInfoUsername" style="color:#ffffff; margin-left:6px;"></strong>
+        </p>
+
+        <p style="margin:0 0 10px 0;">
+            <span style="color:#aeb3db;">Joined:</span>
+            <strong id="buyerInfoJoinDate" style="color:#ffffff; margin-left:6px;"></strong>
+        </p>
+
+        <p style="margin:0 0 16px 0;">
+            <span style="color:#aeb3db;">Bio:</span>
+            <span id="buyerInfoBio" style="color:#f2f3ff; margin-left:6px; display:block; margin-top:4px; white-space:pre-wrap;"></span>
+        </p>
+
+        <div style="display:flex; gap:10px;">
+            <button type="button" class="action-btn clear-btn" onclick="closeBuyerInfoPopup()">Close</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================== JavaScript ============================== -->
 @*
     What this script does:
-    - openReviewPopup() and closeReviewPopup() just show/hide the <div id="reviewPopup">.
-    - submitReview() sends the rating + comment to the server WITHOUT a full page reload
-      (called an "AJAX" request). The server replies with JSON like { success: true, message: "..." }.
-      We show the message in the site alert popup, and if it worked we reload the page so
-      the new review appears in the list.
+    - openReviewPopup / closeReviewPopup / submitReview : upload-a-review flow (unchanged)
+    - openBuyerInfoFromCard : a buyer name was clicked - read the three data-* attributes
+                              the Razor code wrote into the <span>, fill the popup, show it
+    - closeBuyerInfoPopup   : hide the buyer info popup
 *@
 <script>
+
+    // ----------- Upload Review popup -----------
+
     // Open the review popup. If nobody is logged in, send the user to the sign-up page instead.
     function openReviewPopup() {
-        // Razor pastes the current actor here when it renders the page. It will be 'buyer', 'seller', or '' (empty).
         var actor = '@(actor ?? "")';
         if (actor == "") {
             window.location.href = '/Guest/SignUpPage';
@@ -118,21 +165,16 @@
         document.getElementById('reviewPopup').style.display = 'block';
     }
 
-    // Hide the review popup.
     function closeReviewPopup() {
         document.getElementById('reviewPopup').style.display = 'none';
     }
 
     // Send the review to the server, show the response message, and reload the page on success.
-    // The word "async" lets us use "await" below - it means "wait for this step to finish before moving on".
     async function submitReview() {
-        // Read the rating, comment and gig id out of the form.
         var rating = parseInt(document.getElementById('reviewRating').value);
         var comment = document.getElementById('reviewComment').value;
         var gigId = '@gigId';
 
-        // Send a POST to /Buyer/UploadGigReview with the three fields as standard form data.
-        // "await" pauses here until the server replies.
         var response = await fetch('/Buyer/UploadGigReview', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
@@ -143,15 +185,45 @@
             })
         });
 
-        // The server replies with JSON: { success: true/false, message: "..." }.
         var result = await response.json();
-
-        // Show the message inside the site alert popup (defined in the shared layout).
         showSiteAlert(result.message);
-
-        // If the upload succeeded, reload the page so the new review shows up in the list.
         if (result.success) {
             window.location.reload();
         }
+    }
+
+
+    // ----------- Buyer Info popup -----------
+
+    // Called when the user clicks a buyer name on a review card. The card's <span>
+    // carries data-display-name / data-username / data-bio attributes that Razor filled in.
+    function openBuyerInfoFromCard(elem) {
+        var displayName = elem.dataset.displayName;
+        var username = elem.dataset.username;
+        var bio = elem.dataset.bio;
+        var joinDate = elem.dataset.joinDate;
+
+        if (displayName == null || displayName == "") {
+            displayName = "Unknown";
+        }
+        if (username == null || username == "") {
+            username = "(none)";
+        }
+        if (bio == null || bio == "") {
+            bio = "(no bio)";
+        }
+        if (joinDate == null || joinDate == "") {
+            joinDate = "(unknown)";
+        }
+
+        document.getElementById('buyerInfoDisplayName').innerText = displayName;
+        document.getElementById('buyerInfoUsername').innerText = username;
+        document.getElementById('buyerInfoJoinDate').innerText = joinDate;
+        document.getElementById('buyerInfoBio').innerText = bio;
+        document.getElementById('buyerInfoPopup').style.display = 'block';
+    }
+
+    function closeBuyerInfoPopup() {
+        document.getElementById('buyerInfoPopup').style.display = 'none';
     }
 </script>

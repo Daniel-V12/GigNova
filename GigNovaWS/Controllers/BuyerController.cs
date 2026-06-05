@@ -743,7 +743,6 @@ namespace GigNovaWS.Controllers
                 Seller existingSeller = this.repositoryUOW.SellerRepository.GetById(seller.Seller_id);
                 if (existingSeller == null)
                 {
-                    seller.Seller_is_linked = false;
                     if (this.repositoryUOW.SellerRepository.Create(seller) == false)
                     {
                         this.repositoryUOW.DbHelperOledb.RollBack();

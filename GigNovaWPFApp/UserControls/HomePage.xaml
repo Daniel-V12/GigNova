@@ -128,7 +128,13 @@
                                TextWrapping="Wrap"
                                Foreground="#D0D0D0"
                                FontSize="15"
-                               Text="Order cancellations are only permitted within the first 72 hours after an order has been placed."/>
+                               Text="Orders move through three stages: in-progress while the seller is working, delivered once they upload the .rar or .zip file (with optional revision deliveries), and completed once you accept the work. After completion you can rate the gig from 1 to 5 stars to help future buyers compare sellers."/>
+
+                    <TextBlock Margin="0,12,0,0"
+                               TextWrapping="Wrap"
+                               Foreground="#D0D0D0"
+                               FontSize="15"
+                               Text="Prices can be shown in USD, EUR, ILS, GBP or JPY - exchange rates are fetched on the fly so you always see what an order costs in your currency."/>
 
                     <TextBlock Margin="0,12,0,0"
                                TextWrapping="Wrap"

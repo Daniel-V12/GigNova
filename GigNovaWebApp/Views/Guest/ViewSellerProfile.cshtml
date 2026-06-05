@@ -36,6 +36,10 @@
                         <img src="https://localhost:7059/api/Seller/GetPhoto?seller_id=@Model.seller.Seller_id" alt="@Model.seller.Seller_display_name" style="width:76px;height:76px;border-radius:50%;object-fit:cover;border:2px solid #4a4f80;" />
                         <div>
                             <p class="gig-title seller-main-title" style="font-size:22px;">@Model.seller.Seller_display_name</p>
+                            @if (Model.seller_person != null && string.IsNullOrEmpty(Model.seller_person.Person_username) == false)
+                            {
+                                <p class="price-label seller-main-text">Username: @Model.seller_person.Person_username</p>
+                            }
                             <p class="gig-description seller-main-text" style="min-height:auto;">@Model.seller.Seller_description</p>
                             @if (Model.seller_person != null)
                             {

@@ -47,6 +47,7 @@ namespace GigNovaModels.Models
             set { seller_avatar = value; }
         }
 
+        [MustBeTrue(ErrorMessage = "You must link a payment account before becoming a seller")]
         public bool Seller_is_linked
         {
             get { return seller_is_linked; }

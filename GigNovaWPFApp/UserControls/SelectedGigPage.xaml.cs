@@ -45,21 +45,7 @@ namespace GigNovaWPFApp.UserControls
             GigDescriptionText.Text = model.gig.Gig_description;
             GigPriceText.Text = "$" + model.gig.Gig_price.ToString("0");
             GigImageBorder.Background = MakeImageBrush(model.gig.Gig_photo);
-
-            // Render the comma-separated category ids as chips (one chip per id).
             CategoriesWrap.Children.Clear();
-            if (model.gig.Category_id != null && model.gig.Category_id.Trim() != "")
-            {
-                string[] parts = model.gig.Category_id.Split(',');
-                foreach (string part in parts)
-                {
-                    string t = part.Trim();
-                    if (t != "")
-                    {
-                        CategoriesWrap.Children.Add(MakeChip(t));
-                    }
-                }
-            }
 
             // Seller side card.
             if (model.seller != null)

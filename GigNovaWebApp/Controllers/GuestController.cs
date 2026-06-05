@@ -130,16 +130,17 @@ namespace GigNovaWebApp.Controllers
             return View(selectedGigViewModel);
         }
 
-        // Shows all reviews left on a gig.
+        // Shows all reviews left on a gig, enriched with each buyer's display name and bio
+        // so each card can show "By <buyer>" and the popup can show their full info.
         [HttpGet]
         public async Task<IActionResult> ViewGigReviews(string gig_id)
         {
-            ApiClient<List<Review>> client = BuildClient<List<Review>>("api/Guest/ViewGigReviews");
+            ApiClient<List<GigReviewViewModel>> client = BuildClient<List<GigReviewViewModel>>("api/Guest/GetReviewsWithBuyerByGigId");
             if (gig_id != null)
             {
                 client.AddParameter("gig_id", gig_id);
             }
-            List<Review> reviews = await client.GetAsync();
+            List<GigReviewViewModel> reviews = await client.GetAsync();
             ViewData["GigId"] = gig_id;
             return View(reviews);
         }

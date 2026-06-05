@@ -22,7 +22,6 @@ namespace GigNovaModels.Models
         int seller_id;
         bool is_publish;
         bool is_blocked;
-        string category_id;
         List<string> category_ids = new List<string>();
 
         public Gig()
@@ -115,12 +114,6 @@ namespace GigNovaModels.Models
         {
             get { return is_blocked; }
             set { is_blocked = value; }
-        }
-
-        public string Category_id
-        {
-            get { return category_id; }
-            set { category_id = value; }
         }
 
         public List<string> Category_ids

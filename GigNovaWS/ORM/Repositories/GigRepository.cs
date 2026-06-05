@@ -150,7 +150,7 @@ namespace GigNovaWS
             StringBuilder sb = new StringBuilder();
             sb.Append(@"SELECT Gigs.gig_id, Gigs.gig_name, Gigs.gig_description, Gigs.delivery_time_id,
                           Gigs.language_id, Gigs.gig_date, Gigs.gig_photo, Gigs.gig_price, Gigs.seller_id,
-                          Gigs.is_publish, Gigs.is_blocked, [Gigs - Categories].category_id
+                          Gigs.is_publish, Gigs.is_blocked
                           FROM Gigs
                           INNER JOIN [Gigs - Categories] ON Gigs.gig_id = [Gigs - Categories].gig_id");
 

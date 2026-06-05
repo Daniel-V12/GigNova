@@ -155,7 +155,8 @@
     var linkButtonTextSpan = document.getElementById('linkButtonText');
     var accountStatus = document.getElementById('accountStatus');
 
-    // Updates the button label and the status text based on whether the hidden checkbox is checked.
+    // Updates the button label and the status text based on whether the hidden checkbox is checked,
+    // AND enables/disables the Start Selling submit button (linking a payment account is required).
     function renderPaymentState() {
         if (linkedCheckbox == null || linkButtonTextSpan == null || accountStatus == null) {
             return;
@@ -167,6 +168,12 @@
         else {
             linkButtonTextSpan.textContent = 'Link Payment Account';
             accountStatus.textContent = 'No payment account linked';
+        }
+
+        // Block submission until the user has linked a payment account.
+        var submitBtn = document.getElementById('submitBtn');
+        if (submitBtn != null) {
+            submitBtn.disabled = linkedCheckbox.checked == false;
         }
     }
 

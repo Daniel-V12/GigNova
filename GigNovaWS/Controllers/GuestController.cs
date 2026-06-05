@@ -327,6 +327,76 @@ namespace GigNovaWS.Controllers
             }
         }
 
+        // Returns reviews for the gig enriched with each buyer's display name, bio, and username.
+        // Used by the WebApp reviews page so it can show "By <buyer>" and open a buyer-info popup.
+        // The WPF still uses ViewGigReviews above, which is left untouched.
+        [HttpGet]
+        public List<GigReviewViewModel> GetReviewsWithBuyerByGigId(string gig_id)
+        {
+            List<GigReviewViewModel> result = new List<GigReviewViewModel>();
+            try
+            {
+                this.repositoryUOW.DbHelperOledb.OpenConnection();
+                List<Review> reviews = this.repositoryUOW.ReviewRepository.GetReviewsByGigId(gig_id);
+                if (reviews == null)
+                {
+                    return result;
+                }
+
+                foreach (Review review in reviews)
+                {
+                    GigReviewViewModel item = new GigReviewViewModel();
+                    item.Review_id = review.Review_id;
+                    item.Review_rating = review.Review_rating;
+                    item.Review_comment = review.Review_comment;
+                    item.Review_creation_date = review.Review_creation_date;
+                    item.Buyer_id = review.Buyer_id;
+                    item.Buyer_display_name = "Unknown";
+                    item.Buyer_description = "";
+                    item.Person_username = "";
+                    item.Person_join_date = "";
+
+                    Buyer buyer = this.repositoryUOW.BuyerRepository.GetById(review.Buyer_id.ToString());
+                    if (buyer != null)
+                    {
+                        if (string.IsNullOrEmpty(buyer.Buyer_display_name) == false)
+                        {
+                            item.Buyer_display_name = buyer.Buyer_display_name;
+                        }
+                        if (buyer.Buyer_description != null)
+                        {
+                            item.Buyer_description = buyer.Buyer_description;
+                        }
+                    }
+
+                    Person person = this.repositoryUOW.PersonRepository.GetById(review.Buyer_id.ToString());
+                    if (person != null)
+                    {
+                        if (string.IsNullOrEmpty(person.Person_username) == false)
+                        {
+                            item.Person_username = person.Person_username;
+                        }
+                        if (string.IsNullOrEmpty(person.Person_join_date) == false)
+                        {
+                            item.Person_join_date = person.Person_join_date;
+                        }
+                    }
+
+                    result.Add(item);
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return result;
+            }
+            finally
+            {
+                this.repositoryUOW.DbHelperOledb.CloseConnection();
+            }
+        }
+
 
         // ============================== Seller Public Profile ==============================
 
