@@ -377,6 +377,7 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
+        
 
         // Unpublishes the gig (sets Is_publish back to false). Only allowed for the owning seller.
         [HttpPost]

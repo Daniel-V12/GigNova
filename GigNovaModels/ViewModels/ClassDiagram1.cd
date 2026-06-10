@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="GigNovaModels.ViewModels.BlockedListViewModel" Collapsed="true">
+    <Position X="3.25" Y="3" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAgAgACAAAQAAAAAAAAEAAAAAAAAAAAAAAAAAAgAAA=</HashCode>
+      <FileName>ViewModels\BlockedListViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.ViewModels.BuyerProfileUpdateViewModel" Collapsed="true">
+    <Position X="5.5" Y="3" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAgAAAAIAAAAAAAAgAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ViewModels\BuyerProfileUpdateViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.ViewModels.BuyerProfileViewmodel" Collapsed="true">
+    <Position X="8.25" Y="3" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAACAAA=</HashCode>
+      <FileName>ViewModels\BuyerProfileViewmodel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.ViewModels.CatalogViewModel" Collapsed="true">
+    <Position X="10.75" Y="3" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAgAACAAQAAAAARARAAAAgAAAEQAAQCABAIAIAgA=</HashCode>
+      <FileName>ViewModels\CatalogViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.ViewModels.CustomizeOrderViewModel" Collapsed="true">
+    <Position X="3.25" Y="4" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAABAEIAAgAAEAAAAAAAAAAAAAAAAAAAAAABAAA=</HashCode>
+      <FileName>ViewModels\CustomizeOrderViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.ViewModels.GigReviewViewModel" Collapsed="true">
+    <Position X="5.75" Y="4" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAAQAAAAAAAAAMAIAgAgAAgAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ViewModels\GigReviewViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.ViewModels.LoginRequestViewModel" Collapsed="true">
+    <Position X="8.25" Y="4" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAgAAAAA=</HashCode>
+      <FileName>ViewModels\LoginRequestViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.ViewModels.ManageGigsViewModel" Collapsed="true">
+    <Position X="10.75" Y="4" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAACBAAAIAAAA=</HashCode>
+      <FileName>ViewModels\ManageGigsViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.ViewModels.MessagesBoxViewModel" Collapsed="true">
+    <Position X="3.25" Y="5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAQAAAAA=</HashCode>
+      <FileName>ViewModels\MessagesBoxViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.ViewModels.OrdersViewModel" Collapsed="true">
+    <Position X="5.75" Y="5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ViewModels\OrdersViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.ViewModels.SelectedGigViewModel" Collapsed="true">
+    <Position X="8.25" Y="5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAAAEAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAA=</HashCode>
+      <FileName>ViewModels\SelectedGigViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.ViewModels.SelectedOrderViewModel" Collapsed="true">
+    <Position X="10.75" Y="5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ViewModels\SelectedOrderViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.ViewModels.SellerProfileViewModel" Collapsed="true">
+    <Position X="5.5" Y="6" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ViewModels\SellerProfileViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GigNovaModels.ViewModels.SellerPublicProfileViewModel" Collapsed="true">
+    <Position X="8.25" Y="6" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAIAABAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAgAAA=</HashCode>
+      <FileName>ViewModels\SellerPublicProfileViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

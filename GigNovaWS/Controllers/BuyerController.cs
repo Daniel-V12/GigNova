@@ -1,6 +1,7 @@
 ﻿using GigNovaModels.Models;
 using GigNovaModels.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Text.Json;
 
 namespace GigNovaWS.Controllers
@@ -709,7 +710,6 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
-
 
         // ============================== Become A Seller ==============================
 

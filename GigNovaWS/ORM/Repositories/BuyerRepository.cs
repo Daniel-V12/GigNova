@@ -19,7 +19,7 @@ namespace GigNovaWS
             this.dbHelperOledb.AddParameter("@buyer_display_name", model.Buyer_display_name);
             return this.dbHelperOledb.Insert(sql) > 0;
         }
-
+        
         // The buyer_id in the Buyers table is the same as the Person_id (1-to-1 with Person).
         public bool Update(Buyer model)
         {

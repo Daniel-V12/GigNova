@@ -4,10 +4,13 @@ using GigNovaWSClient;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Reflection.Metadata;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Xml.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GigNovaWPFApp.UserControls
 {
@@ -737,3 +740,4 @@ namespace GigNovaWPFApp.UserControls
         }
     }
 }
+

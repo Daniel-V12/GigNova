@@ -64,6 +64,7 @@ namespace GigNovaWS.Controllers
                 this.repositoryUOW.DbHelperOledb.CloseConnection();
             }
         }
+        
 
         // Builds a new CatalogViewModel with empty lists and copies the current filter values into it.
         private CatalogViewModel BuildCatalogViewModel(string categories, double min_price, double max_price, int delivery_time_id, int language_id, double min_rating)

@@ -45,6 +45,7 @@ namespace GigNovaModels.Models
             get { return person_username; }
             set { person_username = value; }
         }
+
         [Required(ErrorMessage = "Password is required")]
         [NoSpaces(ErrorMessage = "Password cannot contain spaces.")]
         [StringLength(50, MinimumLength = 6, ErrorMessage = "Password must be between 6 and 50 characters")]
@@ -53,6 +54,7 @@ namespace GigNovaModels.Models
             get { return person_password; }
             set { person_password = value; }
         }
+
         [Required(ErrorMessage = "Birthdate is required")]
         public string Person_birthdate
         {

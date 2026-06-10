@@ -73,6 +73,7 @@ namespace GigNovaModels.Models
             set { language_id = value; }
         }
 
+        [Required(ErrorMessage = "Gig photo is required")]
         public string Gig_photo
         {
             get { return gig_photo; }

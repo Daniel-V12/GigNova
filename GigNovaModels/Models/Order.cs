@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace GigNovaModels.Models
 {
-    public class Order:Model
+    public class Order : Model
     {
 
         string order_id;
@@ -30,11 +31,15 @@ namespace GigNovaModels.Models
             set { order_id = value; }
         }
 
+        [Required(ErrorMessage = "Order status is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please choose a valid order status")]
         public int Order_status_id
         {
             get { return order_status_id; }
             set { order_status_id = value; }
         }
+        [Required(ErrorMessage = "Order requirements are required")]
+        [StringLength(2000, MinimumLength = 5, ErrorMessage = "Requirements must be between 5 and 2000 characters")]
         public string Order_requirements
         {
             get { return order_requirements; }
