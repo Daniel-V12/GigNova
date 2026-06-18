@@ -10,11 +10,12 @@ namespace GigNovaModels.Models
 {
     public class Buyer : Person
     {
-        string buyer_description;
+        string? buyer_description;
         string buyer_display_name;
 
+
         [StringLength(250, ErrorMessage = "Description must be no longer than 250 characters")]
-        public string Buyer_description
+        public string? Buyer_description
         {
             get { return buyer_description; }
             set { buyer_description = value; }

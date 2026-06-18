@@ -605,6 +605,13 @@ namespace GigNovaWebApp.Controllers
                 return View("BecomeASellerPage", seller);
             }
 
+            // A profile picture is required to become a seller.
+            if (sellerAvatarFile == null || sellerAvatarFile.Length == 0)
+            {
+                ViewBag.ErrorMessage = "Please upload a profile picture.";
+                return View("BecomeASellerPage", seller);
+            }
+
             ApiClient<Seller> client = BuildClient<Seller>("api/Buyer/BecomeASeller");
             bool response = false;
             Stream avatarStream = null;

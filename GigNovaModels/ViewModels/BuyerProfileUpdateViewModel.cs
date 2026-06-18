@@ -12,7 +12,8 @@ namespace GigNovaModels.ViewModels
         [StringLength(30, MinimumLength = 2, ErrorMessage = "Display name must be between 2 and 30 characters")]
         public string Buyer_display_name { get; set; }
 
+        // Optional bio - nullable so it isn't treated as implicitly required (see Buyer.Buyer_description).
         [StringLength(250, ErrorMessage = "Description must be no longer than 250 characters")]
-        public string Buyer_description { get; set; }
+        public string? Buyer_description { get; set; }
     }
 }

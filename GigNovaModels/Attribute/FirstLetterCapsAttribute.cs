@@ -19,13 +19,12 @@ namespace GigNovaModels.Attribute
             if (text.Length == 0)
                 return true;
 
-            string[] words = text.Split(' ');
+            // Ignore empty entries so extra spaces between words (or leading/trailing
+            // spaces) don't fail the check - we only validate the actual words.
+            string[] words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             for (int w = 0; w < words.Length; w++)
             {
                 string word = words[w];
-
-                if (word.Length == 0)
-                    return false;
 
                 if (word[0] < 'A' || word[0] > 'Z')
                     return false;

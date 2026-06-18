@@ -319,6 +319,13 @@ namespace GigNovaWebApp.Controllers
                 }
             }
 
+            // A gig can have at most 4 categories.
+            if (gig.Category_ids.Count > 4)
+            {
+                TempData["ManageGigMessage"] = "You can select up to 4 categories only.";
+                return RedirectToAction("ManageGigs", new { seller_id = sellerId });
+            }
+
             ApiClient<Gig> client = BuildClient<Gig>("api/Seller/AddGig");
 
             bool response = false;
@@ -406,6 +413,13 @@ namespace GigNovaWebApp.Controllers
                         gig.Category_ids.Add(categoryId);
                     }
                 }
+            }
+
+            // A gig can have at most 4 categories.
+            if (gig.Category_ids.Count > 4)
+            {
+                TempData["ManageGigMessage"] = "You can select up to 4 categories only.";
+                return RedirectToAction("ManageGigs", new { seller_id = sellerId, gig_id = gig.Gig_id });
             }
 
             ApiClient<Gig> client = BuildClient<Gig>("api/Seller/EditGig");

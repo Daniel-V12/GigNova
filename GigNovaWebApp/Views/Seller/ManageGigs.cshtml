@@ -357,8 +357,13 @@
     }
 
     // Add a new (empty) category dropdown row at the bottom of the picker.
+    // A gig can have at most 4 categories, so don't add a 5th row.
     function addCategoryRow() {
         var picker = document.getElementById('categoryPicker');
+        var existingRows = picker.querySelectorAll('.category-row');
+        if (existingRows.length >= 4) {
+            return;
+        }
         var row = document.createElement('div');
         row.className = 'category-row';
         row.innerHTML =
@@ -367,6 +372,7 @@
             '</select>' +
             '<button type="button" class="category-remove-btn" onclick="removeCategoryRow(this)">x</button>';
         picker.appendChild(row);
+        updateCategoryAddButton();
     }
 
     // Remove the row that owns the given "x" button.
@@ -379,10 +385,27 @@
             if (select != null) {
                 select.value = '';
             }
+            updateCategoryAddButton();
             return;
         }
         button.parentElement.remove();
+        updateCategoryAddButton();
     }
+
+    // A gig can have at most 4 categories, so disable the "+ Add another category"
+    // button once there are already 4 rows.
+    function updateCategoryAddButton() {
+        var picker = document.getElementById('categoryPicker');
+        var addButton = document.querySelector('.category-add-btn');
+        if (picker == null || addButton == null) {
+            return;
+        }
+        var rows = picker.querySelectorAll('.category-row');
+        addButton.disabled = rows.length >= 4;
+    }
+
+    // Set the correct initial state on load (e.g. when editing a gig that already has 4).
+    updateCategoryAddButton();
 
 
     // ----------- 2. PHOTO POPUP -----------

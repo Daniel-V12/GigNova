@@ -18,7 +18,7 @@
         {
             personId = Model.buyer.Person_id;
             buyerDisplayName = Model.buyer.Buyer_display_name;
-            buyerBio = Model.buyer.Buyer_description;
+            buyerBio = Model.buyer.Buyer_description ?? "";
             if (string.IsNullOrEmpty(Model.buyer.Person_join_date) == false)
             {
                 joinDate = Model.buyer.Person_join_date;

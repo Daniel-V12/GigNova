@@ -11,20 +11,27 @@ namespace GigNovaModels.Models
     public class Seller : Model
     {
 
-        string seller_id;
+        string seller_id = "";
         string seller_description;
         string seller_display_name;
-        string seller_avatar;
+        string seller_avatar = "";
         bool seller_is_linked;
 
         public Seller()
         {
 
         }
+
         public string Seller_id
         {
             get { return seller_id; }
-            set { seller_id = value; }
+            set
+            {
+                if (value == null)
+                    seller_id = "";
+                else
+                    seller_id = value;
+            }
         }
         [Required(ErrorMessage = "Description is required")]
         [StringLength(500, MinimumLength = 10, ErrorMessage = "Description must be between 10 and 500 characters")]
@@ -41,10 +48,17 @@ namespace GigNovaModels.Models
             get { return seller_display_name; }
             set { seller_display_name = value; }
         }
+
         public string Seller_avatar
         {
             get { return seller_avatar; }
-            set { seller_avatar = value; }
+            set
+            {
+                if (value == null)
+                    seller_avatar = "";
+                else
+                    seller_avatar = value;
+            }
         }
 
         [MustBeTrue(ErrorMessage = "You must link a payment account before becoming a seller")]
