@@ -29,9 +29,15 @@ namespace GigNovaModels.Attribute
                 if (word[0] < 'A' || word[0] > 'Z')
                     return false;
 
+                // Only the FIRST letter of each word has to be uppercase. The remaining
+                // letters may be upper OR lower case, so acronyms like "SEO", "HTML" or
+                // mixed-case words like "PhD" are accepted (previously they were rejected
+                // because the loop required every following letter to be lowercase).
                 for (int i = 1; i < word.Length; i++)
                 {
-                    if (word[i] < 'a' || word[i] > 'z')
+                    bool isLowerLetter = (word[i] >= 'a' && word[i] <= 'z');
+                    bool isUpperLetter = (word[i] >= 'A' && word[i] <= 'Z');
+                    if (isLowerLetter == false && isUpperLetter == false)
                         return false;
                 }
             }

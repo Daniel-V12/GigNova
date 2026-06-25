@@ -641,6 +641,12 @@ namespace GigNovaWebApp.Controllers
 
             if (response)
             {
+                // The user is now also a seller, so promote the session role to "seller".
+                // Every shared page (catalog, orders, profile, messaging, ...) picks its
+                // master layout and profile links from this session value, so without this
+                // line a freshly-registered seller keeps getting the BUYER dashboard and the
+                // "Open Profile" button sends them to the buyer profile instead of the seller one.
+                HttpContext.Session.SetString("actor", "seller");
                 TempData["BecomeSellerMessage"] = "You are now a seller.";
                 return RedirectToAction("HomePage", "Seller");
             }

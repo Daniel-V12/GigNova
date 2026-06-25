@@ -11,7 +11,9 @@ namespace GigNovaWPFApp.UserControls
     public partial class SelectedGigPage : UserControl
     {
         // Where all gig / seller images are served from (the WS's /Images folder).
-        private const string ImagesBaseUrl = "http://localhost:7059/Images/";
+        // Must be HTTPS: the WS only listens for HTTPS on port 7059, so an "http://" URL
+        // never connects and the image silently comes back blank.
+        private const string ImagesBaseUrl = "https://localhost:7059/Images/";
 
         private string gigId;
 
@@ -51,7 +53,10 @@ namespace GigNovaWPFApp.UserControls
             if (model.seller != null)
             {
                 SellerNameText.Text = model.seller.Seller_display_name;
-                SellerAvatar.Fill = MakeImageBrush(model.seller.Seller_avatar);
+                if (string.IsNullOrWhiteSpace(model.seller.Seller_avatar) == false)
+                {
+                    SellerAvatar.Fill = MakeImageBrush("SellerAvatars/" + model.seller.Seller_avatar);
+                }
             }
         }
 
@@ -65,10 +70,12 @@ namespace GigNovaWPFApp.UserControls
 
         // ============================== Helpers ==============================
 
-        // Builds an ImageBrush from a filename in the WS's /Images folder. Returns null if no filename.
+        // Builds an ImageBrush from a filename in the WS's /Images folder. Returns null if no
+        // filename (or the "none" placeholder a photo-less gig stores) so we don't try to
+        // load a broken URL.
         private ImageBrush MakeImageBrush(string fileName)
         {
-            if (fileName == null || fileName.Trim() == "")
+            if (fileName == null || fileName.Trim() == "" || fileName == "none")
             {
                 return null;
             }
